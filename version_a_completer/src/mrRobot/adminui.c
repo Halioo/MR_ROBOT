@@ -12,8 +12,10 @@ static int k_input;
 static Flag flag_stop;
 
 
+// TODO demander les mvts au pilote
 static void ask_mvt(Direction dir) {}
 
+// TODO ask4logs
 static void ask4log() {}
 
 /**

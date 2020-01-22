@@ -38,7 +38,6 @@
 
 typedef enum {LEFT=0, RIGHT, FORWARD, BACKWARD} Direction;
 
-
 typedef struct
 {
     Direction dir;

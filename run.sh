@@ -21,6 +21,7 @@ version="wip"
 while [ -n "$1" ]; do # while loop starts
     case "$1" in
     -sim) sim=1;;
+    -c) comp=1;;
     -v)
         version="$2"
         shift
@@ -44,6 +45,7 @@ fi
 # Run the compiled program
 # If no arguments -> run wip version
 # If any argument -> run src version
+
 case $version in
   "src" )
     echo "-----STARTING SOURCE ROBOT-----"

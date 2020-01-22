@@ -4,20 +4,70 @@
 #include "robot.h"
 
 
-typedef enum {ON, OFF} Event;
+typedef enum {DEFAULT=0, SET_VEL, CHECK} Event;
+
+typedef enum {INIT=0, IDLE, RUNNING} State;
+
+
+
+static State current_state;
+
+
+static void run(Event event, VelocityVector vel) {
+    switch (current_state) {
+        case INIT:
+            
+            current_state = IDLE;
+            break;
+        case IDLE:
+            break;
+        case RUNNING:
+            break;
+        default: break;
+    }
+}
+
+static void send_mvt(VelocityVector vel) {
+    int vel_r = 0, vel_l = 0;
+    switch (vel.dir) {
+        case FORWARD:
+            vel_r = vel.power;
+            vel_l = vel.power;
+            break;
+        case BACKWARD:
+            vel_r = -vel.power;
+            vel_l = -vel.power;
+            break;
+        case RIGHT:
+            vel_r = -vel.power;
+            vel_l = vel.power;
+            break;
+        case LEFT:
+            vel_r = vel.power;
+            vel_r = -vel.power;
+            break;
+        default: break;
+    }
+    Robot_setWheelsVelocity(vel_r, vel_l);
+}
+
+static bool has_bumped() {
+    return Robot_getSensorState().collision;
+}
+
 
 /**
  * Start Pilot
  */
 extern void Pilot_start() {
-    //Robot_start();
+    Robot_start();
 }
 
 /**
  * Stop Pilot
  */
 extern void Pilot_stop() {
-    //Robot_stop();
+    Robot_stop();
 }
 
 /**
@@ -36,7 +86,9 @@ extern void Pilot_free() {}
  * @brief description
  * @param vel
  */
-extern void Pilot_setVelocity(VelocityVector vel) {}
+extern void Pilot_setVelocity(VelocityVector vel) {
+    run(SET_VEL, vel);
+}
 
 /**
  * getState
@@ -52,12 +104,3 @@ extern PilotState Pilot_getState() {}
  * @brief description
  */
 extern void Pilot_check() {}
-
-
-static void run(Event event, VelocityVector vel) {}
-
-static void send_mvt(VelocityVector vel) {}
-
-static bool has_bumped() {
-    return false;
-}
