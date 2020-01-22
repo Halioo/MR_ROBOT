@@ -93,8 +93,13 @@ extern int Robot_getRobotSpeed() {
  */
 extern SensorState Robot_getSensorState() {
     SensorState st;
-    st.collision = ContactSensor_getStatus(robot->sensor_bump);
+
+    ContactStatus sensor_status = ContactSensor_getStatus(robot->sensor_bump);
+    if (sensor_status == PRESSED) {st.collision = BUMPED;}
+    else {st.collision = NO_BUMP;}
+
     st.luminosity = LightSensor_getStatus(robot->sensor_light);
+
     return st;
 }
 

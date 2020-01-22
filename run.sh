@@ -21,7 +21,7 @@ version="wip"
 while [ -n "$1" ]; do # while loop starts
     case "$1" in
     -sim) sim=1;;
-    -c) comp=1;;
+    # -c) comp=1;;
     -v)
         version="$2"
         shift
@@ -61,3 +61,6 @@ case $version in
   * )
     echo "__/!\__ VERSION INTROUVABLE __/!\__" ;;
 esac
+
+# Reset properly the terminal if it hasn't been done
+stty echo cooked

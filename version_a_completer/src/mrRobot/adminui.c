@@ -4,19 +4,29 @@
 #include "pilot.h"
 #include "robot.h"
 
+#define DEFAULT_POWER 30
 
 typedef enum {OFF=0, ON} Flag;
-
 
 static int k_input;
 static Flag flag_stop;
 
 
-// TODO demander les mvts au pilote
-static void ask_mvt(Direction dir) {}
+static void ask_mvt(Direction dir) {
+    VelocityVector vel = {
+            .dir = dir,
+            .power = DEFAULT_POWER
+    };
+    Pilot_setVelocity(vel);
+}
 
 // TODO ask4logs
-static void ask4log() {}
+static void ask4log() {
+    Pilot_check();
+    PilotState pt = Pilot_getState();
+    printf("Etat du robot: Vitesse %d, Collision %d, Lumiere %f\n",
+            pt.speed, pt.collision, pt.luminosity);
+}
 
 /**
  * Show all possible inputs in the terminal
@@ -47,23 +57,23 @@ static void capture_choice() {
         switch (k_input) {
             case 'q':
                 printf("aller à gauche\n");
-                // TODO faire tourner à gauche
+                ask_mvt(LEFT);
                 break;
             case 'd':
                 printf("aller à droite\n");
-                // TODO faire tourner à droite
+                ask_mvt(RIGHT);
                 break;
             case 'z':
                 printf("avancer\n");
-                // TODO avancer
+                ask_mvt(FORWARD);
                 break;
             case 's':
                 printf("reculer\n");
-                // TODO reculer
+                ask_mvt(BACKWARD);
                 break;
             case ' ':
                 printf("stopper\n");
-                // TODO Stopper robot
+                // TODO Stopper le robot
                 break;
             case 'e':
                 printf("effacer les logs\n");
@@ -71,7 +81,8 @@ static void capture_choice() {
                 break;
             case 'r':
                 printf("afficher l'état du robot\n");
-                // TODO afficher l'etat du robot
+                for (int i=0; i<16; i++) {printf("\n");}
+                ask4log();
                 break;
             default:
                 printf("Cette commande n'est pas reconnue\n");
@@ -104,7 +115,7 @@ static void quit() {
 extern void AdminUI_start()
 {
     printf("Bienvenue sur Robot V1\n");
-    //Pilot_start();
+    Pilot_start();
     run();
 }
 
@@ -114,7 +125,7 @@ extern void AdminUI_start()
 extern void AdminUI_stop()
 {
     quit();
-    //Pilot_stop();
+    Pilot_stop();
     printf("Merci d'avoir utilisé Robot V1\n");
     printf("A bientôt\n");
     fflush(stdout);
