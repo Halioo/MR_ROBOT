@@ -1,13 +1,11 @@
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "pilot.h"
 #include "robot.h"
 
 #define DEFAULT_SPEED 0
 
-#define TEST printf("JE SUIS PASSE ICI EN ETANT %s\n\n", (const char *) current_state);
 
 typedef enum {DEFAULT_EVENT=0, SET_VEL, CHECK} Event;
 
@@ -26,7 +24,7 @@ static bool has_bumped() {
 }
 
 static void send_mvt(VelocityVector vel) {
-    int vel_r = 0, vel_l = 0;
+    int vel_r = DEFAULT_SPEED, vel_l = DEFAULT_SPEED;
     switch (vel.dir) {
         case FORWARD:
             vel_r = vel.power;
@@ -59,6 +57,8 @@ static void switch_state(State new_state) {
             current_state = IDLE;
             break;
         case RUNNING:
+            current_state = RUNNING;
+            break;
         default: break;
     }
 }
@@ -85,7 +85,7 @@ static void run(Event event, VelocityVector vel) {
         case RUNNING:
             switch (event) {
                 case SET_VEL:
-                    if (vel.power == 0) {
+                    if (vel.power == 0 || has_bumped()) {
                         switch_state(IDLE);
                     } else {
                         send_mvt(vel);
@@ -111,7 +111,6 @@ extern void Pilot_start() {
     Pilot_new();
     Robot_start();
     run(DEFAULT_EVENT, DEFAULT_VELOCITY_VECTOR);
-
 }
 
 /**

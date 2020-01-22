@@ -85,7 +85,9 @@ static void capture_choice() {
                 break;
             case ' ':
                 printf("stopper\n");
-                // TODO Stopper le robot
+                VelocityVector vel;
+                vel.power = 0;
+                Pilot_setVelocity(vel);
                 break;
             case 'e':
                 printf("effacer les logs\n");
