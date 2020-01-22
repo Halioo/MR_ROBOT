@@ -5,11 +5,11 @@
 #include "robot.h"
 
 
-typedef enum {ACTIVATED=1, DEACTIVATED=0} Flag;
+typedef enum {OFF=0, ON} Flag;
 
 
 static int k_input;
-static Flag flag_stop = DEACTIVATED;
+static Flag flag_stop;
 
 
 static void ask_mvt(Direction dir) {}
@@ -39,7 +39,7 @@ static void capture_choice() {
     system("stty cooked");
     if (k_input == 'a') {
         printf("quitter\n");
-        flag_stop = ACTIVATED;
+        flag_stop = ON;
     } else {
         printf("Vous avez demandé l'action :\n");
         switch (k_input) {
@@ -71,10 +71,6 @@ static void capture_choice() {
                 printf("afficher l'état du robot\n");
                 // TODO afficher l'etat du robot
                 break;
-            case 'a':
-                printf("quitter\n");
-                flag_stop = ACTIVATED;
-                break;
             default:
                 printf("Cette commande n'est pas reconnue\n");
                 break;
@@ -88,16 +84,15 @@ static void run() {
     // Stop displaying keys input in terminal
     system("stty -echo");
     display();
-    flag_stop = DEACTIVATED;
-    while (flag_stop == DEACTIVATED) {
-        k_input=getchar();
+    while (flag_stop == OFF) {
+        k_input = getchar();
         capture_choice();
     }
 }
 
 static void quit() {
     // Reset terminal parameters
-    //system("stty echo cooked");
+    system("stty echo cooked");
 }
 
 /**
@@ -107,6 +102,7 @@ static void quit() {
 extern void AdminUI_start()
 {
     printf("Bienvenue sur Robot V1\n");
+    //Pilot_start();
     run();
 }
 
@@ -116,6 +112,7 @@ extern void AdminUI_start()
 extern void AdminUI_stop()
 {
     quit();
+    //Pilot_stop();
     printf("Merci d'avoir utilisé Robot V1\n");
     printf("A bientôt\n");
     fflush(stdout);

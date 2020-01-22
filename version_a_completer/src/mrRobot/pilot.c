@@ -4,21 +4,20 @@
 #include "robot.h"
 
 
-typedef int Event;
-
+typedef enum {ON, OFF} Event;
 
 /**
  * Start Pilot
  */
 extern void Pilot_start() {
-    Robot_start();
+    //Robot_start();
 }
 
 /**
  * Stop Pilot
  */
 extern void Pilot_stop() {
-    Robot_stop();
+    //Robot_stop();
 }
 
 /**
