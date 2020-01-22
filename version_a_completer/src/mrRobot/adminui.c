@@ -4,7 +4,9 @@
 #include "pilot.h"
 #include "robot.h"
 
-#define DEFAULT_POWER 30
+#define DEFAULT_POWER_FWD 80
+#define DEFAULT_POWER_BCKWD 60
+#define DEFAULT_POWER_TURN 50
 
 typedef enum {OFF=0, ON} Flag;
 
@@ -15,8 +17,18 @@ static Flag flag_stop;
 static void ask_mvt(Direction dir) {
     VelocityVector vel = {
             .dir = dir,
-            .power = DEFAULT_POWER
     };
+    switch (dir) {
+        case FORWARD:
+            vel.power = DEFAULT_POWER_FWD;
+            break;
+        case BACKWARD:
+            vel.power = DEFAULT_POWER_BCKWD;
+            break;
+        default:
+            vel.power = DEFAULT_POWER_TURN;
+            break;
+    }
     Pilot_setVelocity(vel);
 }
 
