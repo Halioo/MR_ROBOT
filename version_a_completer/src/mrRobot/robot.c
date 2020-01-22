@@ -22,7 +22,7 @@ typedef struct Robot_t {
     //ContactSensor* sensor_floor;
 } Robot;
 
-Robot * robot;
+static Robot * robot;
 
 /**
  * Start the Robot (initialize communication and open port)

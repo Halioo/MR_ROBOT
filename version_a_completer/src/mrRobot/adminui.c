@@ -5,40 +5,12 @@
 #include "robot.h"
 
 
+typedef enum {ACTIVATED=1, DEACTIVATED=0} Flag;
+
+
 static int k_input;
+static Flag flag_stop = DEACTIVATED;
 
-
-static void capture_choice() {
-    system("stty cooked");
-    printf("Vous avez demandé l'action :\n");
-    switch (k_input) {
-        case 'q':
-            printf("aller à gauche\n");
-            break;
-        case 'd':
-            printf("aller à droite\n");
-            break;
-        case 'z':
-            printf("avancer\n");
-            break;
-        case 's':
-            printf("reculer\n");
-            break;
-        case ' ':
-            printf("stopper\n");
-            break;
-        case 'e':
-            printf("effacer les logs\n");
-            system("clear");
-            break;
-        case 'r':
-            printf("Afficher l'état du robot");
-        default:
-            printf("Cette commande n'est pas reconnue\n");
-            break;
-    }
-    system ("stty raw");
-}
 
 static void ask_mvt(Direction dir) {}
 
@@ -63,19 +35,69 @@ static void display()
     system("stty raw");
 }
 
+static void capture_choice() {
+    system("stty cooked");
+    if (k_input == 'a') {
+        printf("quitter\n");
+        flag_stop = ACTIVATED;
+    } else {
+        printf("Vous avez demandé l'action :\n");
+        switch (k_input) {
+            case 'q':
+                printf("aller à gauche\n");
+                // TODO faire tourner à gauche
+                break;
+            case 'd':
+                printf("aller à droite\n");
+                // TODO faire tourner à droite
+                break;
+            case 'z':
+                printf("avancer\n");
+                // TODO avancer
+                break;
+            case 's':
+                printf("reculer\n");
+                // TODO reculer
+                break;
+            case ' ':
+                printf("stopper\n");
+                // TODO Stopper robot
+                break;
+            case 'e':
+                printf("effacer les logs\n");
+                for (int i=0; i<16; i++) {printf("\n");}
+                break;
+            case 'r':
+                printf("afficher l'état du robot\n");
+                // TODO afficher l'etat du robot
+                break;
+            case 'a':
+                printf("quitter\n");
+                flag_stop = ACTIVATED;
+                break;
+            default:
+                printf("Cette commande n'est pas reconnue\n");
+                break;
+        }
+        display();
+    }
+    system ("stty raw");
+}
+
 static void run() {
     // Stop displaying keys input in terminal
     system("stty -echo");
     display();
-    while ((k_input=getchar())!= 'a') {
+    flag_stop = DEACTIVATED;
+    while (flag_stop == DEACTIVATED) {
+        k_input=getchar();
         capture_choice();
-        display();
     }
 }
 
 static void quit() {
     // Reset terminal parameters
-    system("stty echo cooked");
+    //system("stty echo cooked");
 }
 
 /**
@@ -94,7 +116,7 @@ extern void AdminUI_start()
 extern void AdminUI_stop()
 {
     quit();
-    printf("\nMerci d'avoir utilisé Robot V1\n");
+    printf("Merci d'avoir utilisé Robot V1\n");
     printf("A bientôt\n");
     fflush(stdout);
 }
