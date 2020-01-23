@@ -8,12 +8,18 @@
 #define DEFAULT_POWER_BCKWD 60
 #define DEFAULT_POWER_TURN 50
 
+
 typedef enum {OFF=0, ON} Flag;
+
 
 static int k_input;
 static Flag flag_stop;
 
 
+/**
+ * Transforme une direction en un VelocityVector
+ * et l'envoie au pilote
+ */
 static void ask_mvt(Direction dir) {
     VelocityVector vel = {
             .dir = dir,
@@ -32,7 +38,10 @@ static void ask_mvt(Direction dir) {
     Pilot_setVelocity(vel);
 }
 
-// TODO ask4logs
+/**
+ * Demande l'actualisation du pilote, récupère
+ * ses états et les affiche dans la console
+ */
 static void ask4log() {
     Pilot_check();
     PilotState pt = Pilot_getState();
@@ -59,8 +68,12 @@ static void display()
     system("stty raw");
 }
 
+/**
+ * Effectue l'action correspondant à la touche pressée
+ */
 static void capture_choice() {
     system("stty cooked");
+    // Si le user veut quitter, lève le flag
     if (k_input == 'a') {
         printf("quitter\n");
         flag_stop = ON;
@@ -107,6 +120,10 @@ static void capture_choice() {
     system ("stty raw");
 }
 
+/**
+ * Fonction principale du programme
+ * Boucle tant que le flag du stop n'est pas levé
+ */
 static void run() {
     // Stop displaying keys input in terminal
     system("stty -echo");
@@ -117,6 +134,9 @@ static void run() {
     }
 }
 
+/**
+ * Fonction de réinitialisation des paramètres
+ */
 static void quit() {
     // Reset terminal parameters
     system("stty echo cooked");

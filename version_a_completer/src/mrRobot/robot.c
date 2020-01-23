@@ -1,4 +1,3 @@
-/* -*- mode: c; c-basic-offset: 4; indent-tabs-mode: nil -*- */
 
 #include <stdlib.h>
 
@@ -12,7 +11,6 @@
 #define FRONT_BUMPER S3
 #define FLOOR_SENSOR S2
 
-const int ROBOT_CMD_STOP = 0;
 
 typedef struct Robot_t {
     Motor * motor_r;
@@ -22,7 +20,10 @@ typedef struct Robot_t {
     //ContactSensor* sensor_floor;
 } Robot;
 
+const int ROBOT_CMD_STOP = 0;
+
 static Robot * robot;
+
 
 /**
  * Start the Robot (initialize communication and open port)
