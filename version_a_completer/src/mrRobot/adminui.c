@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pilot.h"
-#include "robot.h"
 
 #define DEFAULT_POWER_FWD 80
 #define DEFAULT_POWER_BCKWD 60
