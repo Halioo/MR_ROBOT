@@ -25,8 +25,8 @@ typedef enum {
     MSG_DEFAULT, MSG_START, MSG_STOP,
     MSG_COMMANDS, MSG_LOGS, MSG_QUIT,
     MSG_UNKNOWN_COMMAND, MSG_COMMAND_ASKED,
-    MSG_COMMAND_Q,MSG_COMMAND_D,MSG_COMMAND_Z, MSG_COMMAND_S,
-    MSG_COMMAND_SPACE, MSG_COMMAND_E, MSG_COMMAND_R,
+    MSG_COMMAND_LEFT,MSG_COMMAND_STATEIGHT,MSG_COMMAND_FWD, MSG_COMMAND_BCKWD,
+    MSG_COMMAND_STOP, MSG_COMMAND_LOGS, MSG_COMMAND_STATE,
     MSG_NUMBER
 } TYPES_MSG;
 
@@ -35,8 +35,7 @@ typedef enum {
 #define LANG FRENCH
 #endif
 
-static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] =
-{
+static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] = {
     {   // MSG_DEFAULT
         "Langue : Français\n",
         "Language : English\n",
@@ -85,37 +84,37 @@ static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] =
         "You requested the following action:\n",
         "Sie haben folgende aktion angefordert :\n"
     },
-    {   // MSG_COMMAND_Q
+    {   // MSG_COMMAND_LEFT
         "aller à gauche\n",
         "go left\n",
         "gehe nach links\n"
     },
-    {   // MSG_COMMAND_D
+    {   // MSG_COMMAND_STATEIGHT
         "aller à droite\n",
         "go right\n",
         "gehe nach rechts\n"
     },
-    {   // MSG_COMMAND_Z
+    {   // MSG_COMMAND_FWD
         "avancer\n",
         "go forward\n",
         "voraus\n"
     },
-    {   // MSG_COMMAND_S
+    {   // MSG_COMMAND_BCKWD
         "reculer\n",
         "go backward\n",
         "rückzug\n"
     },
-    {   // MSG_COMMAND_SPACE
+    {   // MSG_COMMAND_STOP
         "stopper\n",
         "stop\n",
         "anschlag\n"
     },
-    {   // MSG_COMMAND_E
+    {   // MSG_COMMAND_LOGS
         "effacer les logs\n",
         "clear logs\n",
         "lösche sie logs\n"
     },
-    {   // MSG_COMMAND_R
+    {   // MSG_COMMAND_STATE
         "afficher l'état du robot\n",
         "show robot's state\n",
         "roboterstatus anzeigen\n"
@@ -190,33 +189,33 @@ static void capture_choice() {
         printf("%s", get_msg(MSG_COMMAND_ASKED));
         switch (k_input) {
             case 'q':
-                printf("%s", get_msg(MSG_COMMAND_Q));
+                printf("%s", get_msg(MSG_COMMAND_LEFT));
                 ask_mvt(LEFT);
                 break;
             case 'd':
-                printf("%s", get_msg(MSG_COMMAND_D));
+                printf("%s", get_msg(MSG_COMMAND_STATEIGHT));
                 ask_mvt(RIGHT);
                 break;
             case 'z':
-                printf("%s", get_msg(MSG_COMMAND_Z));
+                printf("%s", get_msg(MSG_COMMAND_FWD));
                 ask_mvt(FORWARD);
                 break;
             case 's':
-                printf("%s", get_msg(MSG_COMMAND_S));
+                printf("%s", get_msg(MSG_COMMAND_BCKWD));
                 ask_mvt(BACKWARD);
                 break;
             case ' ':
-                printf("%s", get_msg(MSG_COMMAND_SPACE));
+                printf("%s", get_msg(MSG_COMMAND_STOP));
                 VelocityVector vel;
                 vel.power = 0;
                 Pilot_setVelocity(vel);
                 break;
             case 'e':
-                printf("%s", get_msg(MSG_COMMAND_E));
+                printf("%s", get_msg(MSG_COMMAND_LOGS));
                 for (int i=0; i<16; i++) {printf("\n");}
                 break;
             case 'r':
-                printf("%s", get_msg(MSG_COMMAND_R));
+                printf("%s", get_msg(MSG_COMMAND_STATE));
                 for (int i=0; i<16; i++) {printf("\n");}
                 ask4log();
                 break;
