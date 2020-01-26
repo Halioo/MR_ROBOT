@@ -33,14 +33,15 @@
  * 
  */
 
+
 #include "./mrRobot/adminui.h"
+
 
 /**
  * starts the robot V1 application
  */
 int main (int argc, char *argv[])
 {
-
   AdminUI_new();
   AdminUI_start();
   AdminUI_stop();

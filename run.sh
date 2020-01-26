@@ -9,7 +9,7 @@ Usage: $PROGNAME [-v <version>] [-sim]
 
 -v <version> : choose between 3 versions : src, hello and wip
                default version : wip
- -s <status> : launch the simulator
+-sim <status> : launch the simulator
 
 EOF
   exit 1
@@ -64,3 +64,4 @@ esac
 
 # Reset properly the terminal if it hasn't been done
 stty echo cooked
+sleep 0.2
