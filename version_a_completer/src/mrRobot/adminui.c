@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "pilot.h"
 
-#define LANG GERMAN
+#define LANG FRENCH
 
 
 #define DEFAULT_POWER_FWD 80
