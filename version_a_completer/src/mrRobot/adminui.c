@@ -32,7 +32,7 @@ typedef enum {
 
 // Default langage
 #ifndef LANG
-#define LANG FRENCH
+#define LANG ENGLISH
 #endif
 
 static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] =
