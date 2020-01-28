@@ -25,7 +25,7 @@ typedef enum {
     MSG_DEFAULT, MSG_START, MSG_STOP,
     MSG_COMMANDS, MSG_LOGS, MSG_QUIT,
     MSG_UNKNOWN_COMMAND, MSG_COMMAND_ASKED,
-    MSG_COMMAND_LEFT,MSG_COMMAND_STATEIGHT,MSG_COMMAND_FWD, MSG_COMMAND_BCKWD,
+    MSG_COMMAND_LEFT,MSG_COMMAND_RIGHT,MSG_COMMAND_FWD, MSG_COMMAND_BCKWD,
     MSG_COMMAND_STOP, MSG_COMMAND_LOGS, MSG_COMMAND_STATE,
     MSG_NUMBER
 } TYPES_MSG;
@@ -90,7 +90,7 @@ static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] =
             "go left\n",
             "gehe nach links\n"
         },
-        {   // MSG_COMMAND_STATEIGHT
+        {   // MSG_COMMAND_RIGHT
             "aller à droite\n",
             "go right\n",
             "gehe nach rechts\n"
@@ -194,7 +194,7 @@ static void capture_choice() {
                 ask_mvt(LEFT);
                 break;
             case 'd':
-                printf("%s", get_msg(MSG_COMMAND_STATEIGHT));
+                printf("%s", get_msg(MSG_COMMAND_RIGHT));
                 ask_mvt(RIGHT);
                 break;
             case 'z':
