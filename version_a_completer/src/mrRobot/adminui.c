@@ -35,91 +35,92 @@ typedef enum {
 #define LANG FRENCH
 #endif
 
-static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] = {
-    {   // MSG_DEFAULT
-        "Langue : Français\n",
-        "Language : English\n",
-        "Sprache: Deutsch\n"
-    },
-    {   // MSG_START
-        "Bienvenue sur Robot V1\n",
-        "Welcome to Robot V1\n",
-        "Willkommen bei Robot V1\n"
-    },
-    {   // MSG_STOP
-        "Merci d'avoir utilisé Robot V1\nA bientôt !\n",
-        "Thank you for using Robot V1\nSee you soon!\n",
-        "Vielen Dank, dass Sie Robot V1 verwenden\nBis bald !\n"
-    },
-    {   // MSG_COMMANDS
-        "Vous pouvez faire les actions suivantes :\n"
-        "q:aller à gauche\nd:aller à droite\nz:avancer\ns:reculer\n :stopper\n"
-        "e:effacer les logs\nr:afficher l'état du robot\na:quitter\n",
+static char const * const msg[MSG_NUMBER][LANGUAGE_NUMBER] =
+    {
+        {   // MSG_DEFAULT
+            "Langue : Français\n",
+            "Language : English\n",
+            "Sprache: Deutsch\n"
+        },
+        {   // MSG_START
+            "Bienvenue sur Robot V1\n",
+            "Welcome to Robot V1\n",
+            "Willkommen bei Robot V1\n"
+        },
+        {   // MSG_STOP
+            "Merci d'avoir utilisé Robot V1\nA bientôt !\n",
+            "Thank you for using Robot V1\nSee you soon!\n",
+            "Vielen Dank, dass Sie Robot V1 verwenden\nBis bald !\n"
+        },
+        {   // MSG_COMMANDS
+            "Vous pouvez faire les actions suivantes :\n"
+            "q:aller à gauche\nd:aller à droite\nz:avancer\ns:reculer\n :stopper\n"
+            "e:effacer les logs\nr:afficher l'état du robot\na:quitter\n",
 
-        "You can do the following actions:\n"
-        "q:go left\nd:go right\nz:go forward\ns:go backward\n :stop\n"
-        "e:clear logs\nr:show robot's state\na:quit\n",
+            "You can do the following actions:\n"
+            "q:go left\nd:go right\nz:go forward\ns:go backward\n :stop\n"
+            "e:clear logs\nr:show robot's state\na:quit\n",
 
-        "Sie können die folgenden Aktionen ausführen :\n"
-        "q:gehe nach links\nd:gehe nach rechts\nz:voraus\ns:rückzug\n :anschlag\n"
-        "e:lösche sie logs\nr:roboterstatus anzeigen\na:leave\n"
-    },
-    {   // MSG_LOGS
-        "Etat du robot: Vitesse %d, Collision %d, Lumiere %f\n",
-        "Robot's state: Speed %d, Collision %d, Light %f\n",
-        "Roboterstatus: Geschwindigkeit %d, Kollision %d, Licht %f\n"
-    },
-    {   // MSG_QUIT
-        "quitter\n",
-        "quit\n",
-        "leave\n"
-    },
-    {   // MSG_UNKNOWN_COMMAND
-        "Cette commande n'est pas reconnue\n",
-        "This command is not recognized\n",
-        "Dieser befehl wird nicht erkannt\n"
-    },
-    {   // MSG_COMMAND_ASKED
-        "Vous avez demandé l'action :\n",
-        "You requested the following action:\n",
-        "Sie haben folgende aktion angefordert :\n"
-    },
-    {   // MSG_COMMAND_LEFT
-        "aller à gauche\n",
-        "go left\n",
-        "gehe nach links\n"
-    },
-    {   // MSG_COMMAND_STATEIGHT
-        "aller à droite\n",
-        "go right\n",
-        "gehe nach rechts\n"
-    },
-    {   // MSG_COMMAND_FWD
-        "avancer\n",
-        "go forward\n",
-        "voraus\n"
-    },
-    {   // MSG_COMMAND_BCKWD
-        "reculer\n",
-        "go backward\n",
-        "rückzug\n"
-    },
-    {   // MSG_COMMAND_STOP
-        "stopper\n",
-        "stop\n",
-        "anschlag\n"
-    },
-    {   // MSG_COMMAND_LOGS
-        "effacer les logs\n",
-        "clear logs\n",
-        "lösche sie logs\n"
-    },
-    {   // MSG_COMMAND_STATE
-        "afficher l'état du robot\n",
-        "show robot's state\n",
-        "roboterstatus anzeigen\n"
-    },
-};
+            "Sie können die folgenden Aktionen ausführen :\n"
+            "q:gehe nach links\nd:gehe nach rechts\nz:voraus\ns:rückzug\n :anschlag\n"
+            "e:lösche sie logs\nr:roboterstatus anzeigen\na:leave\n"
+        },
+        {   // MSG_LOGS
+            "Etat du robot: Vitesse %d, Collision %d, Lumiere %f\n",
+            "Robot's state: Speed %d, Collision %d, Light %f\n",
+            "Roboterstatus: Geschwindigkeit %d, Kollision %d, Licht %f\n"
+        },
+        {   // MSG_QUIT
+            "quitter\n",
+            "quit\n",
+            "leave\n"
+        },
+        {   // MSG_UNKNOWN_COMMAND
+            "Cette commande n'est pas reconnue\n",
+            "This command is not recognized\n",
+            "Dieser befehl wird nicht erkannt\n"
+        },
+        {   // MSG_COMMAND_ASKED
+            "Vous avez demandé l'action :\n",
+            "You requested the following action:\n",
+            "Sie haben folgende aktion angefordert :\n"
+        },
+        {   // MSG_COMMAND_LEFT
+            "aller à gauche\n",
+            "go left\n",
+            "gehe nach links\n"
+        },
+        {   // MSG_COMMAND_STATEIGHT
+            "aller à droite\n",
+            "go right\n",
+            "gehe nach rechts\n"
+        },
+        {   // MSG_COMMAND_FWD
+            "avancer\n",
+            "go forward\n",
+            "voraus\n"
+        },
+        {   // MSG_COMMAND_BCKWD
+            "reculer\n",
+            "go backward\n",
+            "rückzug\n"
+        },
+        {   // MSG_COMMAND_STOP
+            "stopper\n",
+            "stop\n",
+            "anschlag\n"
+        },
+        {   // MSG_COMMAND_LOGS
+            "effacer les logs\n",
+            "clear logs\n",
+            "lösche sie logs\n"
+        },
+        {   // MSG_COMMAND_STATE
+            "afficher l'état du robot\n",
+            "show robot's state\n",
+            "roboterstatus anzeigen\n"
+        },
+    };
 
 
 static int k_input;
