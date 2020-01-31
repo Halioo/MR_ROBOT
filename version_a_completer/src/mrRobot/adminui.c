@@ -150,10 +150,21 @@ static generic_f_ptr list_func_ptr[command_move_number] =
     };
 */
 
+/**
+ * Structure contenant les arguments qu'il
+ * est possible de passer dans les fonctions
+ */
 typedef struct {
     Direction dir;
 } Command_args;
 
+/**
+ * Structure d'une commande, une commande est associée à :
+ * key: une touche du clavier
+ * msg: un message à afficher dans la console
+ * args: des arguments à passer dans une fonction
+ * func: une fonction à appeler
+ */
 typedef struct {
     char key;
     TYPES_MSG msg;
@@ -161,12 +172,14 @@ typedef struct {
     f_ptr_generic func;
 } Command;
 
+// Liste des arguments possibles (ici les différentes directions)
 static Command_args args_dir_left = {.dir = LEFT};
 static Command_args args_dir_right = {.dir = RIGHT};
 static Command_args args_dir_forward = {.dir = FORWARD};
 static Command_args args_dir_backward = {.dir = BACKWARD};
 static Command_args args_dir_stop = {.dir = STOP};
 
+// Array regroupant les différentes commandes possibles
 static Command list_commands[] =
     {
         {'q', MSG_COMMAND_LEFT,  &args_dir_left, (f_ptr_generic) &ask_mvt},
@@ -178,9 +191,17 @@ static Command list_commands[] =
         {'r', MSG_COMMAND_STATE, NULL, &ask4log}
     };
 
+// Calcul du nombre de commandes possibles (la commande pour quitter est exclue)
 static const int command_number = sizeof(list_commands) / sizeof(list_commands[0]);
 
-
+/**
+ * Cherche l'id de la commande correspondant à
+ * la touche passée en paramètre
+ *
+ * @param elem
+ * @return l'id de la commande, -1 si
+ * la touche ne correspond à aucun élément
+ */
 static int get_id(char elem) {
     int id = -1;
     for (int i=0; i<command_number; i++) {
@@ -192,7 +213,8 @@ static int get_id(char elem) {
 }
 
 /**
- * Retourne le string correspondant
+ * Retourne le string correspondant au type de message
+ * passé en paramètre
  */
 static const char * get_msg(TYPES_MSG type_msg) {
     return msg[type_msg][LANG];
