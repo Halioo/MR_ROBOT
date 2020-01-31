@@ -35,7 +35,7 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-typedef enum {LEFT=0, RIGHT, FORWARD, BACKWARD} Direction;
+typedef enum {STOP, LEFT, RIGHT, FORWARD, BACKWARD} Direction;
 
 typedef struct
 {
@@ -49,6 +49,7 @@ typedef struct
     int collision;
     float luminosity;
 } PilotState;
+
 
 /**
  * Start Pilot

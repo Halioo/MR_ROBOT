@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
 #include "pilot.h"
 
 #define LANG FRENCH
@@ -127,6 +129,68 @@ static int k_input;
 static Flag flag_stop;
 
 
+static void ask_mvt(Direction dir);
+static void ask4log(void);
+static void clear_logs(void);
+
+typedef void (*f_ptr_generic)(void);
+typedef void (*f_ptr_dir)(Direction dir);
+
+/**
+static char list_commands[] = {'q', 'd', 'z', 's', ' ', 'e', 'r'};
+static const int command_move_number = sizeof(list_commands) / sizeof(list_commands[0]);
+static generic_f_ptr list_func_ptr[command_move_number] =
+    {(generic_f_ptr) &ask_mvt,    // 'q'
+     (generic_f_ptr) &ask_mvt,    // 'd'
+     (generic_f_ptr) &ask_mvt,    // 'z'
+     (generic_f_ptr) &ask_mvt,    // 's'
+     (generic_f_ptr) &ask_mvt,    // ' '
+     &clear_logs,
+     &ask4log
+    };
+*/
+
+typedef struct {
+    Direction dir;
+} Command_args;
+
+typedef struct {
+    char key;
+    TYPES_MSG msg;
+    Command_args* args;
+    f_ptr_generic func;
+} Command;
+
+static Command_args args_dir_left = {.dir = LEFT};
+static Command_args args_dir_right = {.dir = RIGHT};
+static Command_args args_dir_forward = {.dir = FORWARD};
+static Command_args args_dir_backward = {.dir = BACKWARD};
+static Command_args args_dir_stop = {.dir = STOP};
+
+static Command list_commands[] =
+    {
+        {'q', MSG_COMMAND_LEFT,  &args_dir_left, (f_ptr_generic) &ask_mvt},
+        {'d', MSG_COMMAND_RIGHT, &args_dir_right, (f_ptr_generic) &ask_mvt},
+        {'z', MSG_COMMAND_FWD,   &args_dir_forward, (f_ptr_generic) &ask_mvt},
+        {'s', MSG_COMMAND_BCKWD, &args_dir_backward, (f_ptr_generic) &ask_mvt},
+        {' ', MSG_COMMAND_STOP,  &args_dir_stop, (f_ptr_generic) &ask_mvt},
+        {'e', MSG_COMMAND_LOGS,  NULL, &clear_logs},
+        {'r', MSG_COMMAND_STATE, NULL, &ask4log}
+    };
+
+static const int command_number = sizeof(list_commands) / sizeof(list_commands[0]);
+
+
+static int get_id(char elem) {
+    int id = -1;
+    for (int i=0; i<command_number; i++) {
+        if (list_commands[i].key == elem) {
+            id = i;
+        }
+    }
+    return id;
+}
+
 /**
  * Retourne le string correspondant
  */
@@ -149,9 +213,12 @@ static void ask_mvt(Direction dir) {
         case BACKWARD:
             vel.power = DEFAULT_POWER_BCKWD;
             break;
-        default:
+        case LEFT:
+        case RIGHT:
             vel.power = DEFAULT_POWER_TURN;
             break;
+        default:
+            vel.power = 0;
     }
     Pilot_setVelocity(vel);
 }
@@ -163,8 +230,18 @@ static void ask_mvt(Direction dir) {
 static void ask4log() {
     Pilot_check();
     PilotState pt = Pilot_getState();
+    clear_logs();
     printf(get_msg(MSG_LOGS), pt.speed, pt.collision, pt.luminosity);
 }
+
+/**
+ * Efface les logs de la console
+ * (de manière un peu sale)
+ */
+static void clear_logs() {
+    for (int i=0; i<16; i++) {printf("\n");}
+}
+
 
 /**
  * Show all possible inputs in the terminal
@@ -188,6 +265,19 @@ static void capture_choice() {
         flag_stop = ON;
     } else {
         printf("%s", get_msg(MSG_COMMAND_ASKED));
+        int id = get_id((char)k_input);
+        if (id == -1) {
+            printf("%s", get_msg(MSG_UNKNOWN_COMMAND));
+        } else {
+            Command command = list_commands[id];
+            printf("%s", get_msg(command.msg));
+            if (command.args == NULL) {
+                command.func();
+            } else {
+                ((f_ptr_dir) command.func)(command.args->dir);
+            }
+        }
+/**
         switch (k_input) {
             case 'q':
                 printf("%s", get_msg(MSG_COMMAND_LEFT));
@@ -207,23 +297,23 @@ static void capture_choice() {
                 break;
             case ' ':
                 printf("%s", get_msg(MSG_COMMAND_STOP));
-                VelocityVector vel;
-                vel.power = 0;
-                Pilot_setVelocity(vel);
+                ask_mvt(STOP);
+                printf("%d", get_id(' '));
                 break;
             case 'e':
                 printf("%s", get_msg(MSG_COMMAND_LOGS));
-                for (int i=0; i<16; i++) {printf("\n");}
+                clear_logs();
                 break;
             case 'r':
                 printf("%s", get_msg(MSG_COMMAND_STATE));
-                for (int i=0; i<16; i++) {printf("\n");}
+                clear_logs();
                 ask4log();
                 break;
             default:
-                printf("%s", get_msg(MSG_UNKNOWN_COMMAND));
+
                 break;
         }
+        */
         display();
     }
     system ("stty raw");

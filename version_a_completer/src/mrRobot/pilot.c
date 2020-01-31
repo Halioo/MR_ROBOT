@@ -11,7 +11,7 @@ typedef enum {DEFAULT_EVENT=0, SET_VEL, CHECK} Event;
 typedef enum {INIT=0, IDLE, RUNNING} State;
 
 static const VelocityVector DEFAULT_VELOCITY_VECTOR = {
-    .dir = FORWARD,
+    .dir = STOP,
     .power = DEFAULT_SPEED
 };
 
@@ -87,9 +87,7 @@ static void run(Event event, VelocityVector vel) {
         case IDLE:
             switch (event) {
                 case SET_VEL:
-                    if (vel.power == 0) {
-                        switch_state(IDLE);
-                    } else {
+                    if (vel.power != 0) {
                         send_mvt(vel);
                         switch_state(RUNNING);
                     }
