@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 #include "pilot.h"
 
@@ -136,19 +135,6 @@ static void clear_logs(void);
 typedef void (*f_ptr_generic)(void);
 typedef void (*f_ptr_dir)(Direction dir);
 
-/**
-static char list_commands[] = {'q', 'd', 'z', 's', ' ', 'e', 'r'};
-static const int command_move_number = sizeof(list_commands) / sizeof(list_commands[0]);
-static generic_f_ptr list_func_ptr[command_move_number] =
-    {(generic_f_ptr) &ask_mvt,    // 'q'
-     (generic_f_ptr) &ask_mvt,    // 'd'
-     (generic_f_ptr) &ask_mvt,    // 'z'
-     (generic_f_ptr) &ask_mvt,    // 's'
-     (generic_f_ptr) &ask_mvt,    // ' '
-     &clear_logs,
-     &ask4log
-    };
-*/
 
 /**
  * Structure contenant les arguments qu'il

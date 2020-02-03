@@ -10,39 +10,6 @@
 typedef enum {SET_VEL=0, CHECK=1} Event;
 typedef enum {IDLE=0, RUNNING=1} State;
 
-/**
-typedef void (*f_ptr_generic)(void);
-typedef void (*f_ptr_vel)(VelocityVector vel);
-typedef void (*f_ptr_ev_vel)(Event event, VelocityVector vel);
-
-typedef struct {
-    f_ptr_ev_vel state_f;
-    f_ptr_vel set_vel_f;
-    f_ptr_generic check_vel;
-} State_s;
-
-static void init_f();
-static void idle_f(Event event, VelocityVector vel);
-static void idle_vel_f(VelocityVector vel);
-static void running_f(Event event, VelocityVector vel);
-static void running_vel_f(VelocityVector vel);
-static void running_check_f();
-
-static const State_s INIT_s = {
-    .state_f = &init_f
-};
-static const State_s IDLE_s = {
-    .state_f = idle_f,
-    .set_vel_f = &idle_vel_f
-};
-static const State_s RUNNING_s = {
-    .state_f = running_f,
-    .set_vel_f = running_vel_f,
-    .check_vel = running_check_f
-};
-
-static State_s etats[] = {INIT_s, IDLE_s, RUNNING_s};
-*/
 
 static void idle_f_vel(VelocityVector vel);
 static void idle_f_check(VelocityVector vel);
