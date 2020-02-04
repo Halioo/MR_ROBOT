@@ -38,27 +38,27 @@
 
 
 /**
- * Start AdminUI and waits for the user's input
+ * Start RemoteUI and waits for the user's input
  * until the user ask to quit
  */
-extern void AdminUI_start();
+extern void RemoteUI_start();
 
 
 /**
- * Stop AdminUI
+ * Stop RemoteUI
  */
-extern void AdminUI_stop();
+extern void RemoteUI_stop();
 
 
 /**
- * initialize in memory AdminUI
+ * initialize in memory RemoteUI
  */
-extern void AdminUI_new();
+extern void RemoteUI_new();
 
 /**
- * destruct the AdminUI from memory
+ * destruct the RemoteUI from memory
  */
-extern void AdminUI_free();
+extern void RemoteUI_free();
 
 
 

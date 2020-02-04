@@ -34,7 +34,7 @@
  */
 
 
-#include "./mrRobot/adminui.h"
+#include "telco/remoteui.h"
 
 
 /**
@@ -42,10 +42,10 @@
  */
 int main (int argc, char *argv[])
 {
-  AdminUI_new();
-  AdminUI_start();
-  AdminUI_stop();
-  AdminUI_free();
+  RemoteUI_new();
+  RemoteUI_start();
+  RemoteUI_stop();
+  RemoteUI_free();
   return 0;
 }
 

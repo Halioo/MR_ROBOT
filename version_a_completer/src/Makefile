@@ -9,7 +9,7 @@
 #
 
 # Packages du projet (à compléter si besoin est).
-PACKAGES = mrRobot
+PACKAGES = commando telco
 
 # Un niveau de package est accessible.
 SRC  = $(wildcard */*.c)
