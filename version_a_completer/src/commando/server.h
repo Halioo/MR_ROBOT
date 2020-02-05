@@ -6,6 +6,9 @@
 #define MR_ROBOT_SERVER_H
 
 
+#define MAX_PENDING_CONNECTIONS (5)
+#define SERVER_PORT (8080)
+
 /**
  * Starts the server
  */

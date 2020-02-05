@@ -34,7 +34,8 @@
  */
 
 
-#include "telco/remoteui.h"
+#include "commando/server.h"
+#include "telco/client.h"
 
 
 /**
@@ -42,10 +43,10 @@
  */
 int main (int argc, char *argv[])
 {
-  RemoteUI_new();
-  RemoteUI_start();
-  RemoteUI_stop();
-  RemoteUI_free();
+  Server_start();
+  Client_start();
+  Client_stop();
+  Server_stop();
   return 0;
 }
 

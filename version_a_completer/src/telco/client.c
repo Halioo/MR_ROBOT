@@ -3,25 +3,30 @@
 //
 
 #include "client.h"
+#include "remoteui.h"
 
 
 /**
- * Sends a msg
+ * Send a msg
  */
 extern void sendMsg() {}
 
 /**
- * Reads a msg
+ * Read a msg
  */
 extern void readMsg() {}
 
 
 /**
- * Starts the client
+ * Start the client
  */
-extern void start() {}
+extern void Client_start() {
+    RemoteUI_start();
+}
 
 /**
- * Stops the client
+ * Stop the client
  */
-extern void stop() {}
+extern void Client_stop() {
+    RemoteUI_stop();
+}

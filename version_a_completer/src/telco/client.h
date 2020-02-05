@@ -5,16 +5,17 @@
 #ifndef MR_ROBOT_CLIENT_H
 #define MR_ROBOT_CLIENT_H
 
+#define SERVER_ADRESS "localhost"
 
 /**
  * Starts the client
  */
-extern void start();
+extern void Client_start();
 
 /**
  * Stops the client
  */
-extern void stop();
+extern void Client_stop();
 
 /**
  * Sends a message
