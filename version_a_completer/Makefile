@@ -57,6 +57,7 @@ export PROG = $(BINDIR)/robot_pc
 # Règles du Makefile.
 #
 
+# TODO Créer deux exécutables, un pour le serveur et un pour le client
 # Compilation récursive.
 all: 
 	@for i in $(SUBDIRS); do (cd $$i; make $@); done

@@ -6,6 +6,7 @@
 #define MR_ROBOT_CLIENT_H
 
 #define SERVER_ADRESS "localhost"
+#define SERVER_PORT 8080
 
 /**
  * Starts the client

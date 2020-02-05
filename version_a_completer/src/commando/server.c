@@ -22,7 +22,7 @@ typedef enum {OFF=0, ON=1} Flag;
 Flag FLAG_STOP = OFF;
 static int socket_listen;
 static int socket_data;
-struct sockaddr_in server_adress;
+struct sockaddr_in server_address;
 
 
 /**
@@ -55,12 +55,12 @@ static void init()
     }
 
     // Initialize IP and Port
-    server_adress.sin_family = AF_INET;
-    server_adress.sin_port = htons(SERVER_PORT);
-    server_adress.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(SERVER_PORT);
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Bind socket to IP, exit if fail
-    if (bind(socket_listen, (SA*)&server_adress, sizeof(server_adress)) != 0) {
+    if (bind(socket_listen, (SA*)&server_address, sizeof(server_address)) != 0) {
         printf("Socket binding failed!\n");
         exit(0);
     } else {
@@ -97,6 +97,7 @@ extern void Server_start()
             printf("Server accepted client's request...\n");
             if (fork() == 0) {
                 readMsg();
+                exit(0); // JE SAIS PAS SI FAUT METTRE CA LA IL EST TARD
             }
         }
     }
