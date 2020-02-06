@@ -8,6 +8,12 @@
 #define DEFAULT_SPEED 0
 
 
+/**
+ * Liste des différents états possibles du pilote
+ * FORGET: aucune action n'est effectuée
+ * DEATH: tue la machine à état
+ * Les PS sont des Pseudo State
+ */
 typedef enum {
     S_FORGET=0,
     S_IDLE,
@@ -18,8 +24,16 @@ typedef enum {
     STATE_NB
 } State;
 
+/**
+ * Liste des event possibles
+ * VEL_IS_NULL / VEL_IS_NOT_NULL:
+ * Etats servant pour le PS_SET_VEL
+ * COLLISION / NO_COLLISION:
+ * Etats servant pour le PS_CHECK
+ */
 typedef enum {
-    E_SET_VEL=0,
+    E_INIT=0,
+    E_SET_VEL,
     E_CHECK,
     E_VEL_IS_NULL,
     E_VEL_IS_NOT_NULL,
@@ -28,6 +42,9 @@ typedef enum {
     EVENT_NB
 } Event;
 
+/**
+ * Liste des différentes actions possibles
+ */
 typedef enum
 {
     A_NOP=0,
@@ -37,23 +54,32 @@ typedef enum
     ACTION_NB
 } TransitionAction;
 
+/**
+ * Structure de transition, contient l'état suivant et l'action à effectuer
+ * L'action à effectuer est stocké sur la forme d'enum, il faut utiliser
+ * la table de conversion pour obtenir le pointeur de fonction
+ */
 typedef struct
 {
     State next_state;
     TransitionAction action_to_perform;
 } Transition;
 
+/**
+ * Tableau des transitions
+ * [etat_courant][type_event]
+ */
 static Transition transition_tab[STATE_NB][EVENT_NB] =
-{
-    [S_IDLE][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
-    [S_IDLE][E_CHECK] = {S_FORGET, A_NOP},
-    [S_RUNNING][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
-    [S_RUNNING][E_CHECK] = {PS_CHECK, A_EVAL_CHECK},
-    [PS_SET_VEL][E_VEL_IS_NULL] = {S_IDLE, A_SET_VEL},
-    [PS_SET_VEL][E_VEL_IS_NOT_NULL] = {S_RUNNING, A_SET_VEL},
-    [PS_CHECK][E_COLLISION] = {S_IDLE, A_SET_VEL},
-    [PS_CHECK][E_NO_COLLISION] = {S_FORGET, A_NOP}
-};
+        {
+                [S_IDLE][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
+                [S_IDLE][E_CHECK] = {S_FORGET, A_NOP},
+                [S_RUNNING][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
+                [S_RUNNING][E_CHECK] = {PS_CHECK, A_EVAL_CHECK},
+                [PS_SET_VEL][E_VEL_IS_NULL] = {S_IDLE, A_SET_VEL},
+                [PS_SET_VEL][E_VEL_IS_NOT_NULL] = {S_RUNNING, A_SET_VEL},
+                [PS_CHECK][E_COLLISION] = {S_IDLE, A_SET_VEL},
+                [PS_CHECK][E_NO_COLLISION] = {S_FORGET, A_NOP}
+        };
 
 typedef void (*f_ptr)(VelocityVector vel);
 
@@ -61,7 +87,10 @@ static void send_mvt(VelocityVector vel);
 static void eval_vel(VelocityVector vel);
 static void eval_check(VelocityVector vel);
 
-static void action_NOP(){}
+// Action NO OPERATION
+static void action_NOP(){
+    // Fonction vide
+}
 
 static const f_ptr actions_tab[ACTION_NB] = {
         &action_NOP,
@@ -71,10 +100,10 @@ static const f_ptr actions_tab[ACTION_NB] = {
 };
 
 static const VelocityVector DEFAULT_VELOCITY_VECTOR =
-{
-    .dir = STOP,
-    .power = DEFAULT_SPEED
-};
+        {
+                .dir = STOP,
+                .power = DEFAULT_SPEED
+        };
 
 static State current_state;
 
@@ -122,7 +151,10 @@ static void send_mvt(VelocityVector vel) {
 static void run(Event event, VelocityVector vel) {
     assert(current_state != S_DEATH);
     Transition transition = transition_tab[current_state][event];
-    if (transition.next_state != S_FORGET) {
+    if (event == E_INIT) {
+        current_state = S_IDLE;
+        send_mvt(DEFAULT_VELOCITY_VECTOR);
+    } else if (transition.next_state != S_FORGET) {
         current_state = transition.next_state;
         actions_tab[transition.action_to_perform](vel);
     }
@@ -151,14 +183,14 @@ static void eval_check(VelocityVector vel) {
 extern void Pilot_start() {
     Pilot_new();
     Robot_start();
-    switch_state(S_IDLE);
+    run(E_INIT, DEFAULT_VELOCITY_VECTOR);
 }
 
 /**
  * Stop Pilot
  */
 extern void Pilot_stop() {
-    switch_state(S_IDLE);
+    run(E_INIT, DEFAULT_VELOCITY_VECTOR);
     Robot_stop();
     Pilot_free();
 }
