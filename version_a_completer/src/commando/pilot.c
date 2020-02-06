@@ -1,5 +1,6 @@
 
 #include <stdbool.h>
+#include <assert.h>
 
 #include "pilot.h"
 #include "robot.h"
@@ -7,26 +8,70 @@
 #define DEFAULT_SPEED 0
 
 
-typedef enum {SET_VEL=0, CHECK=1} Event;
-typedef enum {IDLE=0, RUNNING=1} State;
+typedef enum {
+    S_FORGET=0,
+    S_IDLE,
+    S_RUNNING,
+    PS_SET_VEL,
+    PS_CHECK,
+    S_DEATH,
+    STATE_NB
+} State;
 
+typedef enum {
+    E_SET_VEL=0,
+    E_CHECK,
+    E_VEL_IS_NULL,
+    E_VEL_IS_NOT_NULL,
+    E_COLLISION,
+    E_NO_COLLISION,
+    EVENT_NB
+} Event;
 
-static void idle_f_vel(VelocityVector vel);
-static void idle_f_check(VelocityVector vel);
-static void running_f_vel(VelocityVector vel);
-static void running_f_check(VelocityVector vel);
+typedef enum
+{
+    A_NOP=0,
+    A_SET_VEL,
+    A_EVAL_VEL,
+    A_EVAL_CHECK,
+    ACTION_NB
+} TransitionAction;
+
+typedef struct
+{
+    State next_state;
+    TransitionAction action_to_perform;
+} Transition;
+
+static Transition transition_tab[STATE_NB][EVENT_NB] =
+{
+    [S_IDLE][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
+    [S_IDLE][E_CHECK] = {S_FORGET, A_NOP},
+    [S_RUNNING][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
+    [S_RUNNING][E_CHECK] = {PS_CHECK, A_EVAL_CHECK},
+    [PS_SET_VEL][E_VEL_IS_NULL] = {S_IDLE, A_SET_VEL},
+    [PS_SET_VEL][E_VEL_IS_NOT_NULL] = {S_RUNNING, A_SET_VEL},
+    [PS_CHECK][E_COLLISION] = {S_IDLE, A_SET_VEL},
+    [PS_CHECK][E_NO_COLLISION] = {S_FORGET, A_NOP}
+};
 
 typedef void (*f_ptr)(VelocityVector vel);
 
-static f_ptr state_f_list[] =
-    {
-        &idle_f_vel,       // 0 = 00 = IDLE | SET_VEL
-        &idle_f_check,     // 1 = 01 = IDLE | CHECK
-        &running_f_vel,    // 2 = 10 = RUNNING | SET_VEL
-        &running_f_check   // 3 = 11 = RUNNING | CHECK
-    };
+static void send_mvt(VelocityVector vel);
+static void eval_vel(VelocityVector vel);
+static void eval_check(VelocityVector vel);
 
-static const VelocityVector DEFAULT_VELOCITY_VECTOR = {
+static void action_NOP(){}
+
+static const f_ptr actions_tab[ACTION_NB] = {
+        &action_NOP,
+        &send_mvt,
+        &eval_vel,
+        &eval_check
+};
+
+static const VelocityVector DEFAULT_VELOCITY_VECTOR =
+{
     .dir = STOP,
     .power = DEFAULT_SPEED
 };
@@ -75,53 +120,30 @@ static void send_mvt(VelocityVector vel) {
  * Machine à état asynchrone
  */
 static void run(Event event, VelocityVector vel) {
-    state_f_list[current_state<<1|event](vel);
-}
-
-/**
- * Met à jour l'état actuel du pilote et effectue
- * les actions en entrée de cet état
- */
-static void switch_state(State new_state) {
-    switch (new_state) {
-        case IDLE:
-            send_mvt(DEFAULT_VELOCITY_VECTOR);
-            current_state = IDLE;
-            break;
-        case RUNNING:
-            current_state = RUNNING;
-            break;
-        default: break;
+    assert(current_state != S_DEATH);
+    Transition transition = transition_tab[current_state][event];
+    if (transition.next_state != S_FORGET) {
+        current_state = transition.next_state;
+        actions_tab[transition.action_to_perform](vel);
     }
 }
 
-/**
- * Fonctions de l'état IDLE
- */
-static void idle_f_vel(VelocityVector vel) {
-    if (vel.power != 0) {
-        send_mvt(vel);
-        switch_state(RUNNING);
-    }
-}
-static void idle_f_check(VelocityVector vel) {}
 
-/**
- * Fonctions de l'état RUNNING
- */
-static void running_f_vel(VelocityVector vel) {
+static void eval_vel(VelocityVector vel) {
     if (vel.power == 0) {
-        switch_state(IDLE);
+        run(E_VEL_IS_NULL, DEFAULT_VELOCITY_VECTOR);
     } else {
-        send_mvt(vel);
-    }
-}
-static void running_f_check(VelocityVector vel) {
-    if (has_bumped()) {
-        switch_state(IDLE);
+        run(E_VEL_IS_NOT_NULL, vel);
     }
 }
 
+static void eval_check(VelocityVector vel) {
+    if (has_bumped()) {
+        run(E_COLLISION, DEFAULT_VELOCITY_VECTOR);
+    } else {
+        run(E_NO_COLLISION, DEFAULT_VELOCITY_VECTOR);
+    }
+}
 
 /**
  * Start Pilot
@@ -129,14 +151,14 @@ static void running_f_check(VelocityVector vel) {
 extern void Pilot_start() {
     Pilot_new();
     Robot_start();
-    switch_state(IDLE);
+    switch_state(S_IDLE);
 }
 
 /**
  * Stop Pilot
  */
 extern void Pilot_stop() {
-    switch_state(IDLE);
+    switch_state(S_IDLE);
     Robot_stop();
     Pilot_free();
 }
@@ -175,7 +197,7 @@ extern PilotState Pilot_getState() {
  * @brief description
  */
 extern void Pilot_check() {
-    run(CHECK, DEFAULT_VELOCITY_VECTOR);
+    run(E_CHECK, DEFAULT_VELOCITY_VECTOR);
 }
 
 /**
@@ -185,5 +207,5 @@ extern void Pilot_check() {
  * @param vel
  */
 extern void Pilot_setVelocity(VelocityVector vel) {
-    run(SET_VEL, vel);
+    run(E_SET_VEL, vel);
 }

@@ -43,7 +43,7 @@
  */
 int main (int argc, char *argv[])
 {
-  Server_start();
+  //Server_start();
   Client_start();
   Client_stop();
   Server_stop();

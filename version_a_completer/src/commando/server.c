@@ -9,10 +9,10 @@
 #include <sys/socket.h>
 #include <string.h>
 
-
 #include "server.h"
 #include "pilot.h"
 
+#define MAX_PENDING_CONNECTIONS (5)
 
 #define SA struct sockaddr
 

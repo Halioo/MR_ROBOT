@@ -26,7 +26,7 @@ static void init()
     socket_to_connect = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_to_connect == -1) {
         printf("Socket creation failed!\n");
-        exit(0);
+        //exit(0);
     } else {
         printf("Socket creation successful...\n");
     }
@@ -37,7 +37,7 @@ static void init()
     // Connection request to server, exit if fail
     if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
         printf("connection with the server failed!\n");
-        exit(0);
+        //exit(0);
     } else {
         printf("connected to the server...\n");
     }
@@ -59,8 +59,8 @@ extern void readMsg() {}
  * Start the client
  */
 extern void Client_start() {
-    RemoteUI_start();
     init();
+    RemoteUI_start();
 }
 
 /**

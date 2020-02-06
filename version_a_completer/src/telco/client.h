@@ -5,8 +5,10 @@
 #ifndef MR_ROBOT_CLIENT_H
 #define MR_ROBOT_CLIENT_H
 
+#include "../lib/robocom.h"
+
 #define SERVER_ADRESS "localhost"
-#define SERVER_PORT 8080
+
 
 /**
  * Starts the client

@@ -12,20 +12,28 @@
 PACKAGES = commando telco
 
 # Un niveau de package est accessible.
-SRC  = $(wildcard */*.c)
+SRC_SERVER = $(wildcard */*.c)
+SRC_CLIENT = $(wildcard */*.c)
+
 # Pour ajouter un second niveau :		
 # SRC += $(wildcard */*/*.c)
 
-OBJ = $(SRC:.c=.o)
+OBJ_SERVER = $(SRC_SERVER:.c=.o)
+OBJ_CLIENT = $(SRC_CLIENT:.c=.o)
 
 # Point d'entrée du programme.
-MAIN = main.c
+MAIN_SERVER = main_server.c
+MAIN_CLIENT = main_client.c
 
 # Gestion automatique des dépendances.
-DEP = $(MAIN:.c=.d)
+DEP_SERVER = $(MAIN_SERVER:.c=.d)
+DEP_CLIENT = $(MAIN_CLIENT:.c=.d)
 
 # Exécutable à générer.
-EXEC = ../$(PROG)
+#EXEC = ../$(PROG)
+EXEC_SERVER = ../$(BINDIR)/robot_pc1
+EXEC_CLIENT = ../$(BINDIR)/robot_pc2
+
 
 # Inclusion depuis le niveau du package.
 CCFLAGS += -I.
@@ -37,17 +45,23 @@ CCFLAGS += -I.
 # Compilation.
 all:
 	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done
-	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC)
+	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_SERVER)
+	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_CLIENT)
 
-$(EXEC): $(OBJ) $(MAIN)
-	$(CC) $(CCFLAGS) $(OBJ) $(MAIN) -MF $(DEP) -o $(EXEC) $(LDFLAGS)
+$(EXEC_SERVER): $(OBJ) $(MAIN)
+	$(CC) $(CCFLAGS) $(OBJ_SERVER) $(MAIN_SERVER) -MF $(DEP_SERVER) -o $(EXEC_SERVER) $(LDFLAGS)
+
+$(EXEC_CLIENT): $(OBJ) $(MAIN)
+	$(CC) $(CCFLAGS) $(OBJ_CLIENT) $(MAIN_CLIENT) -MF $(DEP_CLIENT) -o $(EXEC_CLIENT) $(LDFLAGS)
 
 # Nettoyage.
 .PHONY: clean
 
 clean:
 	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done
-	@rm -f $(DEP)
+	@rm -f $(DEP_SERVER)
+	@rm -f $(DEP_CLIENT)
 
--include $(DEP)
+-include $(DEP_SERVER)
+-include $(DEP_CLIENT)
 

@@ -2,12 +2,10 @@
 // Created by cleme on 05/02/2020.
 //
 
-#ifndef MR_ROBOT_SERVER_H
+#ifndef MR_ROBOT_ROBOCOM_H
 #define MR_ROBOT_SERVER_H
 
-
-#define MAX_PENDING_CONNECTIONS (5)
-#define SERVER_PORT (8080)
+#include "../lib/robocom.h"
 
 /**
  * Starts the server
@@ -20,4 +18,4 @@ extern void Server_start();
 extern void Server_stop();
 
 
-#endif //MR_ROBOT_SERVER_H
+#endif //MR_ROBOT_ROBOCOM_H

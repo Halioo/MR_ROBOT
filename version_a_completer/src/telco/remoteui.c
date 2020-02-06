@@ -167,15 +167,15 @@ static Command_args args_dir_stop = {.dir = STOP};
 
 // Array regroupant les différentes commandes possibles
 static Command list_commands[] =
-    {
-        {'q', MSG_COMMAND_LEFT,  &args_dir_left, (f_ptr_generic) &ask_mvt},
-        {'d', MSG_COMMAND_RIGHT, &args_dir_right, (f_ptr_generic) &ask_mvt},
-        {'z', MSG_COMMAND_FWD,   &args_dir_forward, (f_ptr_generic) &ask_mvt},
-        {'s', MSG_COMMAND_BCKWD, &args_dir_backward, (f_ptr_generic) &ask_mvt},
-        {' ', MSG_COMMAND_STOP,  &args_dir_stop, (f_ptr_generic) &ask_mvt},
-        {'e', MSG_COMMAND_LOGS,  NULL, &clear_logs},
-        {'r', MSG_COMMAND_STATE, NULL, &ask4log}
-    };
+{
+    {'q', MSG_COMMAND_LEFT,  &args_dir_left, (f_ptr_generic) &ask_mvt},
+    {'d', MSG_COMMAND_RIGHT, &args_dir_right, (f_ptr_generic) &ask_mvt},
+    {'z', MSG_COMMAND_FWD,   &args_dir_forward, (f_ptr_generic) &ask_mvt},
+    {'s', MSG_COMMAND_BCKWD, &args_dir_backward, (f_ptr_generic) &ask_mvt},
+    {' ', MSG_COMMAND_STOP,  &args_dir_stop, (f_ptr_generic) &ask_mvt},
+    {'e', MSG_COMMAND_LOGS,  NULL, &clear_logs},
+    {'r', MSG_COMMAND_STATE, NULL, &ask4log}
+};
 
 // Calcul du nombre de commandes possibles (la commande pour quitter est exclue)
 static const int command_number = sizeof(list_commands) / sizeof(list_commands[0]);
