@@ -2,7 +2,7 @@
 // Created by cleme on 05/02/2020.
 //
 
-#include "commando/server.h"
+#include "client.h"
 
 
 /**
@@ -10,7 +10,7 @@
  */
 int main (int argc, char *argv[])
 {
-    Server_start();
-    Server_stop();
+    Client_start();
+    Client_stop();
     return 0;
 }
