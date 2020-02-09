@@ -53,12 +53,14 @@ case $version in
   "hello" )
     echo "-----STARTING HELLO ROBOT-----"
     "$DIRPATH"/hello_robot-v0.8/bin/robot_pc ;;
-  # TODO après avoir modif le makefile, lancer en parallèle le serveur et le client (&)
   "wip" )
     echo ">Compiling WIP MrRobot..."
     make -s -C "$DIRPATH"/version_a_completer
-    echo "-----STARTING WIP ROBOT-----"
-    #"$DIRPATH"/version_a_completer/bin/robot_pc
+    echo "-----STARTING WIP SERVER-----"
+    xterm -e "$DIRPATH"/version_a_completer/bin/robot_pc1&
+    sleep 0.1
+    echo "-----STARTING WIP CLIENT-----"
+    xterm -e "$DIRPATH"/version_a_completer/bin/robot_pc2
     ;;
   * )
     echo "__/!\__ VERSION INTROUVABLE __/!\__" ;;

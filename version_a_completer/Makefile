@@ -11,7 +11,7 @@
 # Exemple :
 # Attention : pas d'espace ou d'accent dans votre chemin
 # sinon passer par realpath ne fonctionne pas
-INTOXDIR = $(realpath /infox_prose-x86_64-v0.3/)
+INTOXDIR = $(realpath ../infox_prose-x86_64-v0.3/)
 
 
 # Organisation des sources.
@@ -31,7 +31,7 @@ SUBDIRS = $(SRCDIR)
 export CC = gcc
 
 # options de compilation
-export CCFLAGS += -O0 
+export CCFLAGS += -O0
 # avec debuggage : -g -DDEBUG
 # sans debuggage : -DNDEBUG
 export CCFLAGS += -DNDEBUG
@@ -51,13 +51,13 @@ export LDFLAGS += -L$(INTOXDIR)/lib/ -linfox
 #
 # Définitions du binaire à générer.
 #
-#export PROG = $(BINDIR)/robot_pc
+export PROG_SERVER = $(BINDIR)/robot_pc1
+export PROG_CLIENT = $(BINDIR)/robot_pc2
 
 #
 # Règles du Makefile.
 #
 
-# TODO Créer deux exécutables, un pour le serveur et un pour le client
 # Compilation récursive.
 all: 
 	@for i in $(SUBDIRS); do (cd $$i; make $@); done

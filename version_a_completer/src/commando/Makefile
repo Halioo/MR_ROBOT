@@ -15,22 +15,12 @@ DEP = $(SRC:.c=.d)
 # Inclusion depuis le niveau du package.
 CCFLAGS += -I..
 
-
-# Exécutable à générer.
-EXEC = ../../$(BINDIR)/robot_pc1
-MAIN = main_server.c
-
 #
 # Règles du Makefile.
 #
 
 # Compilation.
-all:
-	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC)
-
-
-$(EXEC): $(OBJ) $(MAIN)
-	$(CC) $(CCFLAGS) $(OBJ) $(MAIN) -MF $(DEP) -o $(EXEC) $(LDFLAGS)
+all: $(OBJ)
 
 .c.o:
 	$(CC) -c $(CCFLAGS) $< -o $@
@@ -40,7 +30,6 @@ $(EXEC): $(OBJ) $(MAIN)
 
 clean:
 	@rm -f $(OBJ) $(DEP)
-
 
 -include $(DEP)
 

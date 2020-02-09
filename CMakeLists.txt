@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 99)
 
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "*.c")
-add_executable(main ${SOURCES} version_a_completer/src/commando/server.c version_a_completer/src/commando/server.h version_a_completer/src/telco/client.c version_a_completer/src/telco/client.h version_a_completer/src/lib/robocom.c version_a_completer/src/lib/robocom.h version_a_completer/src/commando/main_server.c version_a_completer/src/telco/main_client.c)
+add_executable(main ${SOURCES} version_a_completer/src/commando/server.c version_a_completer/src/commando/server.h version_a_completer/src/telco/client.c version_a_completer/src/telco/client.h version_a_completer/src/lib/robocom.c version_a_completer/src/lib/robocom.h version_a_completer/src/main_server.c version_a_completer/src/main_client.c)
 
 #include_directories(version_a_completer/src)
 #add_executable(main version_a_completer/src/main.c)
