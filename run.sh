@@ -58,7 +58,8 @@ case $version in
     echo ">Compiling WIP MrRobot..."
     make -s -C "$DIRPATH"/version_a_completer
     echo "-----STARTING WIP ROBOT-----"
-    "$DIRPATH"/version_a_completer/bin/robot_pc ;;
+    #"$DIRPATH"/version_a_completer/bin/robot_pc
+    ;;
   * )
     echo "__/!\__ VERSION INTROUVABLE __/!\__" ;;
 esac

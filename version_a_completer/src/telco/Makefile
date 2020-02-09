@@ -15,21 +15,32 @@ DEP = $(SRC:.c=.d)
 # Inclusion depuis le niveau du package.
 CCFLAGS += -I..
 
+
+# Exécutable à générer.
+EXEC = ../../$(BINDIR)/robot_pc2
+MAIN = main_client.c
+
 #
 # Règles du Makefile.
 #
 
 # Compilation.
-all: $(OBJ)
+all:
+	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC)
+
+
+$(EXEC): $(OBJ) $(MAIN)
+	$(CC) $(CCFLAGS) $(OBJ) $(MAIN) -MF $(DEP) -o $(EXEC) $(LDFLAGS)
 
 .c.o:
 	$(CC) -c $(CCFLAGS) $< -o $@
-	
+
 # Nettoyage.
 .PHONY: clean
 
 clean:
 	@rm -f $(OBJ) $(DEP)
+
 
 -include $(DEP)
 

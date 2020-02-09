@@ -51,7 +51,7 @@ export LDFLAGS += -L$(INTOXDIR)/lib/ -linfox
 #
 # Définitions du binaire à générer.
 #
-export PROG = $(BINDIR)/robot_pc
+#export PROG = $(BINDIR)/robot_pc
 
 #
 # Règles du Makefile.
