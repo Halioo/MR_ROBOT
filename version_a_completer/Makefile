@@ -11,7 +11,7 @@
 # Exemple :
 # Attention : pas d'espace ou d'accent dans votre chemin
 # sinon passer par realpath ne fonctionne pas
-INTOXDIR = $(realpath ../infox_prose-x86_64-v0.3/)
+INTOXDIR = $(realpath /infox_prose-x86_64-v0.3/)
 
 
 # Organisation des sources.

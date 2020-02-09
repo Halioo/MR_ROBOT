@@ -12,17 +12,17 @@
 PACKAGES = commando telco
 
 # Un niveau de package est accessible.
-#SRC  = $(wildcard */*.c)
+# SRC  = $(wildcard */*.c)
 # Pour ajouter un second niveau :
 # SRC += $(wildcard */*/*.c)
 
-#OBJ = $(SRC:.c=.o)
+# OBJ = $(SRC:.c=.o)
 
 # Point d'entrée du programme.
-#MAIN = main.c
+# MAIN = main.c
 
 # Gestion automatique des dépendances.
-#DEP = $(MAIN:.c=.d)
+# DEP = $(MAIN:.c=.d)
 
 
 # Inclusion depuis le niveau du package.
@@ -42,7 +42,7 @@ all:
 
 clean:
 	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done
-	#@rm -f $(DEP)
+	@rm -f $(DEP)
 
 -include $(DEP)
 
