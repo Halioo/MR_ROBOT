@@ -8,11 +8,6 @@
 //#define LANG FRENCH
 
 
-#define DEFAULT_POWER_FWD 80
-#define DEFAULT_POWER_BCKWD 60
-#define DEFAULT_POWER_TURN 50
-
-
 typedef enum {OFF=0, ON} Flag;
 
 
@@ -130,7 +125,6 @@ static Flag flag_stop;
 
 
 static void ask_mvt(Direction dir);
-static void ask4log(void);
 static void clear_logs(void);
 
 /**
@@ -189,19 +183,6 @@ static const char * get_msg(TYPES_MSG type_msg)
     return msg[type_msg][LANG];
 }
 
-
-
-/**
- * Demande l'actualisation du pilote, récupère
- * ses états et les affiche dans la console
- */
-static void ask4log()
-{
-    Pilot_check();
-    PilotState pt = Pilot_getState();
-    clear_logs();
-    printf(get_msg(MSG_LOGS), pt.speed, pt.collision, pt.luminosity);
-}
 
 /**
  * Efface les logs de la console

@@ -43,15 +43,16 @@ typedef struct {
 } Command;
 
 // Array regroupant les différentes commandes possibles
-static Command list_commands[] =
-        {
-                {&args_dir_left, (f_ptr_generic) &ask_mvt},
-                {&args_dir_right, (f_ptr_generic) &ask_mvt},
-                {&args_dir_forward, (f_ptr_generic) &ask_mvt},
-                {&args_dir_backward, (f_ptr_generic) &ask_mvt},
-                {&args_dir_stop, (f_ptr_generic) &ask_mvt},
-                {NULL, &ask4log}
-        };
+static Command list_commands[COMMANDS_NUMBER] =
+{
+    {&args_dir_left, (f_ptr_generic) &ask_mvt},
+    {&args_dir_right, (f_ptr_generic) &ask_mvt},
+    {&args_dir_forward, (f_ptr_generic) &ask_mvt},
+    {&args_dir_backward, (f_ptr_generic) &ask_mvt},
+    {&args_dir_stop, (f_ptr_generic) &ask_mvt},
+    {NULL, NULL},
+    {NULL, &ask4log}
+};
 
 
 typedef enum {OFF=0, ON=1} Flag;
@@ -59,9 +60,6 @@ typedef enum {OFF=0, ON=1} Flag;
 Flag FLAG_STOP = OFF;
 static int socket_listen;
 struct sockaddr_in server_address;
-
-
-
 
 
 /**
@@ -78,28 +76,12 @@ static void Server_readMsg(int socket) {
     read(socket, &command_rcvd, sizeof(command_rcvd));
     command_rcvd.command = ntohl(command_rcvd.command);
     printf("COMMUNICATION RECEIVED :: id = %d\n", command_rcvd.command);
-    switch (command_rcvd.command) {
-        case C_LEFT:
-            ask_mvt(LEFT);
-            break;
-        case C_RIGHT:
-            break;
-        case C_FORWARD:
-            break;
-        case C_BACKWARD:
-            break;
-        case C_STOP:
-            break;
-        case C_LOGS:
-            break;
-        case C_STATE:
-            break;
-        case C_QUIT:
-            break;
-        case COMMANDS_NUMBER:
-            break;
+    Command command_to_exec = list_commands[command_rcvd.command];
+    if (command_to_exec.command_args == NULL) {
+        command_to_exec.func();
+    } else {
+        ((f_ptr_dir)command_to_exec.func)(command_to_exec.command_args->dir);
     }
-
     close(socket);
     exit(0);
 }
@@ -165,7 +147,7 @@ static void run() {
  * Starts the server
  */
 extern void Server_start() {
-    //Pilot_start();
+    Pilot_start();
     init();
     run();
 }
@@ -174,7 +156,7 @@ extern void Server_start() {
  * Stops the server
  */
 extern void Server_stop() {
-    //Pilot_stop();
+    Pilot_stop();
     int error;
     error = close(socket_listen);
     printf("Closing server...");

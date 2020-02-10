@@ -73,4 +73,4 @@ esac
 
 # Reset properly the terminal if it hasn't been done
 stty echo cooked
-sleep 0.3
+sleep 0.1

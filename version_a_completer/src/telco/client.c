@@ -44,9 +44,7 @@ extern void Client_sendMsg(Command_order data) {
     Client_start();
 
     // Connection request to server, exit if fail
-    printf("%d\n", socket_to_connect);
-    printf("%d\n", server_address.sin_addr.s_addr);
-    if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
+   if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
         printf("connection with the server failed!\n");
         //exit(0);
     } else {

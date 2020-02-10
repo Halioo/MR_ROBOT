@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
 
@@ -151,6 +151,7 @@ static void send_mvt(VelocityVector vel) {
 static void run(Event event, VelocityVector vel) {
     assert(current_state != S_DEATH);
     Transition transition = transition_tab[current_state][event];
+    printf("%d :: %d :: %d\n",current_state,  transition.next_state, transition.action_to_perform);
     if (event == E_INIT) {
         current_state = S_IDLE;
         send_mvt(DEFAULT_VELOCITY_VECTOR);
