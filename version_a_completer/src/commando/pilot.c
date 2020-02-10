@@ -70,16 +70,16 @@ typedef struct
  * [etat_courant][type_event]
  */
 static Transition transition_tab[STATE_NB][EVENT_NB] =
-        {
-                [S_IDLE][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
-                [S_IDLE][E_CHECK] = {S_FORGET, A_NOP},
-                [S_RUNNING][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
-                [S_RUNNING][E_CHECK] = {PS_CHECK, A_EVAL_CHECK},
-                [PS_SET_VEL][E_VEL_IS_NULL] = {S_IDLE, A_SET_VEL},
-                [PS_SET_VEL][E_VEL_IS_NOT_NULL] = {S_RUNNING, A_SET_VEL},
-                [PS_CHECK][E_COLLISION] = {S_IDLE, A_SET_VEL},
-                [PS_CHECK][E_NO_COLLISION] = {S_FORGET, A_NOP}
-        };
+{
+    [S_IDLE][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
+    [S_IDLE][E_CHECK] = {S_FORGET, A_NOP},
+    [S_RUNNING][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
+    [S_RUNNING][E_CHECK] = {PS_CHECK, A_EVAL_CHECK},
+    [PS_SET_VEL][E_VEL_IS_NULL] = {S_IDLE, A_SET_VEL},
+    [PS_SET_VEL][E_VEL_IS_NOT_NULL] = {S_RUNNING, A_SET_VEL},
+    [PS_CHECK][E_COLLISION] = {S_IDLE, A_SET_VEL},
+    [PS_CHECK][E_NO_COLLISION] = {S_FORGET, A_NOP}
+};
 
 typedef void (*f_ptr)(VelocityVector vel);
 
@@ -100,10 +100,10 @@ static const f_ptr actions_tab[ACTION_NB] = {
 };
 
 static const VelocityVector DEFAULT_VELOCITY_VECTOR =
-        {
-                .dir = STOP,
-                .power = DEFAULT_SPEED
-        };
+{
+    .dir = STOP,
+    .power = DEFAULT_SPEED
+};
 
 static State current_state;
 
@@ -151,7 +151,6 @@ static void send_mvt(VelocityVector vel) {
 static void run(Event event, VelocityVector vel) {
     assert(current_state != S_DEATH);
     Transition transition = transition_tab[current_state][event];
-    printf("%d :: %d :: %d\n",current_state,  transition.next_state, transition.action_to_perform);
     if (event == E_INIT) {
         current_state = S_IDLE;
         send_mvt(DEFAULT_VELOCITY_VECTOR);
@@ -172,6 +171,7 @@ static void eval_vel(VelocityVector vel) {
 
 static void eval_check(VelocityVector vel) {
     if (has_bumped()) {
+        printf("JE FAIS UNE EVAL CHECK POSITIVE\n");
         run(E_COLLISION, DEFAULT_VELOCITY_VECTOR);
     } else {
         run(E_NO_COLLISION, DEFAULT_VELOCITY_VECTOR);
@@ -230,6 +230,7 @@ extern PilotState Pilot_getState() {
  * @brief description
  */
 extern void Pilot_check() {
+    printf("\tEtat courant : %d\n", current_state);
     run(E_CHECK, DEFAULT_VELOCITY_VECTOR);
 }
 
