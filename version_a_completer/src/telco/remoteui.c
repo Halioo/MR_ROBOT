@@ -5,7 +5,7 @@
 #include "../commando/pilot.h"
 #include "client.h"
 
-#define LANG FRENCH
+//#define LANG FRENCH
 
 
 #define DEFAULT_POWER_FWD 80
@@ -133,18 +133,6 @@ static void ask_mvt(Direction dir);
 static void ask4log(void);
 static void clear_logs(void);
 
-typedef void (*f_ptr_generic)(void);
-typedef void (*f_ptr_dir)(Direction dir);
-
-
-/**
- * Structure contenant les arguments qu'il
- * est possible de passer dans les fonctions
- */
-typedef struct {
-    Direction dir;
-} Command_args;
-
 /**
  * Structure d'une commande, une commande est associée à :
  * key: une touche du clavier
@@ -155,27 +143,19 @@ typedef struct {
 typedef struct {
     char key;
     TYPES_MSG msg;
-    Command_args* args;
-    f_ptr_generic func;
+    Command_order command_order;
 } Command;
 
-// Liste des arguments possibles (ici les différentes directions)
-static Command_args args_dir_left = {.dir = LEFT};
-static Command_args args_dir_right = {.dir = RIGHT};
-static Command_args args_dir_forward = {.dir = FORWARD};
-static Command_args args_dir_backward = {.dir = BACKWARD};
-static Command_args args_dir_stop = {.dir = STOP};
 
 // Array regroupant les différentes commandes possibles
 static Command list_commands[] =
 {
-    {'q', MSG_COMMAND_LEFT,  &args_dir_left, (f_ptr_generic) &ask_mvt},
-    {'d', MSG_COMMAND_RIGHT, &args_dir_right, (f_ptr_generic) &ask_mvt},
-    {'z', MSG_COMMAND_FWD,   &args_dir_forward, (f_ptr_generic) &ask_mvt},
-    {'s', MSG_COMMAND_BCKWD, &args_dir_backward, (f_ptr_generic) &ask_mvt},
-    {' ', MSG_COMMAND_STOP,  &args_dir_stop, (f_ptr_generic) &ask_mvt},
-    {'e', MSG_COMMAND_LOGS,  NULL, &clear_logs},
-    {'r', MSG_COMMAND_STATE, NULL, &ask4log}
+    {'q', MSG_COMMAND_LEFT,  C_LEFT},
+    {'d', MSG_COMMAND_RIGHT, C_RIGHT},
+    {'z', MSG_COMMAND_FWD,   C_FORWARD},
+    {'s', MSG_COMMAND_BCKWD, C_BACKWARD},
+    {' ', MSG_COMMAND_STOP,  C_STOP},
+    {'r', MSG_COMMAND_STATE, C_STATE}
 };
 
 // Calcul du nombre de commandes possibles (la commande pour quitter est exclue)
@@ -209,31 +189,7 @@ static const char * get_msg(TYPES_MSG type_msg)
     return msg[type_msg][LANG];
 }
 
-/**
- * Transforme une direction en un VelocityVector
- * et l'envoie au pilote
- */
-static void ask_mvt(Direction dir)
-{
-    VelocityVector vel = {
-            .dir = dir,
-    };
-    switch (dir) {
-        case FORWARD:
-            vel.power = DEFAULT_POWER_FWD;
-            break;
-        case BACKWARD:
-            vel.power = DEFAULT_POWER_BCKWD;
-            break;
-        case LEFT:
-        case RIGHT:
-            vel.power = DEFAULT_POWER_TURN;
-            break;
-        default:
-            vel.power = 0;
-    }
-    Pilot_setVelocity(vel);
-}
+
 
 /**
  * Demande l'actualisation du pilote, récupère
@@ -273,19 +229,17 @@ static void display()
  */
 static void capture_choice()
 {
-    static int id_data=0;
-    id_data++;
-    Data data =
-    {
-        .id = id_data,
-    };
-    sendMsg(data);
+    Command_order data;
 
     system("stty cooked");
     // Si le user veut quitter, lève le flag
     if (k_input == 'a') {
         printf("%s", get_msg(MSG_QUIT));
+        data.command = C_QUIT;
+        Client_sendMsg(data);
         flag_stop = ON;
+    } else if (k_input == 'e') {
+        clear_logs();
     } else {
         printf("%s", get_msg(MSG_COMMAND_ASKED));
         int id = get_id((char)k_input);
@@ -294,11 +248,7 @@ static void capture_choice()
         } else {
             Command command = list_commands[id];
             printf("%s", get_msg(command.msg));
-            if (command.args == NULL) {
-                command.func();
-            } else {
-                ((f_ptr_dir) command.func)(command.args->dir);
-            }
+            Client_sendMsg(command.command_order);
         }
         display();
     }
@@ -337,7 +287,7 @@ extern void RemoteUI_start()
 {
     printf("%s", get_msg(MSG_START));
     Client_start();
-    Pilot_start();
+    //Pilot_start();
     run();
 }
 
@@ -348,7 +298,7 @@ extern void RemoteUI_stop()
 {
     quit();
     Client_stop();
-    Pilot_stop();
+    //Pilot_stop();
     printf("%s", get_msg(MSG_STOP));
     fflush(stdout);
 }

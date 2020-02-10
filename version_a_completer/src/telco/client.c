@@ -34,42 +34,40 @@ static void init()
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(SERVER_PORT);
     server_address.sin_addr = *((struct in_addr *)gethostbyname (SERVER_ADRESS)->h_addr_list[0]);
-    // Connection request to server, exit if fail
-    if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
-        printf("connection with the server failed!\n");
-        //exit(0);
-    } else {
-        printf("connected to the server...\n");
-    }
 }
 
 
 /**
  * Send a msg
  */
-extern void sendMsg(Data data) {
-    Data data_to_send;
+extern void Client_sendMsg(Command_order data) {
+    Client_start();
 
-    data_to_send.id = htonl(data.id);
-    write(socket_to_connect, &data_to_send, sizeof(data_to_send));
-
-    /**
-    switch (command_type)
-    {
-        case SET_VEL:
-            write();
-            break;
-        case CHECK:
-            break;
-        default: break;
+    // Connection request to server, exit if fail
+    printf("%d\n", socket_to_connect);
+    printf("%d\n", server_address.sin_addr.s_addr);
+    if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
+        printf("connection with the server failed!\n");
+        //exit(0);
+    } else {
+        printf("connected to the server...\n");
     }
-     */
+    Command_order data_to_send;
+    data_to_send.command = htonl(data.command);
+    if (write(socket_to_connect, &data_to_send, sizeof(data_to_send)) <0) {
+        printf("--- Sending message failed !\n");
+        close(socket_to_connect);
+    } else {
+        printf("Message sent successfully...\n");
+    }
+
+    Client_stop();
 }
 
 /**
  * Read a msg
  */
-extern void readMsg() {}
+extern void Client_readMsg() {}
 
 
 /**

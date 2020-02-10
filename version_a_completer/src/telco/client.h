@@ -23,12 +23,12 @@ extern void Client_stop();
 /**
  * Sends a message
  */
-extern void sendMsg();
+extern void Client_sendMsg(Command_order data);
 
 /**
  * Reads a message
  */
-extern void readMsg();
+extern void Client_readMsg();
 
 
 #endif //MR_ROBOT_CLIENT_H

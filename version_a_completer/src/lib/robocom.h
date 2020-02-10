@@ -10,15 +10,22 @@
 
 
 typedef enum {
-    SET_VEL,
-    CHECK
+    C_LEFT,
+    C_RIGHT,
+    C_FORWARD,
+    C_BACKWARD,
+    C_STOP,
+    C_LOGS,
+    C_STATE,
+    C_QUIT,
+    COMMANDS_NUMBER,
 } COMMANDS;
 
 
 typedef struct
 {
-    int id;
-} Data;
+    COMMANDS command;
+} Command_order;
 
 
 #endif //MR_ROBOT_ROBOCOM_H
