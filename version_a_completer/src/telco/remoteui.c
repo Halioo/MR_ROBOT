@@ -124,7 +124,6 @@ static int k_input;
 static Flag flag_stop;
 
 
-static void ask_mvt(Direction dir);
 static void clear_logs(void);
 
 /**
@@ -144,12 +143,12 @@ typedef struct {
 // Array regroupant les différentes commandes possibles
 static Command list_commands[] =
 {
-    {'q', MSG_COMMAND_LEFT,  C_LEFT},
-    {'d', MSG_COMMAND_RIGHT, C_RIGHT},
-    {'z', MSG_COMMAND_FWD,   C_FORWARD},
-    {'s', MSG_COMMAND_BCKWD, C_BACKWARD},
-    {' ', MSG_COMMAND_STOP,  C_STOP},
-    {'r', MSG_COMMAND_STATE, C_STATE}
+    {'q', MSG_COMMAND_LEFT,  {C_LEFT}},
+    {'d', MSG_COMMAND_RIGHT, {C_RIGHT}},
+    {'z', MSG_COMMAND_FWD,   {C_FORWARD}},
+    {'s', MSG_COMMAND_BCKWD, {C_BACKWARD}},
+    {' ', MSG_COMMAND_STOP,  {C_STOP}},
+    {'r', MSG_COMMAND_STATE, {C_STATE}}
 };
 
 // Calcul du nombre de commandes possibles (la commande pour quitter est exclue)

@@ -71,7 +71,6 @@ extern void Server_sendMsg() {}
  * Reads msg
  */
 static void Server_readMsg(int socket) {
-    // TODO gestion des inputs possibles --> librairie de gestion des coms ?
     Command_order command_rcvd;
     read(socket, &command_rcvd, sizeof(command_rcvd));
     command_rcvd.command = ntohl(command_rcvd.command);
@@ -82,8 +81,7 @@ static void Server_readMsg(int socket) {
     } else {
         ((f_ptr_dir)command_to_exec.func)(command_to_exec.command_args->dir);
     }
-    close(socket);
-    exit(0);
+
 }
 
 /**
@@ -135,9 +133,7 @@ static void run() {
             exit(0);
         } else {
             printf("Server accepted client's request...\n");
-            if (fork() == 0) {
-                Server_readMsg(socket_data);
-            }
+            Server_readMsg(socket_data);
         }
     }
 }
