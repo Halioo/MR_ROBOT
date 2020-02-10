@@ -93,10 +93,10 @@ static void action_NOP(){
 }
 
 static const f_ptr actions_tab[ACTION_NB] = {
-        &action_NOP,
-        &send_mvt,
-        &eval_vel,
-        &eval_check
+    &action_NOP,
+    &send_mvt,
+    &eval_vel,
+    &eval_check
 };
 
 static const VelocityVector DEFAULT_VELOCITY_VECTOR =
