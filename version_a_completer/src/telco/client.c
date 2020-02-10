@@ -11,7 +11,7 @@
 #include <netdb.h>
 
 #include "client.h"
-#include "remoteui.h"
+#include "../lib/robocom.h"
 
 
 #define SA struct sockaddr
@@ -47,7 +47,24 @@ static void init()
 /**
  * Send a msg
  */
-extern void sendMsg() {}
+extern void sendMsg(Data data) {
+    Data data_to_send;
+
+    data_to_send.id = htonl(data.id);
+    write(socket_to_connect, &data_to_send, sizeof(data_to_send));
+
+    /**
+    switch (command_type)
+    {
+        case SET_VEL:
+            write();
+            break;
+        case CHECK:
+            break;
+        default: break;
+    }
+     */
+}
 
 /**
  * Read a msg
@@ -60,13 +77,11 @@ extern void readMsg() {}
  */
 extern void Client_start() {
     init();
-    RemoteUI_start();
 }
 
 /**
  * Stop the client
  */
 extern void Client_stop() {
-    RemoteUI_stop();
     close(socket_to_connect);
 }

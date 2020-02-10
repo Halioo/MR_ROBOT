@@ -21,7 +21,7 @@ version="wip"
 while [ -n "$1" ]; do # while loop starts
     case "$1" in
     -sim) sim=1;;
-    # -c) comp=1;;
+    -debug) debug=1;;
     -v)
         version="$2"
         shift
@@ -55,12 +55,17 @@ case $version in
     "$DIRPATH"/hello_robot-v0.8/bin/robot_pc ;;
   "wip" )
     echo ">Compiling WIP MrRobot..."
-    make -s -C "$DIRPATH"/version_a_completer
+    if [ "$debug" ]
+    then
+      make -C "$DIRPATH"/version_a_completer
+    else
+      make -s -C "$DIRPATH"/version_a_completer
+    fi
     echo "-----STARTING WIP SERVER-----"
-    xterm -e "$DIRPATH"/version_a_completer/bin/robot_pc1&
-    sleep 0.1
+    xterm -fa 'Monospace' -fs 15 -e "$DIRPATH"/version_a_completer/bin/robot_pc1&
+    sleep 0.2
     echo "-----STARTING WIP CLIENT-----"
-    xterm -e "$DIRPATH"/version_a_completer/bin/robot_pc2
+    xterm -fa 'Monospace' -fs 15 -e "$DIRPATH"/version_a_completer/bin/robot_pc2
     ;;
   * )
     echo "__/!\__ VERSION INTROUVABLE __/!\__" ;;
@@ -68,4 +73,4 @@ esac
 
 # Reset properly the terminal if it hasn't been done
 stty echo cooked
-sleep 0.2
+sleep 0.3

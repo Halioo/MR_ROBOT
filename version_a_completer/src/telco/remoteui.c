@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "../commando/pilot.h"
+#include "client.h"
 
 #define LANG FRENCH
 
@@ -272,6 +273,14 @@ static void display()
  */
 static void capture_choice()
 {
+    static int id_data=0;
+    id_data++;
+    Data data =
+    {
+        .id = id_data,
+    };
+    sendMsg(data);
+
     system("stty cooked");
     // Si le user veut quitter, lève le flag
     if (k_input == 'a') {
@@ -327,6 +336,7 @@ static void quit()
 extern void RemoteUI_start()
 {
     printf("%s", get_msg(MSG_START));
+    Client_start();
     Pilot_start();
     run();
 }
@@ -337,6 +347,7 @@ extern void RemoteUI_start()
 extern void RemoteUI_stop()
 {
     quit();
+    Client_stop();
     Pilot_stop();
     printf("%s", get_msg(MSG_STOP));
     fflush(stdout);

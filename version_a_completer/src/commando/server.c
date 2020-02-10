@@ -21,21 +21,25 @@ typedef enum {OFF=0, ON=1} Flag;
 
 Flag FLAG_STOP = OFF;
 static int socket_listen;
-static int socket_data;
 struct sockaddr_in server_address;
 
 
 /**
  * Sends msg
  */
-static void sendMsg() {}
+static void sendMsg(Data data) {}
 
 /**
  * Reads msg
  */
-static void readMsg() {
-    read(socket_listen, &socket_data, sizeof(socket_data));
+static void readMsg(int socket) {
     // TODO gestion des inputs possibles --> librairie de gestion des coms ?
+    Data data;
+    read(socket, &data, sizeof(data));
+    data.id = ntohl(data.id);
+    printf("COMMUNICATION RECEIVED :: id = %d\n", data.id);
+    close(socket);
+    exit(0);
 }
 
 /**
@@ -79,14 +83,12 @@ static void init()
 /**
  * Starts the server
  */
-extern void Server_start()
-{
-    Pilot_start();
-
+extern void Server_start() {
+    //Pilot_start();
     init();
-
-    while (FLAG_STOP == 0)
-    {
+    while (FLAG_STOP == 0) {
+        printf("COUCOU ON RECOMMENCE UN WHILE\n");
+        int socket_data;
         // Accept data
         socket_data = accept(socket_listen, NULL, 0);
         // Check data integrity, exit if fail
@@ -96,8 +98,7 @@ extern void Server_start()
         } else {
             printf("Server accepted client's request...\n");
             if (fork() == 0) {
-                readMsg();
-                exit(0); // JE SAIS PAS SI FAUT METTRE CA LA IL EST TARD
+                readMsg(socket_data);
             }
         }
     }
@@ -107,7 +108,10 @@ extern void Server_start()
  * Stops the server
  */
 extern void Server_stop() {
-    Pilot_stop();
-    close(socket_listen);
+    //Pilot_stop();
+    int error;
+    error = close(socket_listen);
+    printf("Closing server...");
+    printf("%d", error);
     exit(0);
 }

@@ -9,6 +9,16 @@
 #define SERVER_PORT 8080
 
 
+typedef enum {
+    SET_VEL,
+    CHECK
+} COMMANDS;
+
+
+typedef struct
+{
+    int id;
+} Data;
 
 
 #endif //MR_ROBOT_ROBOCOM_H
