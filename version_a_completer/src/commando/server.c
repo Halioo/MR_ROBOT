@@ -124,9 +124,9 @@ static void init()
 
 static void run() {
     int socket_data;
+    // Accept data
+    socket_data = accept(socket_listen, NULL, 0);
     while (FLAG_STOP == OFF) {
-        // Accept data
-        socket_data = accept(socket_listen, NULL, 0);
         // Check data integrity, exit if fail
         if (socket_data < 0) {
             printf("Server accept failed!\n");

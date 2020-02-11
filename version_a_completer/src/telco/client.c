@@ -34,6 +34,13 @@ static void init()
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(SERVER_PORT);
     server_address.sin_addr = *((struct in_addr *)gethostbyname (SERVER_ADRESS)->h_addr_list[0]);
+    // Connection request to server, exit if fail
+    if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
+        printf("connection with the server failed!\n");
+        //exit(0);
+    } else {
+        printf("connected to the server...\n");
+    }
 }
 
 
@@ -41,15 +48,8 @@ static void init()
  * Send a msg
  */
 extern void Client_sendMsg(Command_order data) {
-    Client_start();
+    //Client_start();
 
-    // Connection request to server, exit if fail
-   if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
-        printf("connection with the server failed!\n");
-        //exit(0);
-    } else {
-        printf("connected to the server...\n");
-    }
     Command_order data_to_send;
     data_to_send.command = htonl(data.command);
     if (write(socket_to_connect, &data_to_send, sizeof(data_to_send)) <0) {
@@ -59,7 +59,7 @@ extern void Client_sendMsg(Command_order data) {
         printf("Message sent successfully...\n");
     }
 
-    Client_stop();
+    //Client_stop();
 }
 
 /**
