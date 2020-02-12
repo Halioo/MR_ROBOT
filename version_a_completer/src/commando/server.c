@@ -121,7 +121,6 @@ static void init()
     }
 }
 
-
 static void run() {
     int socket_data;
     // Accept data
