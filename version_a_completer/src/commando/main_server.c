@@ -2,7 +2,7 @@
 // Created by cleme on 05/02/2020.
 //
 
-#include "telco/remoteui.h"
+#include "server.h"
 
 
 /**
@@ -10,7 +10,7 @@
  */
 int main (int argc, char *argv[])
 {
-    RemoteUI_start();
-    RemoteUI_stop();
+    Server_start();
+    Server_stop();
     return 0;
 }

@@ -11,7 +11,7 @@
 #include <netdb.h>
 
 #include "client.h"
-#include "../lib/robocom.h"
+#include "robocom.h"
 
 
 #define SA struct sockaddr

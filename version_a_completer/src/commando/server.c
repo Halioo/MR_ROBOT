@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <string.h>
 
-#include "../lib/robocom.h"
+#include "robocom.h"
 #include "server.h"
 #include "pilot.h"
 #include "commands_functions.h"
