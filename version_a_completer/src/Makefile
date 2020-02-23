@@ -8,6 +8,10 @@
 # Organisation des sources.
 #
 
+# TODO créer et importer la librairie robocom !
+LIBDIR = lib
+# export LDFLAGS += $(realpath /lib/) -lrobocom
+
 # Packages du projet (à compléter si besoin est).
 PACKAGES = commando telco
 

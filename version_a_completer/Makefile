@@ -59,7 +59,8 @@ export PROG_CLIENT = $(BINDIR)/robot_pc2
 #
 
 # Compilation récursive.
-all: 
+all:
+
 	@for i in $(SUBDIRS); do (cd $$i; make $@); done
 
 # Nettoyage.

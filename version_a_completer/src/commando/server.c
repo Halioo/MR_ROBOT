@@ -74,7 +74,7 @@ static void Server_readMsg(int socket) {
     Command_order command_rcvd;
     read(socket, &command_rcvd, sizeof(command_rcvd));
     command_rcvd.command = ntohl(command_rcvd.command);
-    printf("COMMUNICATION RECEIVED :: id = %d\n", command_rcvd.command);
+    // printf("COMMUNICATION RECEIVED :: id = %d\n", command_rcvd.command);
     Command command_to_exec = list_commands[command_rcvd.command];
     if (command_to_exec.command_args == NULL) {
         command_to_exec.func();

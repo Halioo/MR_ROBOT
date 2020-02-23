@@ -26,7 +26,6 @@ static void init()
     socket_to_connect = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_to_connect == -1) {
         printf("Socket creation failed!\n");
-        //exit(0);
     } else {
         printf("Socket creation successful...\n");
     }
@@ -37,7 +36,6 @@ static void init()
     // Connection request to server, exit if fail
     if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
         printf("connection with the server failed!\n");
-        //exit(0);
     } else {
         printf("connected to the server...\n");
     }
@@ -48,8 +46,6 @@ static void init()
  * Send a msg
  */
 extern void Client_sendMsg(Command_order data) {
-    //Client_start();
-
     Command_order data_to_send;
     data_to_send.command = htonl(data.command);
     if (write(socket_to_connect, &data_to_send, sizeof(data_to_send)) <0) {
@@ -58,8 +54,6 @@ extern void Client_sendMsg(Command_order data) {
     } else {
         printf("Message sent successfully...\n");
     }
-
-    //Client_stop();
 }
 
 /**

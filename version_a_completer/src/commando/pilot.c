@@ -149,13 +149,13 @@ static void send_mvt(VelocityVector vel) {
  * Machine à état asynchrone
  */
 static void run(Event event, VelocityVector vel) {
-    printf("--- DEBUT DE RUN ----------\n\t Etat courant = %d\n", current_state);
     assert(current_state != S_DEATH);
     Transition transition = transition_tab[current_state][event];
 
-    printf("\tEvent en cours = %d\n", event);
-    printf("\tEtat prochaine prevu = %d\n", transition.next_state);
-    printf("\tAction = %d\n", transition.action_to_perform);
+    //printf("\tEvent en cours = %d\n", event);
+    //printf("\tEtat prochaine prevu = %d\n", transition.next_state);
+    //printf("\tAction = %d\n", transition.action_to_perform);
+
     if (event == E_INIT) {
         current_state = S_IDLE;
         send_mvt(DEFAULT_VELOCITY_VECTOR);
@@ -163,7 +163,8 @@ static void run(Event event, VelocityVector vel) {
         current_state = transition.next_state;
         actions_tab[transition.action_to_perform](vel);
     }
-    printf("\t Etat courant = %d\n--- FIN DE RUN ---\n", current_state);
+
+    //printf("\t Etat courant = %d\n--- FIN DE RUN ---\n", current_state);
 }
 
 
@@ -176,7 +177,6 @@ static void eval_vel(VelocityVector vel) {
 }
 
 static void eval_check(VelocityVector vel) {
-    printf("JE FAIS UNE EVAL CHECK POSITIVE\n");
     if (has_bumped()) {
         run(E_COLLISION, DEFAULT_VELOCITY_VECTOR);
     } else {
@@ -236,7 +236,6 @@ extern PilotState Pilot_getState() {
  * @brief description
  */
 extern void Pilot_check() {
-    printf("JE FAIS BIEN UN CHECK\n\tEtat courant : %d\n", current_state);
     run(E_CHECK, DEFAULT_VELOCITY_VECTOR);
 }
 

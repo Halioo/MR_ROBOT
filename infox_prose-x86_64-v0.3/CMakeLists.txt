@@ -23,7 +23,7 @@ set(HEADERS
 )
 set(SRC lib/libinfox.a)
 
-add_library(infox  ${SRC} )
+add_library(infox SHARED ${SRC} )
 
 target_include_directories(
         infox PUBLIC
