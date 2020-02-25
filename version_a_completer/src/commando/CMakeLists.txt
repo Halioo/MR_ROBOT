@@ -1,5 +1,5 @@
 add_executable(server
-        main_server.c
+        ../main_server.c
         server.c server.h
         pilot.c pilot.h
         robot.c robot.h

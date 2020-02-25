@@ -1,5 +1,5 @@
 add_executable(client
-        main_client.c
+        ../main_client.c
         client.c client.h
         remoteui.c remoteui.h)
 
