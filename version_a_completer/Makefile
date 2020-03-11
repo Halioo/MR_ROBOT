@@ -31,7 +31,7 @@ SUBDIRS = $(SRCDIR)
 export CC = gcc
 
 # options de compilation
-export CCFLAGS += -O0 
+export CCFLAGS += -O0
 # avec debuggage : -g -DDEBUG
 # sans debuggage : -DNDEBUG
 export CCFLAGS += -DNDEBUG
@@ -51,14 +51,16 @@ export LDFLAGS += -L$(INTOXDIR)/lib/ -linfox
 #
 # Définitions du binaire à générer.
 #
-export PROG = $(BINDIR)/robot_pc
+export PROG_SERVER = $(BINDIR)/robot_pc1
+export PROG_CLIENT = $(BINDIR)/robot_pc2
 
 #
 # Règles du Makefile.
 #
 
 # Compilation récursive.
-all: 
+all:
+
 	@for i in $(SUBDIRS); do (cd $$i; make $@); done
 
 # Nettoyage.

@@ -1,8 +1,7 @@
 
 #include <stdlib.h>
+#include <prose.h>
 
-#include "../../../infox_prose-x86_64-v0.3/include/infox/prose/prose.h"
-#include "prose.h"
 #include "robot.h"
 
 #define LEFT_MOTOR MA

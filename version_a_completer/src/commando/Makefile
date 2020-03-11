@@ -24,7 +24,7 @@ all: $(OBJ)
 
 .c.o:
 	$(CC) -c $(CCFLAGS) $< -o $@
-	
+
 # Nettoyage.
 .PHONY: clean
 

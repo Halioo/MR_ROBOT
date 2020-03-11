@@ -34,7 +34,8 @@
  */
 
 
-#include "./mrRobot/adminui.h"
+#include "commando/server.h"
+#include "telco/client.h"
 
 
 /**
@@ -42,10 +43,10 @@
  */
 int main (int argc, char *argv[])
 {
-  AdminUI_new();
-  AdminUI_start();
-  AdminUI_stop();
-  AdminUI_free();
+  //Server_start();
+  Client_start();
+  Client_stop();
+  Server_stop();
   return 0;
 }
 

@@ -1,11 +1,35 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.13)
 project(MR_ROBOT C)
 
 set(CMAKE_C_STANDARD 99)
 
 
-file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "*.c")
-add_executable(main ${SOURCES})
+add_subdirectory(infox_prose-x86_64-v0.3)
+add_subdirectory(version_a_completer/src)
+
+# file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "*.c")
+
+#[[
+add_executable(MrRobot
+        version_a_completer/src/commando/commands_functions.c
+        version_a_completer/src/commando/commands_functions.h
+        version_a_completer/src/commando/server.c
+        version_a_completer/src/commando/server.h
+        version_a_completer/src/commando/pilot.c
+        version_a_completer/src/commando/pilot.h
+        version_a_completer/src/commando/robot.c
+        version_a_completer/src/commando/robot.h
+        version_a_completer/src/telco/client.c
+        version_a_completer/src/telco/client.h
+        version_a_completer/src/telco/remoteui.c
+        version_a_completer/src/telco/remoteui.h
+        version_a_completer/src/lib/robocom.c
+        version_a_completer/src/lib/robocom.h
+        version_a_completer/src/main_server.c
+        version_a_completer/src/main_client.c)
+]]
+
+
 
 #include_directories(version_a_completer/src)
 #add_executable(main version_a_completer/src/main.c)
