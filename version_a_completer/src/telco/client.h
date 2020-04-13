@@ -28,7 +28,7 @@ extern void Client_sendMsg(Command_order data);
 /**
  * Reads a message
  */
-extern void Client_readMsg();
+extern char * Client_readMsg();
 
 
 #endif //MR_ROBOT_CLIENT_H

@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <string.h>
 
-#include "../lib/robocom.h"
+#include "robocom.h"
 #include "server.h"
 #include "pilot.h"
 #include "commands_functions.h"
@@ -67,6 +67,25 @@ struct sockaddr_in server_address;
  */
 extern void Server_sendMsg() {}
 
+
+/**
+ * Send a msg
+ */
+extern void Server_sendLogs(int speed, int collision, float luminosity) {
+    Command_order data_to_send;
+    Robot_logs r_logs = {
+        .speed = speed,
+        .collision = collision,
+        .luminosity = luminosity
+    };
+    data_to_send.r_logs = r_logs;
+    if (write(socket_listen, &data_to_send, sizeof(data_to_send)) <0) {
+        perror("--- Sending message failed !\n");
+    } else {
+        printf("Message sent successfully...\n");
+    }
+}
+
 /**
  * Reads msg
  */
@@ -81,7 +100,6 @@ static void Server_readMsg(int socket) {
     } else {
         ((f_ptr_dir)command_to_exec.func)(command_to_exec.command_args->dir);
     }
-
 }
 
 /**
@@ -94,10 +112,18 @@ static void init()
     // Socket creation and exit if fail
     socket_listen = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_listen == -1) {
-        printf("Socket creation failed!\n");
-        exit(0);
+        perror("Socket creation failed!\n");
+        //exit(EXIT_FAILURE);
     } else {
         printf("Socket creation successful...\n");
+    }
+
+    int yes = 1;
+    if (setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) != 0) {
+        perror("Socket option configuration failed!\n");
+        //exit(EXIT_FAILURE);
+    } else {
+        printf("Socket option configuration successful...\n");
     }
 
     // Initialize IP and Port
@@ -107,15 +133,15 @@ static void init()
 
     // Bind socket to IP, exit if fail
     if (bind(socket_listen, (SA*)&server_address, sizeof(server_address)) != 0) {
-        printf("Socket binding failed!\n");
-        exit(0);
+        perror("Socket binding failed!\n");
+        //exit(EXIT_FAILURE);
     } else {
         printf("Socket binding successful...\n");
     }
     // Begin listening, exit if fail
     if (listen(socket_listen, MAX_PENDING_CONNECTIONS) != 0) {
-        printf("Listen failed!\n");
-        exit(0);
+        perror("Listen failed!\n");
+        //exit(EXIT_FAILURE);
     } else {
         printf("Server listening...\n");
     }
@@ -128,8 +154,8 @@ static void run() {
     while (FLAG_STOP == OFF) {
         // Check data integrity, exit if fail
         if (socket_data < 0) {
-            printf("Server accept failed!\n");
-            exit(0);
+            perror("Server accept failed!\n");
+            //exit(EXIT_FAILURE);
         } else {
             printf("Server accepted client's request...\n");
             Server_readMsg(socket_data);
@@ -156,5 +182,5 @@ extern void Server_stop() {
     error = close(socket_listen);
     printf("Closing server...");
     printf("%d", error);
-    exit(0);
+    exit(EXIT_SUCCESS);
 }

@@ -143,12 +143,12 @@ typedef struct {
 // Array regroupant les différentes commandes possibles
 static Command list_commands[] =
 {
-    {'q', MSG_COMMAND_LEFT,  {C_LEFT}},
-    {'d', MSG_COMMAND_RIGHT, {C_RIGHT}},
-    {'z', MSG_COMMAND_FWD,   {C_FORWARD}},
-    {'s', MSG_COMMAND_BCKWD, {C_BACKWARD}},
-    {' ', MSG_COMMAND_STOP,  {C_STOP}},
-    {'r', MSG_COMMAND_STATE, {C_STATE}}
+    {'q', MSG_COMMAND_LEFT,  {R_POST, C_LEFT}},
+    {'d', MSG_COMMAND_RIGHT, {R_POST, C_RIGHT}},
+    {'z', MSG_COMMAND_FWD,   {R_POST, C_FORWARD}},
+    {'s', MSG_COMMAND_BCKWD, {R_POST, C_BACKWARD}},
+    {' ', MSG_COMMAND_STOP,  {R_POST, C_STOP}},
+    {'r', MSG_COMMAND_STATE, {R_GET, C_STATE}}
 };
 
 // Calcul du nombre de commandes possibles (la commande pour quitter est exclue)
@@ -227,8 +227,18 @@ static void capture_choice()
             printf("%s", get_msg(MSG_UNKNOWN_COMMAND));
         } else {
             Command command = list_commands[id];
-            printf("%s", get_msg(command.msg));
-            Client_sendMsg(command.command_order);
+            switch(command.command_order.r_type) {
+                case R_GET:
+                    printf("%s", get_msg(command.msg));
+                    Client_sendMsg(command.command_order);
+                    break;
+                case R_POST:
+                    printf("%s", get_msg(command.msg));
+                    Client_sendMsg(command.command_order);
+                    printf("%s", Client_readMsg());
+                    break;
+                default: break;
+            }
         }
         display();
     }
