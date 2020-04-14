@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
-#include <prose.h>
 
+#include "prose.h"
 #include "robot.h"
 
 #define LEFT_MOTOR MA
