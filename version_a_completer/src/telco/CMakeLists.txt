@@ -3,5 +3,5 @@ add_executable(client
         client.c client.h
         remoteui.c remoteui.h)
 
-target_link_libraries(client robocom)
+target_link_libraries(client LINK_PUBLIC robocom)
 target_link_libraries(client LINK_PUBLIC infox)
