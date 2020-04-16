@@ -10,11 +10,10 @@
 #include <string.h>
 #include <netdb.h>
 
-#include "client.h"
+#include "watchdog.h"
 #include "robocom.h"
 
-
-#define SA struct sockaddr
+#include "client.h"
 
 
 static int socket_to_connect;
@@ -45,8 +44,8 @@ static void init()
 /**
  * Send a msg
  */
-extern void Client_sendMsg(Command_order data) {
-    Command_order data_to_send;
+extern void Client_sendMsg(RQ_data data) {
+    RQ_data data_to_send;
     data_to_send.command = htonl(data.command);
     if (write(socket_to_connect, &data_to_send, sizeof(data_to_send)) <0) {
         printf("--- Sending message failed !\n");

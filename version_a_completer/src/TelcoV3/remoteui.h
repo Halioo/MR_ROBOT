@@ -33,8 +33,17 @@
  */
 
 
-#ifndef ADMINUI_H
-#define ADMINUI_H
+#ifndef REMOTEUI_H
+#define REMOTEUI_H
+
+#include <sys/types.h>
+#include "robocom.h"
+
+extern void setIp(u_int32_t ip);
+
+extern void toggleEmergencyStop();
+
+extern void setDir(Direction dir);
 
 
 /**
@@ -43,12 +52,10 @@
  */
 extern void RemoteUI_start();
 
-
 /**
  * Stop RemoteUI
  */
 extern void RemoteUI_stop();
-
 
 /**
  * initialize in memory RemoteUI
@@ -62,5 +69,5 @@ extern void RemoteUI_free();
 
 
 
-#endif /* ADMINUI_H */
+#endif /* REMOTEUI_H */
 

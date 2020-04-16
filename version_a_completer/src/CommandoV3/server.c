@@ -9,14 +9,12 @@
 #include <sys/socket.h>
 #include <string.h>
 
-#include "../lib/robocom.h"
+#include "robocom.h"
 #include "server.h"
 #include "pilot.h"
 #include "commands_functions.h"
 
 #define MAX_PENDING_CONNECTIONS (5)
-
-#define SA struct sockaddr
 
 
 typedef void (*f_ptr_generic)(void);
@@ -27,7 +25,7 @@ typedef void (*f_ptr_dir)(Direction dir);
  * est possible de passer dans les fonctions
  */
 typedef struct {
-    Direction dir;
+    DIRECTION dir;
 } Command_args;
 
 // Liste des arguments possibles (ici les différentes directions)
@@ -43,7 +41,7 @@ typedef struct {
 } Command;
 
 // Array regroupant les différentes commandes possibles
-static Command list_commands[COMMANDS_NUMBER] =
+static Command list_commands[COMMAND_NB] =
 {
     {&args_dir_left, (f_ptr_generic) &ask_mvt},
     {&args_dir_right, (f_ptr_generic) &ask_mvt},
@@ -55,9 +53,9 @@ static Command list_commands[COMMANDS_NUMBER] =
 };
 
 
-typedef enum {OFF=0, ON=1} Flag;
+ENUM_DECL(FLAG, OFF, ON);
 
-Flag FLAG_STOP = OFF;
+FLAG FLAG_STOP = OFF;
 static int socket_listen;
 struct sockaddr_in server_address;
 
@@ -71,7 +69,7 @@ extern void Server_sendMsg() {}
  * Reads msg
  */
 static void Server_readMsg(int socket) {
-    Command_order command_rcvd;
+    RQ_data command_rcvd;
     read(socket, &command_rcvd, sizeof(command_rcvd));
     command_rcvd.command = ntohl(command_rcvd.command);
     // printf("COMMUNICATION RECEIVED :: id = %d\n", command_rcvd.command);
@@ -81,7 +79,6 @@ static void Server_readMsg(int socket) {
     } else {
         ((f_ptr_dir)command_to_exec.func)(command_to_exec.command_args->dir);
     }
-
 }
 
 /**

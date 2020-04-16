@@ -35,7 +35,7 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-typedef enum {STOP, LEFT, RIGHT, FORWARD, BACKWARD} Direction;
+#include "robocom.h"
 
 typedef struct
 {

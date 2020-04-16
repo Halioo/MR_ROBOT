@@ -2,10 +2,10 @@
 // Created by cleme on 05/02/2020.
 //
 
-#ifndef MR_ROBOT_CLIENT_H
-#define MR_ROBOT_CLIENT_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
-#include "../lib/robocom.h"
+#include "robocom.h"
 
 #define SERVER_ADRESS "localhost"
 
@@ -31,4 +31,4 @@ extern void Client_sendMsg(Command_order data);
 extern void Client_readMsg();
 
 
-#endif //MR_ROBOT_CLIENT_H
+#endif //CLIENT_H
