@@ -8,16 +8,12 @@
 # Organisation des sources.
 #
 
-# TODO créer et importer la librairie robocom !
-LIBDIR = lib
-# export LDFLAGS += $(realpath /lib/) -lrobocom
-
 # Packages du projet (à compléter si besoin est).
-PACKAGES = commando telco
+PACKAGES = CommandoV3 TelcoV3
 
 # Un niveau de package est accessible.
-SRC  = $(wildcard commando/*.c)
-SRC  += $(wildcard telco/*.c)
+SRC  = $(wildcard CommandoV3/*.c)
+SRC  += $(wildcard TelcoV3/*.c)
 # Pour ajouter un second niveau :
 # SRC += $(wildcard */*/*.c)
 

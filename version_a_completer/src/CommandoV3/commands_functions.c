@@ -13,7 +13,7 @@
  * Transforme une direction en un VelocityVector
  * et l'envoie au pilote
  */
-extern void ask_mvt(Direction dir)
+extern void ask_mvt(DIRECTION dir)
 {
     VelocityVector vel = {
             .dir = dir,

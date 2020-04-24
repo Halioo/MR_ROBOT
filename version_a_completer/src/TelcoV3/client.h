@@ -7,8 +7,6 @@
 
 #include "robocom.h"
 
-#define SERVER_ADRESS "localhost"
-
 
 /**
  * Starts the client
@@ -23,7 +21,7 @@ extern void Client_stop();
 /**
  * Sends a message
  */
-extern void Client_sendMsg(Command_order data);
+extern void Client_sendMsg(RQ_data data);
 
 /**
  * Reads a message

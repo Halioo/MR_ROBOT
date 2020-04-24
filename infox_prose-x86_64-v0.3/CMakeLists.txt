@@ -1,56 +1,10 @@
 
-#[[
+set(SRC "${CMAKE_CURRENT_SOURCE_DIR}/lib/libinfox.a")
 
-    include/infox/prose/prose.h
-    include/infox/prose/defs.h
-    include/infox/prose/contact_sensor.h
-    include/infox/prose/light_sensor.h
-    include/infox/prose/motors.h
-    include/infox/prose/prose_brick_pi.h
-    include/infox/prose/prose_infox.h
-]]
-
-project(infox)
-
-set(HEADERS
-    include/infox/prose/prose.h
-    include/infox/prose/defs.h
-    include/infox/prose/contact_sensor.h
-    include/infox/prose/light_sensor.h
-    include/infox/prose/motors.h
-    include/infox/prose/prose_brick_pi.h
-    include/infox/prose/prose_infox.h
-)
-set(SRC lib/libinfox.a)
-
-add_library(infox SHARED ${SRC} )
-
-target_include_directories(
-        infox PUBLIC
-        # Headers used from source/build location:
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-        # Headers used from the installed location:
-        "$<INSTALL_INTERFACE:include>"
-)
-
-install(TARGETS infox DESTINATION .)
-install(FILES ${HEADERS} DESTINATION .)
-
-
-
-#[[
-add_library(infox
-    include/infox/prose/prose.h
-    include/infox/prose/defs.h
-    include/infox/prose/contact_sensor.h
-    include/infox/prose/light_sensor.h
-    include/infox/prose/motors.h
-    include/infox/prose/prose_brick_pi.h
-    include/infox/prose/prose_infox.h)
-]]
-
+add_library(infox STATIC ${SRC})
+#set_target_properties(infox PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 set_target_properties(infox PROPERTIES LINKER_LANGUAGE C)
 
-# set_property(TARGET infox PROPERTY IMPORTED_LOCATION lib/libinfox.a)
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
-target_include_directories(infox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/infox/prose)
+set_property(GLOBAL PROPERTY INFOX_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/infox/prose/")

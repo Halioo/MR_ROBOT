@@ -3,19 +3,21 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#include "util.h"
+
 #include "pilot.h"
 #include "robot.h"
 
 #define DEFAULT_SPEED 0
 
 
-/**
+/**STATE
  * Liste des différents états possibles du pilote
  * FORGET: aucune action n'est effectuée
  * DEATH: tue la machine à état
  * Les PS sont des Pseudo State
  */
-typedef enum {
+ENUM_DECL(State,
     S_FORGET=0,
     S_IDLE,
     S_RUNNING,
@@ -23,7 +25,7 @@ typedef enum {
     PS_CHECK,
     S_DEATH,
     STATE_NB
-} State;
+)
 
 /**
  * Liste des event possibles

@@ -7,7 +7,7 @@
 
 #include "pilot.h"
 
-extern void ask_mvt(Direction dir);
+extern void ask_mvt(DIRECTION dir);
 extern void ask4log(void);
 
 

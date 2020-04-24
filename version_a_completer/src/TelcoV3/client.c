@@ -3,11 +3,9 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <string.h>
 #include <netdb.h>
 
 #include "watchdog.h"
@@ -24,9 +22,9 @@ static void init()
 {
     socket_to_connect = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_to_connect == -1) {
-        printf("Socket creation failed!\n");
+        TRACE("Socket creation failed!\n")
     } else {
-        printf("Socket creation successful...\n");
+        TRACE("Socket creation successful...\n")
     }
     // Initialize IP and Port
     server_address.sin_family = AF_INET;
@@ -34,9 +32,9 @@ static void init()
     server_address.sin_addr = *((struct in_addr *)gethostbyname (SERVER_ADRESS)->h_addr_list[0]);
     // Connection request to server, exit if fail
     if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
-        printf("connection with the server failed!\n");
+        TRACE("connection with the server failed!\n")
     } else {
-        printf("connected to the server...\n");
+        TRACE("connected to the server...\n")
     }
 }
 
@@ -48,10 +46,10 @@ extern void Client_sendMsg(RQ_data data) {
     RQ_data data_to_send;
     data_to_send.command = htonl(data.command);
     if (write(socket_to_connect, &data_to_send, sizeof(data_to_send)) <0) {
-        printf("--- Sending message failed !\n");
+        TRACE("--- Sending message failed !\n")
         close(socket_to_connect);
     } else {
-        printf("Message sent successfully...\n");
+        TRACE("Message sent successfully...\n")
     }
 }
 

@@ -14,13 +14,16 @@
 INTOXDIR = $(realpath ../infox_prose-x86_64-v0.3/)
 
 
+
 # Organisation des sources.
 #
 
 export SRCDIR = src
+export LIBDIR = $(realpath lib)
 export BINDIR = bin
 
-SUBDIRS = $(SRCDIR)
+SUBDIRS = $(LIBDIR)
+SUBDIRS += $(SRCDIR)
 
 #
 # Définitions des outils.
@@ -33,12 +36,13 @@ export CC = gcc
 # options de compilation
 export CCFLAGS += -O0
 # avec debuggage : -g -DDEBUG
+#export CCFLAGS += -g -DDEBUG
 # sans debuggage : -DNDEBUG
 export CCFLAGS += -DNDEBUG
  # gestion automatique des dépendances
 export CCFLAGS += -MMD -MP
 export CCFLAGS += -D_BSD_SOURCE -D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE -D_DEFAULT_SOURCE -D_GNU_SOURCE
-#On compile en utilisant les options de gcc
+# On compile en utilisant les options de gcc
 export CCFLAGS += -std=c99 -Wall
 # -pedantic retiré car génère des warnings pour mes TRACE
 export LDFLAGS += -lrt -pthread
@@ -47,6 +51,11 @@ export LDFLAGS += -lrt -pthread
 export CCFLAGS += -DINTOX
 export CCFLAGS += -I$(INTOXDIR)/include/infox/prose/
 export LDFLAGS += -L$(INTOXDIR)/lib/ -linfox
+
+#options de compilation pour l'utilisation des libs personnalisées
+export CCFLAGS += -I$(LIBDIR)/include/
+export LDFLAGS += -L$(LIBDIR)/
+export LDFLAGS += -lrobocom -lwatchdog -lmailbox
 
 #
 # Définitions du binaire à générer.

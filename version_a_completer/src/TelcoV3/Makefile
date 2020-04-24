@@ -8,7 +8,8 @@
 # Organisation des sources.
 #
 
-SRC = $(wildcard *.c)
+#SRC = $(wildcard *.c)
+SRC = remoteui.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 

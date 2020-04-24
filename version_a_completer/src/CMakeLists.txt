@@ -6,10 +6,27 @@ add_executable(client main_client.c
     ${CLIENT_src}
 )
 
+
 add_executable(server main_server.c
     ${SERVER_src}
 )
 
 
-target_link_libraries(client robocom watchdog util pthread rt)
-target_link_libraries(server robocom watchdog util pthread rt)
+target_link_libraries(client
+    infox robocom watchdog mailbox
+    pthread rt
+)
+target_link_libraries(server
+    infox robocom watchdog mailbox
+    pthread rt
+)
+
+get_property(loc_INFOX_DIR GLOBAL PROPERTY INFOX_DIR)
+get_property(loc_LIB_DIR GLOBAL PROPERTY LIB_DIR)
+
+
+target_include_directories(client PUBLIC ${loc_INFOX_DIR})
+target_include_directories(client PUBLIC ${loc_LIB_DIR})
+
+target_include_directories(server PUBLIC ${loc_INFOX_DIR})
+target_include_directories(server PUBLIC ${loc_LIB_DIR})

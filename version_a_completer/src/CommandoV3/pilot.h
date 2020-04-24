@@ -37,11 +37,6 @@
 
 #include "robocom.h"
 
-typedef struct
-{
-    Direction dir;
-    int power;
-} VelocityVector;
 
 typedef struct
 {

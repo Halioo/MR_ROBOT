@@ -5,10 +5,16 @@
 #ifndef ROBOCOM_H
 #define ROBOCOM_H
 
-#include "../util.h"
+
+#include "util.h"
+#include "watchdog.h"
+
+
+#define SA struct sockaddr
 
 #define SERVER_PORT 8080
-#define SA struct sockaddr
+#define MAX_PENDING_CONNECTIONS (5)
+
 
 // ---------- Enums declarations ----------
 
@@ -18,6 +24,19 @@ ENUM_DECL(RQ_TYPE, RQ_GET, RQ_POST, RQ_PUT, RQ_DELETE, RQ_ES)
 
 
 // ---------- Struct declarations ----------
+
+typedef struct
+{
+    DIRECTION dir;
+    int power;
+} VelocityVector;
+
+/** the captor's states of the robot (bumper and luminosity) */
+typedef struct
+{
+    FLAG collision;
+    float luminosity;
+} SensorState;
 
 typedef struct {
     RQ_TYPE rq_type;
@@ -35,8 +54,10 @@ typedef union {
 
 // ---------- Functions prototypes ----------
 
-extern void send_network(int socket, RQ_data data_to_send);
-extern RQ_data read_network(int socket);
+extern int createNwk(int nwkPort);
+extern int connectNwk(char * nwkIp, int nwkPort);
+extern RQ_data readNwk(int socket);
+extern void sendNwk(int socket, RQ_data data_to_send);
 
 
 #endif //ROBOCOM_H

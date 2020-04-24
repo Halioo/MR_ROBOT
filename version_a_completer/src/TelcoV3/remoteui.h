@@ -36,36 +36,44 @@
 #ifndef REMOTEUI_H
 #define REMOTEUI_H
 
-#include <sys/types.h>
-#include "robocom.h"
+#include <robocom.h>
+
+#include "ihm.h"
+
+typedef struct RemoteUI_t RemoteUI;
 
 extern void setIp(u_int32_t ip);
 
 extern void toggleEmergencyStop();
 
-extern void setDir(Direction dir);
+extern void setDir(DIRECTION dir);
 
+extern void validate();
 
-/**
- * Start RemoteUI and waits for the user's input
- * until the user ask to quit
- */
-extern void RemoteUI_start();
+extern void goScreenLog();
 
-/**
- * Stop RemoteUI
- */
-extern void RemoteUI_stop();
+extern void backMainScreen();
+
 
 /**
  * initialize in memory RemoteUI
  */
-extern void RemoteUI_new();
+extern RemoteUI * RemoteUI_new();
+
+/**
+ * Start RemoteUI
+ */
+extern void RemoteUI_start(RemoteUI * remoteUI);
+
+/**
+ * Stop RemoteUI
+ */
+extern void RemoteUI_stop(RemoteUI * remoteUI);
 
 /**
  * destruct the RemoteUI from memory
  */
-extern void RemoteUI_free();
+extern void RemoteUI_free(RemoteUI * RemoteUI);
 
 
 

@@ -37,16 +37,8 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
+#include <robocom.h>
 
-typedef enum {NO_BUMP=0, BUMPED} Collision;
-
-    
-/** the captor's states of the robot (bumper and luminosity) */
-typedef struct
-{
-    Collision collision;
-    float luminosity;
-} SensorState;
 
 /**
  * Start the Robot (initialize communication and open port)

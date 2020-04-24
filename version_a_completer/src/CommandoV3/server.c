@@ -9,16 +9,16 @@
 #include <sys/socket.h>
 #include <string.h>
 
+#include "util.h"
 #include "robocom.h"
+
 #include "server.h"
 #include "pilot.h"
 #include "commands_functions.h"
 
-#define MAX_PENDING_CONNECTIONS (5)
-
 
 typedef void (*f_ptr_generic)(void);
-typedef void (*f_ptr_dir)(Direction dir);
+typedef void (*f_ptr_dir)(DIRECTION dir);
 
 /**
  * Structure contenant les arguments qu'il
@@ -41,7 +41,7 @@ typedef struct {
 } Command;
 
 // Array regroupant les différentes commandes possibles
-static Command list_commands[COMMAND_NB] =
+static Command list_commands[NB_COMMAND] =
 {
     {&args_dir_left, (f_ptr_generic) &ask_mvt},
     {&args_dir_right, (f_ptr_generic) &ask_mvt},
@@ -52,8 +52,6 @@ static Command list_commands[COMMAND_NB] =
     {NULL, &ask4log}
 };
 
-
-ENUM_DECL(FLAG, OFF, ON);
 
 FLAG FLAG_STOP = OFF;
 static int socket_listen;
@@ -96,6 +94,9 @@ static void init()
     } else {
         printf("Socket creation successful...\n");
     }
+
+    int option = 1;
+    setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     // Initialize IP and Port
     server_address.sin_family = AF_INET;
