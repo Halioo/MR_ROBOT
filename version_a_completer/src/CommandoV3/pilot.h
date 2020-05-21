@@ -37,6 +37,7 @@
 
 #include "robocom.h"
 
+typedef struct Pilot_t Pilot;
 
 typedef struct
 {
