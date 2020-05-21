@@ -1,15 +1,18 @@
-//
-// Created by cleme on 19/04/2020.
-//
+/**
+ * @file mailbox.h
+ *
+ * @brief Mailbox class that allows to create multiple mailboxes based on mqueue library
+ *
+ * @date April 2020
+ *
+ * @authors Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU, Louis FROGER, Guirec PLANCHAIS
+ *
+ * @copyright CCBY 4.0
+ */
 
 #ifndef MAILBOX_H
 #define MAILBOX_H
 
-#include <stdio.h>
-#include <pthread.h>
-#include <mqueue.h>
-
-#include "util.h"
 
 /**
  * @def Name of the mailboxes. Each instance will have this name,
@@ -20,7 +23,7 @@
 /**
  * @def Size of the mailbox name
  */
-#define SIZE_BOX_NAME 20
+#define SIZE_BOX_NAME 30
 
 /**
  * @def MAX_MESSAGE_LENGTH
@@ -40,21 +43,27 @@
 #define MQ_MAX_MESSAGES (10)
 
 
-typedef struct mailbox_t {
-    char queueName[SIZE_BOX_NAME];
-    mqd_t mq;
-} Mailbox;
+#include <stdio.h>
+#include <pthread.h>
+#include <mqueue.h>
 
+#include "util.h"
+
+
+/**
+ * The mailbox structure
+ */
+typedef struct mailbox_t Mailbox;
 
 /**
  * @brief Initializes the queue
  */
-extern Mailbox * MailboxInit(char * objName, int objCounter, __syscall_slong_t maxMsgSize);
+extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t maxMsgSize);
 
 /**
  * @brief Destroys the queue
  */
-extern void MailboxStop(Mailbox *this);
+extern void mailboxClose(Mailbox * this);
 
 /**
  * @brief Sends a message to the queue

@@ -3,6 +3,7 @@
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
     <sourceRoots>
+      <file path="$PROJECT_DIR$/infox_prose-x86_64-v0.3" />
       <file path="$PROJECT_DIR$/version_a_completer/lib" />
       <file path="$PROJECT_DIR$/version_a_completer/src" />
     </sourceRoots>
