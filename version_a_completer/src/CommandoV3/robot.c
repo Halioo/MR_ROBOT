@@ -95,8 +95,8 @@ extern SensorState Robot_getSensorState() {
     SensorState st;
 
     ContactStatus sensor_status = ContactSensor_getStatus(robot->sensor_bump);
-    if (sensor_status == PRESSED) {st.collision = ON;}
-    else {st.collision = OFF;}
+    if (sensor_status == PRESSED) {st.collision_f = UP;}
+    else {st.collision_f = DOWN;}
 
     st.luminosity = LightSensor_getStatus(robot->sensor_light);
 

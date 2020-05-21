@@ -1,3 +1,28 @@
+
+# TUTO pour utiliser ce fichier :
+# lancer ce fichier via le terminal permet d'automatiquement
+# compiler et lancer le code du robot
+
+# il est conçu pour avoir plusieurs options de lancement
+# -sim : permet de lancer le simulateur en même temps
+# -debug : permet d'afficher les infos de debug
+# (pas de rapport avec la macro -NDEBUG)
+
+# par défaut la commande la plus simple à taper pour est :
+# ./run.sh -sim
+
+# autre option secondaire :
+# -v <id de la version> : cette commande permettait de choisir
+# de lancer soit <src>, le code de robot V1 fourni par Delatour,
+# soit <hello> pour lancer helloRobot, soit <wip> (pour work in progress)
+# qui permet de lancer la version de l'utilisateur
+# cette option n'est plus utile depuis le passage à la V2, et la balise
+# -v est mise par défaut à <wip>
+
+
+
+
+
 # Absolute path to this script
 DIRPATH=$(dirname "$0")
 # Close simulator upon exit

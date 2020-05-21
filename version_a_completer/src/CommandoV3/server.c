@@ -53,7 +53,7 @@ static Command list_commands[NB_COMMAND] =
 };
 
 
-FLAG FLAG_STOP = OFF;
+FLAG FLAG_STOP = DOWN;
 static int socket_listen;
 struct sockaddr_in server_address;
 
@@ -123,7 +123,7 @@ static void run() {
     int socket_data;
     // Accept data
     socket_data = accept(socket_listen, NULL, 0);
-    while (FLAG_STOP == OFF) {
+    while (FLAG_STOP == DOWN) {
         // Check data integrity, exit if fail
         if (socket_data < 0) {
             printf("Server accept failed!\n");

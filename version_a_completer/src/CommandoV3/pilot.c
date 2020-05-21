@@ -115,7 +115,7 @@ static State current_state;
  * Retourne un booléen donnant l'état du capteur de collision avant
  */
 static bool has_bumped() {
-    return Robot_getSensorState().collision;
+    return Robot_getSensorState().collision_f;
 }
 
 /**
@@ -227,7 +227,7 @@ extern PilotState Pilot_getState() {
     pt.speed = Robot_getRobotSpeed();
 
     SensorState st = Robot_getSensorState();
-    pt.collision = st.collision;
+    pt.collision = st.collision_f;
     pt.luminosity = st.luminosity;
 
     return pt;

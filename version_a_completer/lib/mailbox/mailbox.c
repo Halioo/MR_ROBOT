@@ -35,13 +35,13 @@ extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t m
     int err = mq_unlink(this->queueName);
     if (err == -1) {
         if (errno == EACCES) {
-            TRACE("ERROR : mq_unlink failed -> no permission to unlink the queue (continue)\n");
+            TRACE("ERROR : mq_unlink failed -> no permission to unlink the queue (continue)\n")
         } else if (errno == ENAMETOOLONG) {
-            TRACE("ERROR : mq_unlink failed -> name too long (continue)\n");
+            TRACE("ERROR : mq_unlink failed -> name too long (continue)\n")
         } else if (errno == ENOENT) {
-            TRACE("ERROR : mq_unlink failed -> no message queue to unlink (continue)\n");
+            TRACE("ERROR : mq_unlink failed -> no message queue to unlink (continue)\n")
         } else {
-            TRACE("ERROR : mq_unlink failed (exiting)\n");
+            TRACE("ERROR : mq_unlink failed (exiting)\n")
             exit(EXIT_FAILURE);
         }
     }
@@ -60,7 +60,7 @@ extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t m
     errno = 0;
     this->mq = mq_open(this->queueName, O_CREAT | O_RDWR, 0600, &attr); // 600 = rw for owner and nothing else
     if(this->mq == -1){
-        TRACE("ERROR : mq_open failed (exiting)\n");
+        TRACE("ERROR : mq_open failed (exiting)\n")
         exit(EXIT_FAILURE);
     }
     return this;
@@ -73,20 +73,20 @@ extern void mailboxClose(Mailbox * this) {
     errno = 0;
     int err = mq_close(this->mq);
     if (err == -1) {
-        TRACE("ERROR : mq_close failed -> wrong mq descriptor (continue)\n");
+        TRACE("ERROR : mq_close failed -> wrong mq descriptor (continue)\n")
     }
     /* Destruction of the queue */
     errno = 0;
     err = mq_unlink(this->queueName);
     if (err == -1) {
         if (errno == EACCES) {
-            TRACE("ERROR : mq_unlink failed -> no permission to unlink the queue (continue)\n");
+            TRACE("ERROR : mq_unlink failed -> no permission to unlink the queue (continue)\n")
         } else if (errno == ENAMETOOLONG) {
-            TRACE("ERROR : mq_unlink failed -> name too long (continue)\n");
+            TRACE("ERROR : mq_unlink failed -> name too long (continue)\n")
         } else if (errno == ENOENT) {
-            TRACE("ERROR : mq_unlink failed -> no message queue to unlink (continue)\n");
+            TRACE("ERROR : mq_unlink failed -> no message queue to unlink (continue)\n")
         } else {
-            TRACE("ERROR : mq_unlink failed (exiting)\n");
+            TRACE("ERROR : mq_unlink failed (exiting)\n")
             exit(EXIT_FAILURE);
         }
     }
@@ -104,13 +104,13 @@ extern void mailboxSendMsg(Mailbox * this, char * msg) {
     ssize_t err = mq_send(this->mq, msg, this->mqSize, 0);
     if(err == -1){
         if(errno == EAGAIN){
-            TRACE("ERROR : mq_send failed -> the queue is full (exiting)\n");
+            TRACE("ERROR : mq_send failed -> the queue is full (exiting)\n")
         }else if (errno == EMSGSIZE){
-            TRACE("ERROR : mq_send failed -> msg length is greater than the mq_msgsize attribute of the queue (exiting)\n");
+            TRACE("ERROR : mq_send failed -> msg length is greater than the mq_msgsize attribute of the queue (exiting)\n")
         }else if (errno == EBADF){
-            TRACE("ERROR : mq_send failed -> wrong mq given or mq not opened for writing (exiting)\n");
+            TRACE("ERROR : mq_send failed -> wrong mq given or mq not opened for writing (exiting)\n")
         }else{
-            TRACE("ERROR : mq_send failed (exiting)\n");
+            TRACE("ERROR : mq_send failed (exiting)\n")
         }
         exit(EXIT_FAILURE);
     }else{
@@ -140,11 +140,11 @@ extern void mailboxReceive(Mailbox * this, char * msg) {
     ssize_t err = mq_receive(this->mq, msg, this->mqSize, 0);
     if(err == -1) {
         if (errno == EMSGSIZE) {
-            TRACE("ERROR : mq_receive failed -> msg length is less than the mq_msgsize attribute of the queue (exiting)\n");
+            TRACE("ERROR : mq_receive failed -> msg length is less than the mq_msgsize attribute of the queue (exiting)\n")
         } else if (errno == EBADF) {
-            TRACE("ERROR : mq_receive failed -> wrong mq given or mq or not opened for reading (exiting)\n");
+            TRACE("ERROR : mq_receive failed -> wrong mq given or mq or not opened for reading (exiting)\n")
         } else {
-            TRACE("ERROR : mq_receive failed (exiting)\n");
+            TRACE("ERROR : mq_receive failed (exiting)\n")
         }
         exit((EXIT_FAILURE));
     }else {

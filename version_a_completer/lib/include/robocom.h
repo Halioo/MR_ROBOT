@@ -34,7 +34,7 @@ typedef struct
 /** the captor's states of the robot (bumper and luminosity) */
 typedef struct
 {
-    FLAG collision;
+    FLAG collision_f;
     float luminosity;
 } SensorState;
 
