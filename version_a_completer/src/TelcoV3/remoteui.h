@@ -63,17 +63,17 @@ extern RemoteUI * RemoteUI_new();
 /**
  * Start RemoteUI
  */
-extern void RemoteUI_start(RemoteUI * remoteUI);
+extern int RemoteUI_start(RemoteUI * remoteUI);
 
 /**
  * Stop RemoteUI
  */
-extern void RemoteUI_stop(RemoteUI * remoteUI);
+extern int RemoteUI_stop(RemoteUI * remoteUI);
 
 /**
  * destruct the RemoteUI from memory
  */
-extern void RemoteUI_free(RemoteUI * RemoteUI);
+extern int RemoteUI_free(RemoteUI * RemoteUI);
 
 
 

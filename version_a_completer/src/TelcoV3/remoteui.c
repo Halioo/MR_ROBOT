@@ -100,10 +100,7 @@ typedef struct {
 /**
  * @brief Wrapper enum. It is used to send EVENTs and parameters in a mailBox.
  */
-typedef union {
-    Msg msg; ///< Message sent, interpreted as a structure
-    char * toString; ///< Message sent, interpreted as a char array
-} Wrapper;
+wrapperOf(Msg)
 
 
 /**
@@ -261,24 +258,24 @@ static void RemoteUI_run(RemoteUI * this) {
     STATE state;
     Wrapper wrapper;
 
-    TRACE("[%s] RUN - Queue name : %s\n", this->nameTask, this->mb->queueName)
+    TRACE("[%s] RUN\n", this->nameTask)
 
     while (this->state != S_DEATH) {
-        mailboxReceive(this->mb, &wrapper.toString); ///< Receiving an EVENT from the mailbox
+        mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
-        if (wrapper.msg.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
+        if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
 
         } else {
-            action = stateMachine[this->state][wrapper.msg.event].action;
+            action = stateMachine[this->state][wrapper.data.event].action;
 
             TRACE("\t [%s] | Action %s\n", this->nameTask, ACTION_toString[action])
 
-            state = stateMachine[this->state][wrapper.msg.event].nextState;
+            state = stateMachine[this->state][wrapper.data.event].nextState;
             TRACE("\t [%s] | State %s\n", this->nameTask, STATE_toString[state])
 
             if (state != S_FORGET) {
-                this->msg = wrapper.msg;
+                this->msg = wrapper.data;
                 actionPtr[action](this);
                 this->state = state;
             }
@@ -296,7 +293,7 @@ extern RemoteUI * RemoteUI_new() {
     remoteUIcounter++;
     TRACE("[RemoteUI] new function \n")
     RemoteUI * this = (RemoteUI *) malloc(sizeof(RemoteUI));
-    this->mb = Mailbox_new("RemoteUI", remoteUIcounter, sizeof(Msg));
+    this->mb = mailboxInit("RemoteUI", remoteUIcounter, sizeof(Msg));
     sprintf(this->nameTask, NAME_TASK, remoteUIcounter);
 }
 
@@ -304,7 +301,7 @@ extern RemoteUI * RemoteUI_new() {
  * Start RemoteUI and waits for the user's input
  * until the user ask to quit
  */
-extern void RemoteUI_start(RemoteUI * this)
+extern int RemoteUI_start(RemoteUI * this)
 {
     TRACE("[RemoteUI] start function \n")
     printf("%s", get_msg(MSG_START));
@@ -316,17 +313,20 @@ extern void RemoteUI_start(RemoteUI * this)
 /**
  * Stop RemoteUI
  */
-extern void RemoteUI_stop()
+extern int RemoteUI_stop()
 {
     quit();
     Client_stop();
     //Pilot_stop();
     printf("%s", get_msg(MSG_STOP));
     fflush(stdout);
+    return 0; // TODO: Handle the errors
 }
 
 /**
  * destruct the RemoteUI from memory
  */
-extern void RemoteUI_free() {}
+extern int RemoteUI_free() {
+    return 0; // TODO: Handle the errors
+}
 
