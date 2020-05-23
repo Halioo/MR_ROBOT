@@ -20,9 +20,6 @@
 # -v est mise par défaut à <wip>
 
 
-
-
-
 # Absolute path to this script
 DIRPATH=$(dirname "$0")
 # Close simulator upon exit
