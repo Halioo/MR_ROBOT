@@ -15,6 +15,10 @@
 #define SERVER_PORT 8080
 #define MAX_PENDING_CONNECTIONS (5)
 
+#define DEFAULT_POWER_FWD 80
+#define DEFAULT_POWER_BCKWD 60
+#define DEFAULT_POWER_TURN 50
+
 
 // ---------- Enums declarations ----------
 
@@ -58,6 +62,13 @@ extern int createNwk(int nwkPort);
 extern int connectNwk(char * nwkIp, int nwkPort);
 extern RQ_data readNwk(int socket);
 extern void sendNwk(int socket, RQ_data data_to_send);
+
+/**
+ * Transforme une direction en un VelocityVector
+ * et l'envoie au pilote
+ */
+extern VelocityVector translateDir(DIRECTION);
+
 
 
 #endif //ROBOCOM_H

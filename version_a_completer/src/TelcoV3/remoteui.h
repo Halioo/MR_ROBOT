@@ -38,21 +38,31 @@
 
 #include <robocom.h>
 
+#include "proxy_pilote.h"
 #include "ihm.h"
 
 typedef struct RemoteUI_t RemoteUI;
 
-extern void setIp(u_int32_t ip);
+extern void setIp(RemoteUI*, char * ip);
+extern void validate(RemoteUI*);
+extern void connectSuccess(RemoteUI*);
+extern void connectFailure(RemoteUI*);
 
-extern void toggleEmergencyStop();
+extern void setDir(RemoteUI*, DIRECTION dir);
+extern void toggleEmergencyStop(RemoteUI*);
 
-extern void setDir(DIRECTION dir);
+extern void goScreenLog(RemoteUI*);
+extern void backMainScreen(RemoteUI*);
 
-extern void validate();
+// TODO ajouter le getEvent/setEvent (transition intern de logScreen)
 
-extern void goScreenLog();
+extern void quit(RemoteUI*);
 
-extern void backMainScreen();
+
+/**
+ * @brief Example function that treats a wathdog event.
+ */
+extern void ExampleTimeout(Watchdog * wd, void * caller);
 
 
 /**
@@ -63,19 +73,17 @@ extern RemoteUI * RemoteUI_new();
 /**
  * Start RemoteUI
  */
-extern int RemoteUI_start(RemoteUI * remoteUI);
+extern int RemoteUI_start(RemoteUI*);
 
 /**
  * Stop RemoteUI
  */
-extern int RemoteUI_stop(RemoteUI * remoteUI);
+extern int RemoteUI_stop(RemoteUI*);
 
 /**
  * destruct the RemoteUI from memory
  */
-extern int RemoteUI_free(RemoteUI * RemoteUI);
-
+extern int RemoteUI_free(RemoteUI*);
 
 
 #endif /* REMOTEUI_H */
-

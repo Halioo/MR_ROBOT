@@ -15,24 +15,7 @@
  */
 extern void ask_mvt(DIRECTION dir)
 {
-    VelocityVector vel = {
-            .dir = dir,
-    };
-    switch (dir) {
-        case FORWARD:
-            vel.power = DEFAULT_POWER_FWD;
-            break;
-        case BACKWARD:
-            vel.power = DEFAULT_POWER_BCKWD;
-            break;
-        case LEFT:
-        case RIGHT:
-            vel.power = DEFAULT_POWER_TURN;
-            break;
-        default:
-            vel.power = 0;
-    }
-    Pilot_setVelocity(vel);
+    Pilot_setVelocity(translateDir(dir));
 }
 
 /**
