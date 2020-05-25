@@ -22,8 +22,8 @@ static int dispatcherCounter = 0;
  * @brief enumeration of the possible command that can send the client
  */
 
-typedef enum {
-	ASK_NOTHING = 0, 
+ENUM_DECL(COMMANDE,
+	ASK_NOTHING, 
 	ASK_DISCONNECT, 
 	ASK_DIR_FORWARD, 
 	ASK_DIR_BACKWARD, 
@@ -34,16 +34,16 @@ typedef enum {
 	ASK_LESS_SPEED,
 	ASK_LOG,
 	ASK_STOP
-	} Commande;
+ )
 
 /**
  * @brief Enumeration of all the STATEs that can be taken by the STATE machine
  */
 ENUM_DECL(STATE,
-    S_FORGET,      ///< Nothing happens
-    S_NOT_CONNECTED,        ///< Idle STATE
-    S_CONNECTED,     ///< Running STATE
-    S_DEATH        ///< Transition STATE for stopping the STATE machine
+    S_FORGET,               ///< Nothing happens
+    S_IDLE,        ///< Idle STATE
+    S_LISTENING,            ///< Running STATE
+    S_DEATH                 ///< Transition STATE for stopping the STATE machine
 )
 
 
@@ -51,12 +51,11 @@ ENUM_DECL(STATE,
  * @brief Enumaration of all the possible ACTIONs called by the STATE machine
  */
 ENUM_DECL(ACTION,
-    A_NOP,                      ///< Nothing happens
-    A_START_WAITING_CONNECTION,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
-    A_STOP_WAITING_CONNECTION,            ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE
-    A_START_CONNECTION,
-    A_STOP_CONNECTION,
-    A_KILL                      ///< Kills the STATE machine
+    A_NOP,                         ///< Nothing happens
+    A_START_THREAD_LISTENING,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
+    A_PROCESS_DATA,
+    A_STOP_THREAD_LISTENING,              ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE                    
+    A_KILL                         ///< Kills the STATE machine
 )
 
 
@@ -64,10 +63,11 @@ ENUM_DECL(ACTION,
  * @brief Enumeration of all the possible EVENTs that triggers the STATE machine
  */
 ENUM_DECL(EVENT,
-    E_CONNECT,          ///< Do nothing
-    E_DISCONNECT,  ///< EVENT VEL IS NULL THAT STOP POLLING
-    E_STOP,      ///< EVENT SET VEL THAT START POLLING
-    E_KILL          ///< Kills the STATE machine
+    E_MSG_RECEIVED,         ///< Do nothing
+    E_START_LISTENING,      ///< EVENT VEL IS NULL THAT STOP POLLING
+    E_STOP_LISTENING,       /// 
+    E_STOP,                 ///< EVENT SET VEL THAT START POLLING
+    E_KILL                  ///< Kills the STATE machine
 )
 
 
@@ -121,8 +121,7 @@ typedef void (*ActionPtr)(Dispatcher*);
  */
 static const ActionPtr actionPtr[NB_ACTION] = { 
         &ActionNop,
-        &ActionExample1FromPolling,
-        &ActionExample1FromIdle,
+        &ActionProcessData,
         &ActionKill
 };
 
@@ -131,25 +130,20 @@ static const ActionPtr actionPtr[NB_ACTION] = {
  * @brief STATE machine of the Example class
  */
 static Transition stateMachine[NB_STATE - 1][NB_EVENT] = { 
-        [S_NOT_CONNECTED][E_CONNECT]    = {S_CONNECTED,	A_START_CONNECTION},
-        [S_CONNECTED][E_STOP] = {S_NOT_CONNECTED, A_STOP_WAITING_CONNECTION},
-        [S_NOT_CONNECTED][E_DISCONNECT] = {S_NOT_CONNECTED, A_START_WAITING_CONNECTION},
-        [S_CONNECTED][E_KILL] = {S_DEATH, A_KILL}
+        [S_IDLE][E_START_LISTENING]         =       {S_LISTENING,	A_START_THREAD_LISTENING},
+        [S_LISTENING][E_MSG_RECEIVED]       =       {S_LISTENING, A_PROCESS_DATA},
+        [S_LISTENING][E_STOP_LISTENING]     =       {S_IDLE, A_START_THREAD_LISTENING},
+        [S_IDLE][E_KILL]                    =       {S_DEATH, A_KILL},
+        [S_LISTENING][E_KILL]               =       {S_DEATH, A_KILL}
 };
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
 // TODO : Write all the ACTION functions
 
-static void ActionExample1FromPolling(Dispatcher * this) {
-    TRACE("[ActionEx1FromRunning] - %d\n", this->msg.tabEvents)
+static void ActionProcessData(Dispatcher * this) {  
+    TRACE("[ActionProcessData] - %d\n", this->msg.tabEvents)
 }
-
-
-static void ActionExample1FromIdle(Dispatcher * this) {
-    TRACE("[ActionEx1FromIdle] - %d\n", this->msg.event)
-}
-
 
 static void ActionNop(Dispatcher * this) {
     TRACE("[ActionNOP]\n")
@@ -165,7 +159,7 @@ static void ActionKill(Dispatcher * this) {
 /**
  * @brief Proccess the data received
  * 
- * Commande possible :
+ * Commande possible : CES FONCTIONS SONT A MODIFIER
  *  ASK_NOTHING = 0, 
  *	ASK_DISCONNECT, 
  *	ASK_DIR_FORWARD, 
@@ -178,7 +172,7 @@ static void ActionKill(Dispatcher * this) {
  *	ASK_LOG,
  *	ASK_STOP
  */
-void processData(Buffer buf, Commande * cmd){
+void processData(Buffer buf, COMMANDE * cmd){
 
 	TRACE ("Data received ");
 
@@ -213,7 +207,7 @@ void processData(Buffer buf, Commande * cmd){
  *	ASK_LOG,
  *	ASK_STOP
  */
-void sendCmd(Commande cmd){
+void sendCmd(COMMANDE cmd){
     switch (cmd)
     {
     case ASK_DISCONNECT:
