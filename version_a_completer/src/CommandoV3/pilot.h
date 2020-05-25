@@ -92,7 +92,6 @@ extern void Pilot_check();
 
 extern void Pilot_ToggleES(Pilot * this);
 
-
 extern void Pilot_EventSetRobotVelocity(Pilot * this, VelocityVector vel);
 
 extern void Pilot_EventStop(Pilot * this);

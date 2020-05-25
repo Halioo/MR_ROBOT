@@ -5,10 +5,86 @@
 #include "logger.h"
 #include "robot.h"
 
-
+/**
+ * @def Name of the task. Each instance will have this name,
+ * followed by the number of the instance
+ */
+#define NAME_TASK "LoggerTask%d"
 
 static int loggerCounter = 0;
 
+
+/**STATE
+ * Liste des différents états possibles du logger
+ * FORGET:aucune action n'est effectuée
+ * IDLE: en attente du démarage du logger
+ * POLLING: recolte les LogEvent
+ */
+ENUM_DECL(STATE,
+          S_FORGET=0,
+          S_IDLE,
+          S_POLLING,
+          S_DEATH        ///< Etat de mort du robot, utilisé lorsqu'on veut l'arrêter
+)
+
+/**
+ * Liste des event possibles
+ */
+
+ENUM_DECL(EVENT,
+          E_START_POLLING,      // Evenement pour commencer à scruter le robot
+          E_STOP_POLLING,       // Evenement pour arrêter de scruter le robot
+          E_TO_POLL,            // Evenement appelé à expiration du timer de 250ms
+          E_KILL                  ///< Détruit la MaE
+)
+
+/**
+ * Liste des différentes actions possibles
+ */
+
+ENUM_DECL(ACTION,
+          A_NOP,                ///< Ne rien faire
+          A_START_POLLING,      ///< On lance le timer
+          A_STOP_POLLING,       ///< On reset le timer - sert d'action pour quitter
+          A_POLL,               ///< On relève l'état du robot
+          A_KILL
+)
+
+/**
+ * @brief Structure de transition de la MaE
+ */
+typedef struct {
+    STATE nextState; ///< Prochain State de la MaE
+    ACTION action;   ///< Action réalisée avant d'aller dans le prochain State
+} Transition;
+
+
+/**
+ * @brief Structure d'un message ajouté à la BAL
+ */
+typedef struct {
+    EVENT event;
+    LogEvent logEvent; ///< Paramètre event du message
+} Msg;
+
+/**
+ * @brief Wrapper enum. Utilisé pour envoyer des Msg dans une BAL
+ */
+wrapperOf(Msg)
+
+/**
+ * @brief Structure de l'objet Logger
+ */
+struct Logger_t {
+    pthread_t threadId; ///< Pthread identifier for the active function of the class.
+    SensorState sens;
+    int speed;
+    Mailbox * mailbox;
+    Msg message; ///< Structure utilisée pour passer les donnés de la BAL aux pointeurs de fonction
+    STATE myState; ///< Etat actuel de la MaE
+    Liste * myEvents;
+
+};
 
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
 
@@ -16,79 +92,90 @@ static void Logger_polling(Logger *this);
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
-static void Action_NOP(Logger * this);
+static void ActionNop(Logger * this);
 
-static void Action_POLL(Logger * this);
+static void ActionStartPolling(Logger * this);
+static void ActionStopPolling(Logger * this);
 
+static void ActionPoll(Logger * this);
 
-/*--------------------Prototypes des fonctions event-------------------------*/
+static void ActionKll(Logger * this);
 
+/* ----------------------- EVENT FUNCTIONS ----------------------- */
 
-static void Logger_EventStartPolling(Logger * this);
-
-static void Logger_EventStopPolling(Logger * this);
-
-static void Logger_EventAfter250ms(Logger * this);
-
+static void Logger_EventTOPoll(Logger * this);
 
 
-/*----------------------- STATE MACHINE DECLARATION -----------------------*/
+/*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
 
 /**
  * @brief Fonction run de la classe Logger
  */
 static void Logger_Run(Logger * this);
 
-typedef void (*f_ptr)();
 
-static const f_ptr actions_tab[ACTION_NB] = {
-        &Action_NOP,
-        &Action_POLL
+/*----------------------- STATE MACHINE DECLARATION -----------------------*/
+
+/**
+ * @def Pointeur de fonction pour les fonction d'Action de la MaE
+ */
+typedef void (*ActionPtr)(Logger *);
+
+/**
+ * @brief Tableau de pointeur de fonctions pour stocker les fonctions correspondantes aux actions dans le même ordre qu'elles ont été définies
+ */
+static const ActionPtr actionPtrTab[NB_ACTION]={
+        &ActionNop,
+        &ActionPoll,
+        &ActionStartPolling,
+        &ActionStopPolling,
+        &ActionKll
 };
+
+/**
+ * Tableau des transitions
+ * [etat_courant][type_event]
+ */
+static Transition stateMachine[NB_STATE][NB_EVENT] ={
+        [S_IDLE][E_START_POLLING] = {S_POLLING, A_START_POLLING},
+        [S_POLLING][E_STOP_POLLING] = {S_IDLE, A_STOP_POLLING},
+        [S_POLLING][E_TO_POLL] = {S_POLLING, A_POLL},
+        [S_IDLE][E_KILL] = {S_DEATH, A_STOP_POLLING},
+        [S_POLLING][E_KILL] = {S_DEATH, A_STOP_POLLING}
+};
+
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
-extern void Logger_EventStartPolling(Logger * this) {
-    Msg msg = {
-            .event = E_START_POLLING,
-    };
+extern void Logger_startPolling(Logger * this) {
 
     Wrapper wrapper = {
-            .data = msg
+            .data.event = E_START_POLLING
     };
-
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
 extern void Logger_EventStopPolling(Logger * this) {
-    Msg msg = {
-            .event = E_STOP_POLLING,
-    };
 
     Wrapper wrapper = {
-            .data = msg
+            .data.event = E_STOP_POLLING
     };
-
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
-extern void Logger_EventAfter250ms(Logger * this) {
-    Msg msg = {
-            .event = E_AFTER_250MS,
-    };
+extern void Logger_EventTOPoll(Logger * this) {
 
     Wrapper wrapper = {
-            .data = msg
+            .data.event = E_TO_POLL
     };
-
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
 /* ----------------------- RUN FUNCTION ----------------------- */
 
 static void Logger_Run(Logger * this) {
-    TransitionAction action = A_NOP;
-    State state = S_IDLE;
+    ACTION action;
+    STATE state = S_IDLE;
     Wrapper wrapper;
 
     while (state != S_DEATH) {
@@ -98,15 +185,15 @@ static void Logger_Run(Logger * this) {
             this->myState = S_DEATH;
         }
         else{
-            action = transition_tab[state][wrapper.data.event].action_to_perform;
-            TRACE("Action %s\n", TransitionAction_toString[action])
+            action = stateMachine[state][wrapper.data.event].action;
+            TRACE("Action %s\n", ACTION_toString[action])
 
-            state = transition_tab[state][wrapper.data.event].next_state;
-            TRACE("State %s\n", State_toString[state])
+            state = stateMachine[state][wrapper.data.event].nextState;
+            TRACE("State %s\n", STATE_toString[state])
 
             if(state != S_FORGET){
                 this->message = wrapper.data;
-                actions_tab[action](this);
+                actionPtrTab[action](this);
                 this->myState = state;
             }
         }
@@ -115,11 +202,11 @@ static void Logger_Run(Logger * this) {
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
-static void Action_NOP(Logger * this){
+static void ActionNop(Logger * this){
     //ne rien faire
 }
 
-static void Action_POLL(Logger * this) {
+static void ActionPoll(Logger * this) {
     /*Watchdog *watchdog;
     WatchdogCallback callback={watchdog, &Logger_polling};
     watchdog=WatchdogConstruct(250,*callback, this);
@@ -136,7 +223,7 @@ extern Logger *  Logger_new() {
     loggerCounter++;
     Logger * this = (Logger *) malloc(sizeof(Logger));
     this->mailbox = mailboxInit("Pilot",loggerCounter,sizeof(Msg));
-    this->eventList=initialisation();
+    this->myEvents=initialisation();
 
     return this;
 }
@@ -163,7 +250,7 @@ static void Logger_polling(Logger *this){
     this->sens=Logger_getSensorState(this);
     this->speed=Logger_getRobotSpeed(this);
     LogEvent logEvent={this->sens,this->speed};
-    insertion(this->eventList,logEvent);
+    insertion(this->myEvents, logEvent);
     Logger_Run(this);
 }
 
@@ -188,7 +275,7 @@ extern LogEvent* Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Lo
     int count=0;
     //LogEvent logEventToReturn[(to-from)+1];
 
-    Element *actuel = this->eventList->premier;
+    Element *actuel = this->myEvents->premier;
 
     while (actuel != NULL)
     {
@@ -205,7 +292,7 @@ extern LogEvent* Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Lo
 extern int Logger_getEventsCount(Logger * this){
     int count=0;
 
-    Element *actuel = this->eventList->premier;
+    Element *actuel = this->myEvents->premier;
 
     while (actuel != NULL)
     {
@@ -217,7 +304,7 @@ extern int Logger_getEventsCount(Logger * this){
 
 
 extern void Logger_clearEvents(Logger * this){
-    suppression(this->eventList);
+    suppression(this->myEvents);
 }
 
 

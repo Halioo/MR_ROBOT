@@ -101,6 +101,8 @@ struct AdminUI_t {
     char nameTask[SIZE_TASK_NAME]; ///< Name of the task
     Mailbox * mailbox;
     Watchdog * watchdogLog;
+    Pilot * myPilot;
+    Logger * myLogger;
     char myEvents[1];
 
     int previousEventNumber;
@@ -256,13 +258,13 @@ static void ActionBackMainScreen(AdminUI * this){
 }
 
 static void ActionClearLog(AdminUI * this){
-    Logger_clearEvents();
+    Logger_clearEvents(this->myLogger);
     this->currentEventNumber = 0;
     this->previousEventNumber = 0;
 }
 
 static void ActionToggleES(AdminUI * this){
-//    Pilot_ToggleES(); TODO : problème : L'adminUI ne connait pas le Pilot
+    Pilot_ToggleES(this->myPilot);
 }
 
 static void ActionTOLog(AdminUI * this){
@@ -272,7 +274,7 @@ static void ActionTOLog(AdminUI * this){
 }
 
 static void ActionQuit(AdminUI * this){
-    Logger_stopPolling();
+    Logger_stopPolling(this->myLogger);
 }
 
 
@@ -316,13 +318,16 @@ static void AdminUI_run(AdminUI * this) {
 /**
  * initialize in memory AdminUI
  */
-extern AdminUI * AdminUI_new() {
+extern AdminUI * AdminUI_new(Pilot * pilot, Logger * logger) {
     adminUIcounter++;
     TRACE("[AdminUI] NEW \n")
     AdminUI * this = (AdminUI *) malloc(sizeof(AdminUI));
     this->mailbox = mailboxInit("AdminUI", adminUIcounter, sizeof(Msg));
     this->watchdogLog = WatchdogConstruct(1000, &AdminUI_TOHandle, this);
     sprintf(this->nameTask, NAME_TASK, adminUIcounter);
+
+    this->myPilot = pilot;
+    this->myLogger = logger;
 
     // TODO: Handle the errors
     return this;

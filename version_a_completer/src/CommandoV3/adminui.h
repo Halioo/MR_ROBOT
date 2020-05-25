@@ -6,10 +6,12 @@
 #define ADMINUI_H
 
 #include <util.h>
+#include "pilot.h"
+#include "logger.h"
 
 typedef struct AdminUI_t AdminUI;
 
-extern AdminUI * AdminUI_new();
+extern AdminUI * AdminUI_new(Pilot * pilot, Logger * logger);
 extern int AdminUI_start(AdminUI * this);
 extern int AdminUI_stop(AdminUI * this);
 extern int AdminUI_free(AdminUI * this);

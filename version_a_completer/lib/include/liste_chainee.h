@@ -5,12 +5,12 @@
 
 #include "robocom.h"
 
-typedef struct Element Element;
 typedef struct LogEvent_t{
     SensorState sens;
     int speed;
 }LogEvent;
 
+typedef struct Element Element;
 struct Element
 {
     struct LogEvent_t logEvent;

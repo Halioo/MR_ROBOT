@@ -73,7 +73,7 @@ ENUM_DECL(ACTION,
 )
 
 /**
- * @brief Structire de transition de la MaE
+ * @brief Structure de transition de la MaE
  */
 typedef struct {
     STATE nextState; ///< Prochain State de la MaE
@@ -155,7 +155,7 @@ static void ActionBumpCheckToRunning(Pilot * this);
  */
 static void ActionKill(Pilot * this);
 
-/*--------------------Prototypes des fonctions event-------------------------*/
+/*------------- EVENT functions -------------*/
 
 
 static void Pilot_EventTOBump(Pilot * this);
@@ -164,12 +164,13 @@ static void Pilot_EventBumped(Pilot * this);
 
 static void Pilot_EventNotBumped(Pilot * this);
 
+
+/*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
+
 /**
  * @brief Fonction run de la classe Pilot
  */
 static void Pilot_Run(Pilot * this);
-
-/*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
 
 /**
  * @brief Envoie un ordre de vitesse au robot
@@ -188,7 +189,6 @@ static void Pilot_EvalVel(Pilot * this);
  * @param this
  */
 static void Pilot_EvalBump(Pilot * this);
-
 
 /**
  * @brief Initialise le timer du watchdog qui vérifie le bump toutes les secondes
