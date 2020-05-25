@@ -5,7 +5,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "robocom.h"
+#include "../../lib/include/watchdog.h"
+#include "../../lib/include/robocom.h"
 
 
 /**

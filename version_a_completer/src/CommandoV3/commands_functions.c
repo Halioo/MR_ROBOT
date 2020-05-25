@@ -15,7 +15,7 @@
  */
 extern void ask_mvt(DIRECTION dir)
 {
-    Pilot_setVelocity(translateDir(dir));
+    Pilot_SetVelocity(translateDir(dir));
 }
 
 /**

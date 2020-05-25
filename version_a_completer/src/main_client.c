@@ -10,7 +10,9 @@
  */
 int main (int argc, char *argv[])
 {
-    RemoteUI_start();
-    RemoteUI_stop();
+    RemoteUI *remoteUi=RemoteUI_new();
+    RemoteUI_start(remoteUi);
+    RemoteUI_stop(remoteUi);
+    RemoteUI_free(remoteUi);
     return 0;
 }

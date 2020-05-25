@@ -8,6 +8,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+
+
 #include "client.h"
 
 
@@ -26,7 +28,7 @@ static void init()
     // Initialize IP and Port
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(SERVER_PORT);
-    server_address.sin_addr = *((struct in_addr *)gethostbyname (SERVER_ADRESS)->h_addr_list[0]);
+    //server_address.sin_addr = *((struct in_addr *)gethostbyname (SERVER_ADRESS)->h_addr_list[0]);
     // Connection request to server, exit if fail
     if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
         TRACE("connection with the server failed!\n")

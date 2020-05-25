@@ -178,3 +178,5 @@ ENUM_DECL(FLAG, DOWN, UP)
 
 
 #endif /* UTIL_H */
+
+

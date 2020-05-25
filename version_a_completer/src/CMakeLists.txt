@@ -7,7 +7,7 @@ add_executable(client main_client.c
 )
 add_executable(server main_server.c
     ${SERVER_src}
-)
+        CommandoV3/logger.c CommandoV3/logger.h)
 
 
 target_link_libraries(client
