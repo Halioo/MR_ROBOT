@@ -69,7 +69,6 @@ static void mainHandler (union sigval handlerParam)
 
 Watchdog * WatchdogConstruct (uint32_t thisDelay, WatchdogCallback callback, void * caller)
 {
-
     Watchdog *result;
 
     // allocates and initializes the watchdog's attributes
@@ -91,7 +90,8 @@ Watchdog * WatchdogConstruct (uint32_t thisDelay, WatchdogCallback callback, voi
 
 
     int err = timer_create(CLOCK_REALTIME, &event, &result->timer);
-    STOP_ON_ERROR(err != 0, "Error while creating the timer : ")
+    STOP_ON_ERROR(err != 0, "Error while creating the timer "
+                            ": ")
     return result;
 }
 

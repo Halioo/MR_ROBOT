@@ -9,6 +9,6 @@ extern void Pilot_toggleES() {
     TRACE("to: Pilot // msg: toggleES\n")
 }
 
-extern void Pilot_setVelocity(VelocityVector vel) {
+extern void Pilot_SetVelocity(VelocityVector vel) {
     TRACE("to: Pilot // msg: setVelocity")
 }

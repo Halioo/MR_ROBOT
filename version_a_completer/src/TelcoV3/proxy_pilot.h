@@ -8,6 +8,6 @@
 #include "../../lib/include/util.h"
 
 extern void Pilot_toggleES();
-extern void Pilot_setVelocity(VelocityVector);
+extern void Pilot_SetVelocity(VelocityVector);
 
 #endif //PROXY_PILOT_H

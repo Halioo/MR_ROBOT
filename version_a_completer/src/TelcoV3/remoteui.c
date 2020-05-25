@@ -321,7 +321,7 @@ static void ActionConnectFailure(RemoteUI * this) {
 static void ActionSetDir(RemoteUI * this) {
     TRACE("[%s] ACTION - setDir\n", this->nameTask)
     this->vel = translateDir(this->msg.dir);
-    Pilot_setVelocity(this->vel);
+    Pilot_SetVelocity(this->vel);
 }
 
 static void ActionToggleES(RemoteUI * this) {

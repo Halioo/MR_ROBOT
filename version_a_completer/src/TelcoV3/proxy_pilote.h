@@ -10,6 +10,6 @@
 
 
 extern void Pilot_toggleES();
-extern void Pilot_setVelocity(VelocityVector);
+extern void Pilot_SetVelocity(VelocityVector vel);
 
 #endif //PROXY_PILOTE_H

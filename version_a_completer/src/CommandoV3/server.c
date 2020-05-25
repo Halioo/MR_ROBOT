@@ -119,7 +119,8 @@ static void init()
     }
 }
 
-static void run() {
+static void run() {// TODO : Write all the ACTION functions
+
     int socket_data;
     // Accept data
     socket_data = accept(socket_listen, NULL, 0);
@@ -140,7 +141,8 @@ static void run() {
  * Starts the server
  */
 extern void Server_start() {
-    Pilot_start();
+    Pilot * myPilot = Pilot_new();
+    Pilot_Start(myPilot);
     init();
     run();
 }
@@ -149,7 +151,7 @@ extern void Server_start() {
  * Stops the server
  */
 extern void Server_stop() {
-    Pilot_stop();
+//    Pilot_Stop();
     int error;
     error = close(socket_listen);
     printf("Closing server...");

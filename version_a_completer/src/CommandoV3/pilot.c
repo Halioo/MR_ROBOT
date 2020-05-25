@@ -1,128 +1,460 @@
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
-
 #include "util.h"
 
 #include "pilot.h"
 #include "robot.h"
+#include "mailbox.h"
+#include "watchdog.h"
 
-#define DEFAULT_SPEED 0
-
-
-/**STATE
- * Liste des différents états possibles du pilote
- * FORGET: aucune action n'est effectuée
- * DEATH: tue la machine à état
- * Les PS sont des Pseudo State
- */
-ENUM_DECL(State,
-    S_FORGET=0,
-    S_IDLE,
-    S_RUNNING,
-    PS_SET_VEL,
-    PS_CHECK,
-    S_DEATH,
-    STATE_NB
-)
+#define DEFAULT_SPEED (0)
+#define BUMP_TEST_REFRESH_RATE (100000)
 
 /**
- * Liste des event possibles
- * VEL_IS_NULL / VEL_IS_NOT_NULL:
- * Etats servant pour le PS_SET_VEL
- * COLLISION / NO_COLLISION:
- * Etats servant pour le PS_CHECK
+ * @brief Example instances counter used to have a unique queuename per thread
  */
-typedef enum {
-    E_INIT=0,
-    E_SET_VEL,
-    E_CHECK,
-    E_VEL_IS_NULL,
-    E_VEL_IS_NOT_NULL,
-    E_COLLISION,
-    E_NO_COLLISION,
-    EVENT_NB
-} Event;
+static int pilotCounter = 0;
 
 /**
- * Liste des différentes actions possibles
+ * Vector velocité par défaut : arrêt
  */
-typedef enum
-{
-    A_NOP=0,
-    A_SET_VEL,
-    A_EVAL_VEL,
-    A_EVAL_CHECK,
-    ACTION_NB
-} TransitionAction;
-
-/**
- * Structure de transition, contient l'état suivant et l'action à effectuer
- * L'action à effectuer est stocké sur la forme d'enum, il faut utiliser
- * la table de conversion pour obtenir le pointeur de fonction
- */
-typedef struct
-{
-    State next_state;
-    TransitionAction action_to_perform;
-} Transition;
-
-/**
- * Tableau des transitions
- * [etat_courant][type_event]
- */
-static Transition transition_tab[STATE_NB][EVENT_NB] =
-{
-    [S_IDLE][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
-    [S_IDLE][E_CHECK] = {S_FORGET, A_NOP},
-    [S_RUNNING][E_SET_VEL] = {PS_SET_VEL, A_EVAL_VEL},
-    [S_RUNNING][E_CHECK] = {PS_CHECK, A_EVAL_CHECK},
-    [PS_SET_VEL][E_VEL_IS_NULL] = {S_IDLE, A_SET_VEL},
-    [PS_SET_VEL][E_VEL_IS_NOT_NULL] = {S_RUNNING, A_SET_VEL},
-    [PS_CHECK][E_COLLISION] = {S_IDLE, A_SET_VEL},
-    [PS_CHECK][E_NO_COLLISION] = {S_RUNNING, A_NOP}
-};
-
-typedef void (*f_ptr)(VelocityVector vel);
-
-static void send_mvt(VelocityVector vel);
-static void eval_vel(VelocityVector vel);
-static void eval_check(VelocityVector vel);
-
-// Action NO OPERATION
-static void action_NOP(){
-    // Fonction vide
-}
-
-static const f_ptr actions_tab[ACTION_NB] = {
-        &action_NOP,
-        &Pilot_SendMvt,
-        &eval_vel,
-        &eval_check
-};
-
 static const VelocityVector DEFAULT_VELOCITY_VECTOR =
 {
     .dir = STOP,
     .power = DEFAULT_SPEED
 };
 
-static State current_state;
+/**
+ * @brief Liste des états du pilot
+ */
+ENUM_DECL(State,
+        S_FORGET,       ///< Etat par défaut, utilisé pour consommer une action
+        S_IDLE,         ///< Etat où le robot est arrêté
+        S_RUNNING,      ///< Etat où le robot est en mouvement
+        S_BUMP_CHECK,   ///< Etat pour vérifier si le robot a heurté un obstacle
+        S_EMERGENCY,    ///< Etat d'arrêt d'urgence
+        S_DEATH         ///< Etat de mort du robot, utilisé lorsqu'on veut l'arrêter
+)
+
+/**
+ * @brief Liste des évènements du pilot
+ */
+ENUM_DECL(Event,
+        E_NOP,                  ///< Ne rien faire
+        E_SET_ROBOT_VELOCITY,   ///< Demande d'envoi d'une vitesse au robot
+        E_STOP,                 ///< Met la vitesse du robot à 0
+        E_TOGGLE_ES,            ///< Signal d'urgence reçu
+        E_TO_BUMP,              ///< Watchdog arrivé à expiration pour vérifier la collision
+        E_BUMPED,               ///< Le robot s'est cogné
+        E_NOT_BUMPED,           ///< Le robot ne s'est pas cogné
+        E_KILL                  ///< Détruit la MaE
+)
+
+/**
+ * @brief Liste des actions du pilot
+ */
+ENUM_DECL(Action,
+        A_NOP,                      ///< Ne rien faire
+        A_SEND_MVT_0,               ///< Envoi d'une vitesse nulle au robot
+        A_IDLE_TO_RUNNING,          ///< Action appellée quand on passe de l'état IDLE à l'état RUNNING
+        A_RUNNING_TO_IDLE,          ///< Action appellée quand on passe de l'état RUNNING à l'état IDLE
+        A_RUNNING_TO_RUNNING,       ///< Action appellée quand on passe de l'état RUNNING à l'état RUNNING
+        A_RUNNING_TO_BUMP_CHECK,    ///< Action appellée quand on passe de l'état RUNNING à l'état BUMP_CHECK
+        A_BUMP_CHECK_TO_RUNNING,    ///< Action appellée quand on passe de l'état BUMP_CHECK à l'état RUNNING
+        A_KILL                      ///< Action pour détruire la MaE
+)
+
+/**
+ * @brief Structire de transition de la MaE
+ */
+typedef struct {
+    State nextState; ///< Prochain State de la MaE
+    Action action;   ///< Action réalisée avant d'aller dans le prochain State
+} Transition;
 
 
 /**
- * Retourne un booléen donnant l'état du capteur de collision avant
+ * @brief Structure d'un message ajouté à la BAL
  */
-static bool has_bumped() {
-    return Robot_getSensorState().collision_f;
+typedef struct {
+    Event event; ///< Paramètre event du message
+    VelocityVector vel; ///< Paramètre VelocityVector du message
+} Msg;
+
+/**
+ * @brief Wrapper enum. Utilisé pour envoyer des Msg dans une BAL
+ */
+wrapperOf(Msg)
+
+/**
+ * @brief Structure de l'objet Pilot
+ */
+struct Pilot_t {
+    Msg message; ///< Structure utilisée pour passer les donnés de la BAL aux pointeurs de fonction
+    pthread_t threadId; ///< Pthread identifier for the active function of the class.
+    Mailbox * mailbox; ///< La boite aux lettres de la MaE de Pilot
+    Watchdog * watchdogBump; ///< Le watchdog qui gère la scrutation de bump
+    State myState; ///< Etat actuel de la MaE
+};
+
+
+/*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
+
+/*------------- ACTION functions -------------*/
+
+/**
+ * @brief Fonction appellée quand il ne faut rien faire
+ */
+static void ActionNop(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut immobiliser le robot
+ */
+static void ActionSendMvt0(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut passer de l'état IDLE à l'état RUNNING
+ */
+static void ActionIdleToRunning(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut passer de l'état RUNNING à l'état IDLE
+ */
+static void ActionRunningToIdle(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut passer de l'état RUNNING à l'état RUNNING
+ */
+static void ActionRunningToRunning(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut passer de l'état RUNNING à l'état BUMP_CHECK
+ */
+static void ActionRunningToBumpCheck(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut passer de l'état BUMP_CHECK à l'état RUNNING
+ */
+static void ActionBumpCheckToRunning(Pilot * this);
+
+/**
+ * @brief Fonction appellée quand il faut détruire la MaE
+ */
+static void ActionKill(Pilot * this);
+
+/*--------------------Prototypes des fonctions event-------------------------*/
+
+
+static void Pilot_EventTOBump(Pilot * this);
+
+static void Pilot_EventBumped(Pilot * this);
+
+static void Pilot_EventNotBumped(Pilot * this);
+
+/**
+ * @brief Fonction run de la classe Pilot
+ */
+static void Pilot_Run(Pilot * this);
+
+/*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
+
+/**
+ * @brief Envoie un ordre de vitesse au robot
+ * @param vel
+ */
+static void Pilot_SendMvt(VelocityVector vel);
+
+/**
+ * @brief Evalue la vitesse et ajoute un message E_STOP si la vitesse est nulle
+ * @param vel
+ */
+static void Pilot_EvalVel(Pilot * this);
+
+/**
+ * @brief Evalue si le robot a rencontré un obstacle
+ * @param this
+ */
+static void Pilot_EvalBump(Pilot * this);
+
+
+/**
+ * @brief Initialise le timer du watchdog qui vérifie le bump toutes les secondes
+ * @param this
+ */
+static void Pilot_SetTO(Pilot * this);
+
+/**
+ * @brief Reset le timer du watchdog qui vérifie le bump toutes les secondes
+ * @param this
+ */
+static void Pilot_ResetTO(Pilot * this);
+
+/**
+ * @brief Fonction qui gère ce qu'il se passe quand le watchdog
+ * @param this
+ */
+static void Pilot_TOHandle(Watchdog *wd, void * this);
+
+
+/*----------------------- STATE MACHINE DECLARATION -----------------------*/
+
+/**
+ * @def Pointeur de fonction pour les fonction d'Action de la MaE
+ */
+typedef void (*ActionPtr)(Pilot *);
+
+/**
+ * @brief Tableau de pointeur de fonctions pour stocker les fonctions correspondantes aux actions dans le même ordre qu'elles ont été définies
+ */
+static const ActionPtr actionPtrTab[NB_Action]={
+        &ActionNop,
+        &ActionSendMvt0,
+        &ActionIdleToRunning,
+        &ActionRunningToIdle,
+        &ActionRunningToRunning,
+        &ActionRunningToBumpCheck,
+        &ActionBumpCheckToRunning,
+        &ActionKill
+};
+
+
+/**
+ * @brief MaE de la classe Pilot
+ */
+static const Transition stateMachine[NB_State][NB_Event] = {
+        [S_IDLE][E_TOGGLE_ES] = {S_EMERGENCY,A_SEND_MVT_0},
+        [S_IDLE][E_SET_ROBOT_VELOCITY] = {S_RUNNING,A_IDLE_TO_RUNNING},
+        [S_RUNNING][E_STOP] = {S_IDLE,A_RUNNING_TO_IDLE},
+        [S_RUNNING][E_TOGGLE_ES] = {S_EMERGENCY,A_SEND_MVT_0},
+        [S_RUNNING][E_SET_ROBOT_VELOCITY] = {S_RUNNING,A_RUNNING_TO_RUNNING},
+        [S_RUNNING][E_TO_BUMP] = {S_BUMP_CHECK,A_RUNNING_TO_BUMP_CHECK},
+        [S_BUMP_CHECK][E_NOT_BUMPED] = {S_RUNNING,A_BUMP_CHECK_TO_RUNNING},
+        [S_BUMP_CHECK][E_BUMPED] = {S_IDLE,A_SEND_MVT_0},
+        [S_BUMP_CHECK][E_TOGGLE_ES] = {S_EMERGENCY,A_SEND_MVT_0},
+        [S_EMERGENCY][E_TOGGLE_ES] = {S_IDLE,A_SEND_MVT_0}
+        // TODO : gérer le kill ?
+};
+
+/* ----------------------- ACTIONS FUNCTIONS ----------------------- */
+
+
+static void ActionNop(Pilot * this){
+
 }
 
-/**
- * Traduit le VelocityVector en deux valeurs
- * correspondant aux états des moteurs droit et gauche
- */
-static void send_mvt(VelocityVector vel) {
+
+static void ActionSendMvt0(Pilot * this){
+    Pilot_SendMvt(this->message.vel);
+}
+
+
+static void ActionIdleToRunning(Pilot * this){
+    Pilot_SetTO(this);
+    Pilot_EvalVel(this);
+    Pilot_SendMvt(this->message.vel);
+}
+
+
+static void ActionRunningToIdle(Pilot * this){
+    Pilot_ResetTO(this);
+    Pilot_SendMvt(DEFAULT_VELOCITY_VECTOR);
+}
+
+
+static void ActionRunningToRunning(Pilot * this){
+    Pilot_EvalVel(this);
+    Pilot_SendMvt(this->message.vel);
+}
+
+
+static void ActionRunningToBumpCheck(Pilot * this){
+    Pilot_EvalBump(this);
+}
+
+
+static void ActionBumpCheckToRunning(Pilot * this){
+    Pilot_SetTO(this);
+}
+
+
+static void ActionKill(Pilot * this){
+    // TODO
+}
+
+
+/*----------------------- EVENT FUNCTIONS -----------------------*/
+
+extern void Pilot_EventSetRobotVelocity(Pilot * this, VelocityVector vel) {
+    Msg msg = {
+        .event = E_SET_ROBOT_VELOCITY,
+        .vel = vel
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+extern void Pilot_EventStop(Pilot * this) {
+    Msg msg = {
+        .event = E_STOP,
+        .vel = DEFAULT_VELOCITY_VECTOR
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+extern void Pilot_EventToggleES(Pilot * this) {
+
+    Wrapper wrapper = {
+        .data.event = E_TOGGLE_ES
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventTOBump(Pilot * this){
+
+    Wrapper wrapper = {
+        .data.event = E_TO_BUMP
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventBumped(Pilot * this){
+
+    Wrapper wrapper = {
+        .data.event = E_BUMPED
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventNotBumped(Pilot * this){
+
+    Wrapper wrapper = {
+        .data.event = E_NOT_BUMPED
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+
+/* ----------------------- RUN FUNCTION ----------------------- */
+
+static void Pilot_Run(Pilot * this) {
+    Action action = A_SEND_MVT_0;
+    State state = S_IDLE;
+    Wrapper wrapper;
+
+    while (state != S_DEATH) {
+        mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
+
+        if(wrapper.data.event == E_KILL){
+            this->myState = S_DEATH;
+        }
+        else{
+            action = stateMachine[state][wrapper.data.event].action;
+            TRACE("Action %s\n", Action_toString[action])
+
+            state = stateMachine[state][wrapper.data.event].nextState;
+            TRACE("State %s\n", State_toString[state])
+
+            if(state != S_FORGET){
+                this->message = wrapper.data;
+                actionPtrTab[action](this);
+                this->myState = state;
+            }
+        }
+    }
+}
+
+
+/* ----------------------- NEW START STOP FREE -----------------------*/
+
+Pilot *  Pilot_new() {
+    pilotCounter++;
+    Pilot * this = (Pilot *) malloc(sizeof(Pilot));
+    this->mailbox = mailboxInit("Pilot",pilotCounter,sizeof(Msg));
+    this->watchdogBump = WatchdogConstruct(BUMP_TEST_REFRESH_RATE,Pilot_TOHandle,this);
+    // TODO : gestion d'erreurs
+
+    return this;
+}
+
+
+int Pilot_Start(Pilot * this) {
+    int err = pthread_create(&(this->threadId),NULL,(void *)Pilot_Run, this);
+    // TODO : gestion d'erreurs
+
+}
+
+
+int Pilot_Stop(Pilot * this) {
+    int err = pthread_join(this->threadId,NULL);
+    // TODO : gestion d'erreurs
+
+}
+
+
+int Pilot_Free(Pilot * this) {
+    mailboxClose(this->mailbox);
+    WatchdogDestroy(this->watchdogBump);
+    // TODO : gestion d'erreurs
+
+    free(this);
+    return 0;
+}
+
+/* ----------------------- OTHER FUNCTIONS -----------------------*/
+
+static void Pilot_EvalVel(Pilot * this){
+    if(this->message.vel.dir == STOP || this->message.vel.power == 0){
+
+        Wrapper wrapper = {
+            .data.event = E_STOP
+        };
+
+        mailboxSendMsg(this->mailbox,wrapper.toString);
+    }
+}
+
+static void Pilot_SetTO(Pilot * this){
+    WatchdogStart(this->watchdogBump);
+}
+
+static void Pilot_ResetTO(Pilot * this){
+    WatchdogCancel(this->watchdogBump);
+}
+
+static void Pilot_TOHandle(Watchdog * wd, void * this){
+
+    Wrapper wrapper = {
+        .data.event = E_TO_BUMP
+    };
+
+    mailboxSendMsg(((Pilot*)this)->mailbox,wrapper.toString);
+}
+
+static void Pilot_EvalBump(Pilot * this){
+    Wrapper wrapper;
+    if(Robot_getSensorState().collision_f == UP){
+        wrapper.data.event = E_BUMPED;
+    } else{
+        wrapper.data.event = E_NOT_BUMPED;
+    }
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_SendMvt(VelocityVector vel) {
     int vel_r = DEFAULT_SPEED, vel_l = DEFAULT_SPEED;
     switch (vel.dir) {
         case FORWARD:
@@ -146,108 +478,3 @@ static void send_mvt(VelocityVector vel) {
     Robot_setWheelsVelocity(vel_r, vel_l);
 }
 
-
-/**
- * Fonction run permettant la mise à jour de l'état du pilote
- * Machine à état asynchrone
- */
-static void run(Event event, VelocityVector vel) {
-    assert(current_state != S_DEATH);
-    Transition transition = transition_tab[current_state][event];
-
-    //printf("\tEvent en cours = %d\n", event);
-    //printf("\tEtat prochaine prevu = %d\n", transition.next_state);
-    //printf("\tAction = %d\n", transition.action_to_perform);
-
-    if (event == E_INIT) {
-        current_state = S_IDLE;
-        Pilot_SendMvt(DEFAULT_VELOCITY_VECTOR);
-    } else if (transition.next_state != S_FORGET) {
-        current_state = transition.next_state;
-        actions_tab[transition.action_to_perform](vel);
-    }
-
-    //printf("\t Etat courant = %d\n--- FIN DE RUN ---\n", current_state);
-}
-
-
-static void eval_vel(VelocityVector vel) {
-    if (vel.power == 0) {
-        run(E_VEL_IS_NULL, DEFAULT_VELOCITY_VECTOR);
-    } else {
-        run(E_VEL_IS_NOT_NULL, vel);
-    }
-}
-
-static void eval_check(VelocityVector vel) {
-    if (has_bumped()) {
-        run(E_COLLISION, DEFAULT_VELOCITY_VECTOR);
-    } else {
-        run(E_NO_COLLISION, DEFAULT_VELOCITY_VECTOR);
-    }
-}
-
-/**
- * Start Pilot
- */
-extern void Pilot_start() {
-    Pilot_new();
-    Robot_start();
-    run(E_INIT, DEFAULT_VELOCITY_VECTOR);
-}
-
-/**
- * Stop Pilot
- */
-extern void Pilot_stop() {
-    run(E_INIT, DEFAULT_VELOCITY_VECTOR);
-    Robot_stop();
-    Pilot_free();
-}
-
-/**
- * initialize in memory the object Pilot
- */
-extern void Pilot_new() {}
-
-/**
- * destruct the object Pilot from memory
- */
-extern void Pilot_free() {}
-
-/**
- * getState
- *
- * @brief description
- * @return PilotState
- */
-extern PilotState Pilot_getState() {
-    PilotState pt;
-
-    pt.speed = Robot_getRobotSpeed();
-
-    SensorState st = Robot_getSensorState();
-    pt.collision = st.collision_f;
-    pt.luminosity = st.luminosity;
-
-    return pt;
-}
-
-/**
- * check
- *
- * @brief description
- */
-extern void Pilot_check() {
-    run(E_CHECK, DEFAULT_VELOCITY_VECTOR);
-}
-
-/**
- * setVelocity
- *
- * @brief description
- * @param vel
- */
-extern void Pilot_setVelocity(VelocityVector vel) {
-    run(E_SET_VEL, vel);
-}
