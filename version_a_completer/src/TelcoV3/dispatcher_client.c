@@ -11,21 +11,38 @@ static int dispatcherCounter = 0;
  * @def Name of the task. Each instance will have this name,
  * followed by the number of the instance
  */
-#define NAME_TASK "ExampleTask%d"
+#define NAME_TASK "DispatcherTask%d"
 
 /**
  * @def Size of a task name
  */
 #define SIZE_TASK_NAME 20
 
+/**
+ * @brief enumeration of the possible command that can send the client
+ */
+
+typedef enum {
+	ASK_NOTHING = 0, 
+	ASK_DISCONNECT, 
+	ASK_DIR_FORWARD, 
+	ASK_DIR_BACKWARD, 
+	ASK_DIR_RIGHT, 
+	ASK_DIR_LEFT,
+	ASK_DIR_STOP,
+	ASK_MORE_SPEED,
+	ASK_LESS_SPEED,
+	ASK_LOG,
+	ASK_STOP
+	} Commande;
 
 /**
  * @brief Enumeration of all the STATEs that can be taken by the STATE machine
  */
 ENUM_DECL(STATE,
     S_FORGET,      ///< Nothing happens
-    S_IDLE,        ///< Idle STATE
-    S_POLLING,     ///< Running STATE
+    S_NOT_CONNECTED,        ///< Idle STATE
+    S_CONNECTED,     ///< Running STATE
     S_DEATH        ///< Transition STATE for stopping the STATE machine
 )
 
@@ -35,8 +52,10 @@ ENUM_DECL(STATE,
  */
 ENUM_DECL(ACTION,
     A_NOP,                      ///< Nothing happens
-    A_STOP_RUNNING,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
-    A_START_POLLING,            ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE
+    A_START_WAITING_CONNECTION,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
+    A_STOP_WAITING_CONNECTION,            ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE
+    A_START_CONNECTION,
+    A_STOP_CONNECTION,
     A_KILL                      ///< Kills the STATE machine
 )
 
@@ -45,10 +64,10 @@ ENUM_DECL(ACTION,
  * @brief Enumeration of all the possible EVENTs that triggers the STATE machine
  */
 ENUM_DECL(EVENT,
-    E_NOP,      ///< Do nothing
-    E_VEL_IS_NULL, ///< EVENT VEL IS NULL THAT STOP POLLING
-    E_SET_VEL, ///< EVENT SET VEL THAT START POLLING
-    E_KILL     ///< Kills the STATE machine
+    E_CONNECT,          ///< Do nothing
+    E_DISCONNECT,  ///< EVENT VEL IS NULL THAT STOP POLLING
+    E_STOP,      ///< EVENT SET VEL THAT START POLLING
+    E_KILL          ///< Kills the STATE machine
 )
 
 
@@ -56,18 +75,23 @@ ENUM_DECL(EVENT,
  * @brief Transition structure of the STATE machine
  */
 typedef struct {
-    STATE nextState; ///< Next STATE of the STATE machine
-    ACTION action;   ///< ACTION done before going in the next STATE
+    STATE nextState;        ///< Next STATE of the STATE machine
+    ACTION action;          ///< ACTION done before going in the next STATE
 } Transition;
 
 /**
  * @brief Structure of a message sent in the mailbox
  */
 typedef struct {
-    EVENT event;            ///< EVENT sent in the message
-    int eventsCount;        ///< Example of an other parameter
-    EVENT tabEvents[10];      ///< Example of a possible parameter
+    EVENT event;                ///< EVENT sent in the message
+    int eventsCount;            ///< Example of an other parameter
+    EVENT tabEvents[10];        ///< Example of a possible parameter
 } Msg;
+
+/**
+ * @brief Wrapper enum. It is used to send EVENTs and parameters in a mailBox.
+ */
+wrapperOf(Msg)
 
 
 /**
@@ -106,12 +130,11 @@ static const ActionPtr actionPtr[NB_ACTION] = {
 /**
  * @brief STATE machine of the Example class
  */
-static Transition stateMachine[NB_STATE][NB_EVENT] = { 
-        [S_IDLE][E_SET_VEL]    = {S_POLLING,	A_START_POLLING},
-        [S_POLLING][E_VEL_IS_NULL] = {S_IDLE, A_STOP_RUNNING},
-        [S_POLLING][E_KILL] = {S_DEATH, A_KILL},
-        [S_IDLE][E_KILL] = {S_DEATH, A_KILL}
-
+static Transition stateMachine[NB_STATE - 1][NB_EVENT] = { 
+        [S_NOT_CONNECTED][E_CONNECT]    = {S_CONNECTED,	A_START_CONNECTION},
+        [S_CONNECTED][E_STOP] = {S_NOT_CONNECTED, A_STOP_WAITING_CONNECTION},
+        [S_NOT_CONNECTED][E_DISCONNECT] = {S_NOT_CONNECTED, A_START_WAITING_CONNECTION},
+        [S_CONNECTED][E_KILL] = {S_DEATH, A_KILL}
 };
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
@@ -137,16 +160,192 @@ static void ActionKill(Dispatcher * this) {
     this->state = S_DEATH;
 }
 
-extern Dispatcher* Dispatcher_new(){
-    Dispatcher* this;
-    this = (Dispatcher*)(malloc(sizeof(Dispatcher)));
-    this->state = S_FORGET;
+/*----------------------- Function Dispatcher -----------------------*/
 
-    dispatcherCounter ++;
-    return this;
+/**
+ * @brief Proccess the data received
+ * 
+ * Commande possible :
+ *  ASK_NOTHING = 0, 
+ *	ASK_DISCONNECT, 
+ *	ASK_DIR_FORWARD, 
+ *	ASK_DIR_BACKWARD, 
+ *	ASK_DIR_RIGHT, 
+ *	ASK_DIR_LEFT,
+ *	ASK_DIR_STOP,
+ *	ASK_MORE_SPEED,
+ *	ASK_LESS_SPEED,
+ *	ASK_LOG,
+ *	ASK_STOP
+ */
+void processData(Buffer buf, Commande * cmd){
+
+	TRACE ("Data received ");
+
+	///< comparison of the data sent by the client with the different possible commande
+	if (strcmp((char*)buf, "/CMD:0")==0)*cmd = ASK_DISCONNECT;
+    else if (strcmp((char*)buf, "/DIR:Z")==0)*cmd = ASK_DIR_FORWARD;
+    else if (strcmp((char*)buf, "/DIR:S")==0)*cmd = ASK_DIR_BACKWARD;
+    else if (strcmp((char*)buf, "/DIR:D")==0)*cmd = ASK_DIR_RIGHT;
+    else if (strcmp((char*)buf, "/DIR:Q")==0)*cmd = ASK_DIR_LEFT;
+    else if (strcmp((char*)buf, "/DIR:0")==0)*cmd = ASK_DIR_STOP;
+    else if (strcmp((char*)buf, "/DIR:+")==0)*cmd = ASK_LESS_SPEED;
+    else if (strcmp((char*)buf, "/DIR:-")==0)*cmd = ASK_MORE_SPEED;
+	else if (strcmp((char*)buf, "/CMD:1")==0)*cmd = ASK_STOP;
+    else if (strcmp((char*)buf, "/CMD:2")==0)*cmd = ASK_STOP;
+	else *cmd = ASK_NOTHING;
 }
 
-extern void Dispatcher_free(Dispatcher* this);
+
+/**
+ * Send the commande to the right class
+ * 
+ *  Commande possible :
+ *  ASK_NOTHING = 0, 
+ *	ASK_DISCONNECT, 
+ *	ASK_DIR_FORWARD, 
+ *	ASK_DIR_BACKWARD, 
+ *	ASK_DIR_RIGHT, 
+ *	ASK_DIR_LEFT,
+ *	ASK_DIR_STOP,
+ *	ASK_MORE_SPEED,
+ *	ASK_LESS_SPEED,
+ *	ASK_LOG,
+ *	ASK_STOP
+ */
+void sendCmd(Commande cmd){
+    switch (cmd)
+    {
+    case ASK_DISCONNECT:
+        TRACE("Disconnect");
+        ServerDisconnectClient();
+        DispatcherSignalDisconnected();
+        break;
+    case ASK_DIR_FORWARD:
+        TRACE("Forward");
+        break;
+    case ASK_DIR_BACKWARD:
+        TRACE("Backward");
+        break;
+    case ASK_DIR_RIGHT:
+        TRACE("Right");
+        break;
+    case ASK_DIR_LEFT:
+        TRACE("Left");
+        break;
+    case ASK_DIR_STOP:
+        TRACE("Stop");
+        break;
+    case ASK_MORE_SPEED:
+        TRACE("More speed");
+        break;
+    case ASK_LESS_SPEED:
+        TRACE("Less speed");
+        break;
+    case ASK_LOG:
+        TRACE("Log");
+        break;
+    case ASK_STOP:
+        TRACE("Stop everything");
+        //Not yet implemented
+        break;
+    
+    default:
+        break;
+    }    
+}
+
+
+
+/* ----------------------- RUN FUNCTION ----------------------- */
+
+/**
+ * @brief Main running function of the Example class
+ */
+static void DispatcherRun(Dispatcher * this) {
+    ACTION action;
+    STATE state;
+    Wrapper wrapper;
+
+    while (this->state != S_DEATH) {
+        mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
+
+        if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
+            this->state = S_DEATH;
+
+        } else {
+            action = stateMachine[this->state][wrapper.data.event].action;
+
+            TRACE("Action %s\n", ACTION_toString[action])
+
+            state = stateMachine[this->state][wrapper.data.event].nextState;
+            TRACE("State %s\n", STATE_toString[state])
+
+            if (state != S_FORGET) {
+                this->msg = wrapper.data;
+                actionPtr[action](this);
+                this->state = state;
+            }
+        }
+    }
+}
+
+
+
+
+Dispatcher * DispatcherNew() {
+    // TODO : initialize the object with it particularities
+    dispatcherCounter ++; ///< Incrementing the instances counter.
+    TRACE("DispatcherNew function \n")
+    Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
+    this->mb = mailboxInit("Dispatcher", dispatcherCounter, sizeof(Msg));
+    this->state = S_FORGET;
+
+    //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
+
+    int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);
+    STOP_ON_ERROR(err < 0, "Error when setting the tasks name.")
+
+    return this; // TODO: Handle the errors
+}
+
+
+int DispatcherStart(Dispatcher * this) {
+    // TODO : start the object with it particularities
+    TRACE("ExampleStart function \n")
+    int err = pthread_create(&(this->threadId), NULL, (void *) DispatcherRun, this);
+    STOP_ON_ERROR(err != 0, "Error when creating the thread")
+
+    return 0; // TODO: Handle the errors
+}
+
+
+int DispatcherStop(Dispatcher * this) {
+    // TODO : stop the object with it particularities
+    Msg msg = { .event = E_KILL };
+
+    Wrapper wrapper;
+    wrapper.data = msg;
+
+    mailboxSendStop(this->mb, wrapper.toString);
+    TRACE("Waiting for the thread to terminate \n")
+
+    int err = pthread_join(this->threadId, NULL);
+    STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
+
+    return 0; // TODO: Handle the errors
+}
+
+
+int DispatcherFree(Dispatcher * this) {
+    // TODO : free the object with it particularities
+    TRACE("ExampleFree function \n")
+    mailboxClose(this->mb);
+
+    free(this);
+
+    return 0; // TODO: Handle the errors
+}
 
 extern void setEvents() {
     TRACE("from : remoteUI // msg: setEvents \n")

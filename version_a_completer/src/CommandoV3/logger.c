@@ -2,88 +2,224 @@
 // Created by gwendal on 25/05/2020.
 //
 #include "util.h"
+#include "logger.h"
+#include "robot.h"
 
 
-/**STATE
- * Liste des différents états possibles du logger
- * FORGET:aucune action n'est effectuée
- * IDLE: en attente du démarage du logger
- * POLLING: recolte les logEvent
- */
-ENUM_DECL(State,
-        S_FORGET=0,
-        S_IDLE,
-        S_POLLING,
-        STATE_NB
-)
 
-/**
- * Liste des event possibles
- * START_POLLING:
- * Evenement pour commencer à "Polling"
- * STOP_POLLING:
- * Evenement pour arreter de "Polling"
- * AFTER_250MS:
- * Evenement pour attendre 250ms avant d'effectuer les actions de "Polling"
- */
-typedef enum {
-    E_INIT=0,
-    E_START_POLLING,
-    E_STOP_POLLING,
-    E_AFTER_250MS,
-    EVENT_NB
-} Event;
+static int loggerCounter = 0;
 
-/**
- * Liste des différentes actions possibles
- */
-typedef enum
-{
-    A_NOP=0,
-    A_POLL,
-    ACTION_NB
-} TransitionAction;
+
+/*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
+
+static void Logger_polling(Logger *this);
+
+/* ----------------------- ACTIONS FUNCTIONS ----------------------- */
+
+static void Action_NOP(Logger * this);
+
+static void Action_POLL(Logger * this);
+
+
+/*--------------------Prototypes des fonctions event-------------------------*/
+
+
+static void Logger_EventStartPolling(Logger * this);
+
+static void Logger_EventStopPolling(Logger * this);
+
+static void Logger_EventAfter250ms(Logger * this);
+
+
+
+/*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
 /**
- * Structure de transition, contient l'état suivant et l'action à effectuer
- * L'action à effectuer est stocké sur la forme d'enum, il faut utiliser
- * la table de conversion pour obtenir le pointeur de fonction
+ * @brief Fonction run de la classe Logger
  */
-typedef struct
-{
-    State next_state;
-    TransitionAction action_to_perform;
-} Transition;
+static void Logger_Run(Logger * this);
 
-/**
- * Tableau des transitions
- * [etat_courant][type_event]
- */
-static Transition transition_tab[STATE_NB][EVENT_NB] =
-        {
-            [S_IDLE][E_START_POLLING] = {S_POLLING, A_NOP},
-            [S_POLLING][E_STOP_POLLING] = {S_IDLE, A_NOP},
-            [S_POLLING][E_AFTER_250MS] = {S_POLLING, A_NOP},
-
-        };
-
-typedef void (*f_ptr);
-
-static void poll();
-
-
-// Action NO OPERATION
-static void action_NOP(){
-    // Fonction vide
-}
+typedef void (*f_ptr)();
 
 static const f_ptr actions_tab[ACTION_NB] = {
-        &action_NOP,
-        &poll
+        &Action_NOP,
+        &Action_POLL
 };
 
+/*----------------------- EVENT FUNCTIONS -----------------------*/
 
+extern void Logger_EventStartPolling(Logger * this) {
+    Msg msg = {
+            .event = E_START_POLLING,
+    };
 
-extern void Logger_new(){
+    Wrapper wrapper = {
+            .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+extern void Logger_EventStopPolling(Logger * this) {
+    Msg msg = {
+            .event = E_STOP_POLLING,
+    };
+
+    Wrapper wrapper = {
+            .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+extern void Logger_EventAfter250ms(Logger * this) {
+    Msg msg = {
+            .event = E_AFTER_250MS,
+    };
+
+    Wrapper wrapper = {
+            .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+/* ----------------------- RUN FUNCTION ----------------------- */
+
+static void Logger_Run(Logger * this) {
+    TransitionAction action = A_NOP;
+    State state = S_IDLE;
+    Wrapper wrapper;
+
+    while (state != S_DEATH) {
+        mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
+
+        if(wrapper.data.event == E_KILL){
+            this->myState = S_DEATH;
+        }
+        else{
+            action = transition_tab[state][wrapper.data.event].action_to_perform;
+            TRACE("Action %s\n", TransitionAction_toString[action])
+
+            state = transition_tab[state][wrapper.data.event].next_state;
+            TRACE("State %s\n", State_toString[state])
+
+            if(state != S_FORGET){
+                this->message = wrapper.data;
+                actions_tab[action](this);
+                this->myState = state;
+            }
+        }
+    }
+}
+
+/* ----------------------- ACTIONS FUNCTIONS ----------------------- */
+
+static void Action_NOP(Logger * this){
+    //ne rien faire
+}
+
+static void Action_POLL(Logger * this) {
+    /*Watchdog *watchdog;
+    WatchdogCallback callback={watchdog, &Logger_polling};
+    watchdog=WatchdogConstruct(250,*callback, this);
+    WatchdogStart(watchdog);
+    WatchdogCancel(watchdog);
+    WatchdogDestroy(watchdog);
+     */
+    //TODO je comprends pas le watchdog donc à refaire
+}
+
+/* ----------------------- NEW START STOP FREE -----------------------*/
+
+extern Logger *  Logger_new() {
+    loggerCounter++;
+    Logger * this = (Logger *) malloc(sizeof(Logger));
+    this->mailbox = mailboxInit("Pilot",loggerCounter,sizeof(Msg));
+    this->eventList=initialisation();
+
+    return this;
+}
+
+extern void Logger_start(Logger * this) {
+    pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
 
 }
+
+extern void Logger_stop(Logger * this) {
+    pthread_join(this->threadId,NULL);
+
+}
+
+extern void Logger_free(Logger * this) {
+    mailboxClose(this->mailbox);
+    free(this);
+}
+
+/* ----------------------- STATIC FUNCTION DEFINITION -----------------------*/
+
+
+static void Logger_polling(Logger *this){
+    this->sens=Logger_getSensorState(this);
+    this->speed=Logger_getRobotSpeed(this);
+    LogEvent logEvent={this->sens,this->speed};
+    insertion(this->eventList,logEvent);
+    Logger_Run(this);
+}
+
+/* ----------------------- FUNCTION DEFINITION -----------------------*/
+
+extern SensorState Logger_getSensorState(Logger * this){
+    SensorState sens=Robot_getSensorState();
+    return sens;
+}
+
+extern int Logger_getRobotSpeed(Logger * this){
+    int speed=Robot_getRobotSpeed();
+    return speed;
+}
+
+extern void Logger_signalES(Logger *this){
+    this->myState=S_DEATH;
+    Logger_Run(this);
+}
+
+extern LogEvent* Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this){
+    int count=0;
+    //LogEvent logEventToReturn[(to-from)+1];
+
+    Element *actuel = this->eventList->premier;
+
+    while (actuel != NULL)
+    {
+        if(count>=from && count<=to){
+            logEventToReturn[count]=actuel->logEvent;
+            count++;
+
+        }
+        actuel = actuel->suivant;
+    }
+    return logEventToReturn;
+}
+
+extern int Logger_getEventsCount(Logger * this){
+    int count=0;
+
+    Element *actuel = this->eventList->premier;
+
+    while (actuel != NULL)
+    {
+        count++;
+        actuel = actuel->suivant;
+    }
+    return count;
+}
+
+
+extern void Logger_clearEvents(Logger * this){
+    suppression(this->eventList);
+}
+
+
+
+
