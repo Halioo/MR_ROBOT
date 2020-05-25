@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <mailbox.h>
-#include <prose.h>
 
 #include "remoteui.h"
 #include "ihm.h"
@@ -33,11 +32,14 @@ static int remoteUIcounter = 0;
  */
 ENUM_DECL(STATE,
     S_FORGET,      ///< Nothing happens
+
     S_CONNECT_SCREEN,
     PS_CONNECT,
     S_MAIN_SCREEN,
     S_LOG_SCREEN,
     S_ERROR_SCREEN,
+    S_QUIT,
+
     S_DEATH
 )
 
@@ -80,6 +82,9 @@ ENUM_DECL(ACTION,
 
     A_SETDIR,
     A_TOGGLE_ES,
+
+    A_AFTER_ONE_SECOND,
+    A_QUIT_LOG,
 
     A_QUIT,
 
@@ -159,6 +164,7 @@ static void ActionConnectSuccess(RemoteUI * this);
 static void ActionConnectFailure(RemoteUI * this);
 static void ActionSetDir(RemoteUI * this);
 static void ActionToggleES(RemoteUI * this);
+static void ActionAfterOneSec(RemoteUI * this);
 static void ActionQuit(RemoteUI * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
@@ -180,6 +186,8 @@ static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function p
     &ActionConnectFailure,
     &ActionSetDir,
     &ActionToggleES,
+    &ActionAfterOneSec,
+    &ActionQuitLog,
     &ActionQuit,
     &ActionKill
 };
@@ -189,7 +197,23 @@ static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function p
  * @brief STATE machine of the Example class
  */
 static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE machine
-        [S_CONNECT_SCREEN][E_SETIP] = {S_CONNECT_SCREEN, A_SETIP},
+
+    [S_CONNECT_SCREEN][E_SETIP] = {S_CONNECT_SCREEN, A_SETIP},
+    [PS_CONNECT][E_CONNECT_SUCCESS] = {S_MAIN_SCREEN, A_CONNECT_SUCCESS},
+    [PS_CONNECT][E_CONNECT_FAILURE] = {S_ERROR_SCREEN, A_CONNECT_FAILURE},
+
+    [S_ERROR_SCREEN][E_VALIDATE] = {S_CONNECT_SCREEN, A_NOP},
+
+    [S_MAIN_SCREEN][E_SETDIR] = {S_MAIN_SCREEN, A_SETDIR},
+    [S_MAIN_SCREEN][E_TOGGLE_ES] = {S_MAIN_SCREEN, A_TOGGLE_ES},
+    [S_MAIN_SCREEN][E_GO_LOG] = {S_LOG_SCREEN, A_NOP},
+
+    [S_LOG_SCREEN][E_TOGGLE_ES] = {S_LOG_SCREEN, A_TOGGLE_ES},
+    [S_LOG_SCREEN][E_AFTER_ONE_SEC] = {S_LOG_SCREEN, A_AFTER_ONE_SECOND},
+
+    [S_CONNECT_SCREEN][E_QUIT] = {S_QUIT, A_QUIT},
+    [S_MAIN_SCREEN][E_QUIT] = {S_QUIT, A_QUIT},
+    [S_LOG_SCREEN][E_QUIT] = {S_QUIT, A_QUIT}
 };
 
 
@@ -249,7 +273,7 @@ extern void quit(RemoteUI * this) {
 
 
 /**
- * @brief Example function that treats a wathdog event.
+ * @brief Fonction du watchdog
  */
 extern void Wd_timeout(Watchdog * wd, void * caller) {
     Wrapper wrapper;
@@ -269,9 +293,9 @@ static void Entry_logScreen(RemoteUI * this) {
     WatchdogStart(this->wd);
 }
 
-/* ----------------------- AFTER FUNCTIONS ----------------------- */
+/* ----------------------- FROM FUNCTIONS ----------------------- */
 
-static void After_logScreen(RemoteUI * this) {
+static void From_logScreen(RemoteUI * this) {
     TRACE("[%s] AFTER - LOG_SCREEN\n", this->nameTask)
     WatchdogCancel(this->wd);
 }
@@ -331,9 +355,22 @@ static void ActionToggleES(RemoteUI * this) {
     Pilot_toggleES();
 }
 
+static void ActionAfterOneSec(RemoteUI * this) {
+    TRACE("[%s] ACTION - AfterOneSec\n", this->nameTask)
+    Entry_logScreen(this);
+}
+
+static void ActionQuitLog(RemoteUI * this) {
+    TRACE("[%s] ACTION - QuitLog\n", this->nameTask)
+    From_logScreen(this);
+}
+
 static void ActionQuit(RemoteUI * this) {
     TRACE("[%s] ACTION - quit\n", this->nameTask)
-    // TODO à implémenter
+    // TODO envoi du message de fermeture
+    Wrapper wrapper;
+    wrapper.data.event = E_KILL;
+    mailboxSendMsg(this->mb, wrapper.toString);
 }
 
 
@@ -384,6 +421,7 @@ extern RemoteUI * RemoteUI_new() {
     this->mb = mailboxInit("RemoteUI", remoteUIcounter, sizeof(Msg));
     this->wd = WatchdogConstruct(1000, &Wd_timeout, this);
     sprintf(this->nameTask, NAME_TASK, remoteUIcounter);
+    return this;
 }
 
 /**
