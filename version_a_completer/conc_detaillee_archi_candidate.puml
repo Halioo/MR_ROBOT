@@ -1,0 +1,114 @@
+@startuml conc_detaillee_robot
+
+actor user as user1
+actor user as user2
+actor simulateurRobot
+
+folder Robocom <<library>> {
+    rectangle "<u>postman:Postman</u>" as postman
+    rectangle "<u>Pilot</u>" <<interface>>  as interfacePilot
+    rectangle "<u>Logger</u>" <<interface>>  as interfaceLogger
+    rectangle "<u>RemoteUI</u>" <<interface>>  as interfaceRemoteUI
+}
+
+folder CommandoV3 <<folder>> {
+    rectangle "<u>robot:Robot</u>" <<protected>> as robot
+    rectangle "<u>adminUI:AdminUI</u>" <<active>> as adminUI
+    rectangle "<u>pilot:Pilot</u>" <<active>> as pilot
+    rectangle "<u>logger:Logger</u>" <<active>> as logger
+    
+    rectangle "<u>ihm:IHM</u>" <<boundary>> <<active>> as ihmServer
+
+    folder comServer <<folder>> {
+        rectangle "<u>:proxyRemoteUI</u>" as proxyRemoteUI
+        rectangle "<u>dispatcherServer:DispatcherServer</u>" <<active>> as dispatcherServer
+    }
+
+}
+
+folder TelcoV3 <<folder>> {
+    rectangle "<u>remoteUI:RemoteUI</u>" <<active>> as remoteUI
+    
+    rectangle "<u>ihm:IHM</u>" <<boundary>> <<active>> as ihmClient
+
+    folder comClient <<folder>> {
+        rectangle "<u>:ProxyPilot</u>" as proxyPilot
+        rectangle "<u>:ProxyLogger</u>" as proxyLogger
+        rectangle "<u>dispatcherClient:DispatcherClient</u>" <<active>> as dispatcherClient
+    }
+
+}
+
+robot -- simulateurRobot : voir doc infox
+
+user1 -- ihmServer : \
+    toggleEmergencyStop() <&arrow-thick-bottom> \n\
+    quit() <&arrow-thick-bottom> \n\
+    goScreenLog() <&arrow-thick-bottom> \n\
+    clearLog() <&arrow-thick-bottom> \n\
+    backMainScreen() <&arrow-thick-bottom> \n\
+    displayScreen(idScreen) <&arrow-thick-top>
+ihmServer - adminUI
+
+user2 -- ihmClient : \
+    toggleEmergencyStop() <&arrow-thick-bottom> \n\
+    quit() <&arrow-thick-bottom> \n\
+    goScreenLog() <&arrow-thick-bottom> \n\
+    backMainScreen() <&arrow-thick-bottom> \n\
+    displayScreen(idScreen) <&arrow-thick-top> \n\
+    setDir(dir) <&arrow-thick-bottom> \n\
+    setIp(ip) <&arrow-thick-bottom> \n\
+    validate() <&arrow-thick-bottom>
+ihmClient - remoteUI
+
+
+
+pilot ..|> interfacePilot
+proxyPilot ..|> interfacePilot
+logger ..|> interfaceLogger
+proxyLogger ..|> interfaceLogger
+remoteUI ..|> interfaceRemoteUI
+proxyRemoteUI ..|> interfaceRemoteUI
+
+
+adminUI -- pilot : toggleES() <&arrow-thick-bottom>
+adminUI -- logger : \
+    getEvents(from,to):Event[] <&arrow-thick-bottom> \n\
+    getEventsCount():Indice <&arrow-thick-bottom> \n\
+    clearEvents() <&arrow-thick-bottom> \n\
+    startPolling() <&arrow-thick-bottom> \n\
+    stopPolling() <&arrow-thick-bottom>
+
+pilot -- robot :\
+    setWheelsVelocity(wvr,wvl) <&arrow-thick-bottom> \n\
+    getSensorsState():SensorsState <&arrow-thick-bottom>
+
+pilot -- logger : signalES() <&arrow-thick-bottom>
+
+logger -- robot : \
+    getSensorsState():SensorsState <&arrow-thick-bottom> \n\
+    getRobotSpeed():Speed <&arrow-thick-bottom>
+
+remoteUI -- proxyPilot : \
+    setVelocity(vel) <&arrow-thick-bottom> \n\
+    toggleES() <&arrow-thick-bottom>
+dispatcherServer -- pilot : \
+    setVelocity(vel) <&arrow-thick-bottom> \n\
+    toggleES() <&arrow-thick-bottom>
+
+remoteUI -- proxyLogger : \
+    askEvents(from,to) <&arrow-thick-bottom> \n\
+    askEventsCount() <&arrow-thick-bottom>
+dispatcherServer -- logger : \
+    askEvents(from,to) <&arrow-thick-bottom> \n\
+    askEventsCount() <&arrow-thick-bottom>
+logger -- proxyRemoteUI : \
+    setEvents(Event[]) <&arrow-thick-top> \n\
+    setEventsCount(Indice) <&arrow-thick-top>
+dispatcherClient -- remoteUI : \
+    setEvents(Event[]) <&arrow-thick-top> \n\
+    setEventsCount(Indice) <&arrow-thick-top>
+
+
+
+@enduml
