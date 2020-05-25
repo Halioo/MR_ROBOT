@@ -1,14 +1,12 @@
 
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <mailbox.h>
 #include <prose.h>
-
 #include "remoteui.h"
-#include "ihm.h"
+
+
 
 //#define LANG FRENCH
 

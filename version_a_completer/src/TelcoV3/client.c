@@ -8,8 +8,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include "watchdog.h"
-#include "robocom.h"
+
 
 #include "client.h"
 
