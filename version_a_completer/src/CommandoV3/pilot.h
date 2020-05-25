@@ -90,7 +90,7 @@ extern PilotState Pilot_getState();
  */
 extern void Pilot_check();
 
-extern void Pilot_EventToggleES(Pilot * this);
+extern void Pilot_ToggleES(Pilot * this);
 
 
 extern void Pilot_EventSetRobotVelocity(Pilot * this, VelocityVector vel);
