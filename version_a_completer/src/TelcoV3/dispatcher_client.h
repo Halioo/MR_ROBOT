@@ -2,6 +2,7 @@
 #define DISPATCHER_CLIENT_H
 
 #include "util.h"
+#include "../../lib/include/mailbox.h"
 
 typedef struct Dispatcher_t Dispatcher;
 
