@@ -8,8 +8,15 @@
 #include "mailbox.h"
 #include "watchdog.h"
 
+#define SIZE_TASK_NAME (20)
 #define DEFAULT_SPEED (0)
 #define BUMP_TEST_REFRESH_RATE (100000)
+
+/**
+ * @def Name of the task. Each instance will have this name,
+ * followed by the number of the instance
+ */
+#define NAME_TASK "PilotTask%d"
 
 /**
  * @brief Example instances counter used to have a unique queuename per thread
@@ -28,7 +35,7 @@ static const VelocityVector DEFAULT_VELOCITY_VECTOR =
 /**
  * @brief Liste des états du pilot
  */
-ENUM_DECL(State,
+ENUM_DECL(STATE,
         S_FORGET,       ///< Etat par défaut, utilisé pour consommer une action
         S_IDLE,         ///< Etat où le robot est arrêté
         S_RUNNING,      ///< Etat où le robot est en mouvement
@@ -40,7 +47,7 @@ ENUM_DECL(State,
 /**
  * @brief Liste des évènements du pilot
  */
-ENUM_DECL(Event,
+ENUM_DECL(EVENT,
         E_NOP,                  ///< Ne rien faire
         E_SET_ROBOT_VELOCITY,   ///< Demande d'envoi d'une vitesse au robot
         E_STOP,                 ///< Met la vitesse du robot à 0
@@ -54,7 +61,7 @@ ENUM_DECL(Event,
 /**
  * @brief Liste des actions du pilot
  */
-ENUM_DECL(Action,
+ENUM_DECL(ACTION,
         A_NOP,                      ///< Ne rien faire
         A_SEND_MVT_0,               ///< Envoi d'une vitesse nulle au robot
         A_IDLE_TO_RUNNING,          ///< Action appellée quand on passe de l'état IDLE à l'état RUNNING
@@ -69,8 +76,8 @@ ENUM_DECL(Action,
  * @brief Structire de transition de la MaE
  */
 typedef struct {
-    State nextState; ///< Prochain State de la MaE
-    Action action;   ///< Action réalisée avant d'aller dans le prochain State
+    STATE nextState; ///< Prochain State de la MaE
+    ACTION action;   ///< Action réalisée avant d'aller dans le prochain State
 } Transition;
 
 
@@ -78,7 +85,7 @@ typedef struct {
  * @brief Structure d'un message ajouté à la BAL
  */
 typedef struct {
-    Event event; ///< Paramètre event du message
+    EVENT event; ///< Paramètre event du message
     VelocityVector vel; ///< Paramètre VelocityVector du message
 } Msg;
 
@@ -91,11 +98,16 @@ wrapperOf(Msg)
  * @brief Structure de l'objet Pilot
  */
 struct Pilot_t {
+    VelocityVector currentVel;
+    PilotState myPilotState;
+
     Msg message; ///< Structure utilisée pour passer les donnés de la BAL aux pointeurs de fonction
     pthread_t threadId; ///< Pthread identifier for the active function of the class.
     Mailbox * mailbox; ///< La boite aux lettres de la MaE de Pilot
     Watchdog * watchdogBump; ///< Le watchdog qui gère la scrutation de bump
-    State myState; ///< Etat actuel de la MaE
+    STATE myState; ///< Etat actuel de la MaE
+    char nameTask[SIZE_TASK_NAME]; ///< Name of the task
+
 };
 
 
@@ -207,7 +219,7 @@ typedef void (*ActionPtr)(Pilot *);
 /**
  * @brief Tableau de pointeur de fonctions pour stocker les fonctions correspondantes aux actions dans le même ordre qu'elles ont été définies
  */
-static const ActionPtr actionPtrTab[NB_Action]={
+static const ActionPtr actionPtrTab[NB_ACTION]={
         &ActionNop,
         &ActionSendMvt0,
         &ActionIdleToRunning,
@@ -222,7 +234,7 @@ static const ActionPtr actionPtrTab[NB_Action]={
 /**
  * @brief MaE de la classe Pilot
  */
-static const Transition stateMachine[NB_State][NB_Event] = {
+static const Transition stateMachine[NB_STATE][NB_EVENT] = {
         [S_IDLE][E_TOGGLE_ES] = {S_EMERGENCY,A_SEND_MVT_0},
         [S_IDLE][E_SET_ROBOT_VELOCITY] = {S_RUNNING,A_IDLE_TO_RUNNING},
         [S_RUNNING][E_STOP] = {S_IDLE,A_RUNNING_TO_IDLE},
@@ -240,16 +252,19 @@ static const Transition stateMachine[NB_State][NB_Event] = {
 
 
 static void ActionNop(Pilot * this){
+    TRACE("[%s] ACTION - Nop\n",this->nameTask)
 
 }
 
 
 static void ActionSendMvt0(Pilot * this){
+    TRACE("[%s] ACTION - Send mvt 0\n",this->nameTask)
     Pilot_SendMvt(this->message.vel);
 }
 
 
 static void ActionIdleToRunning(Pilot * this){
+    TRACE("[%s] ACTION - Idle to running\n",this->nameTask)
     Pilot_SetTO(this);
     Pilot_EvalVel(this);
     Pilot_SendMvt(this->message.vel);
@@ -257,28 +272,33 @@ static void ActionIdleToRunning(Pilot * this){
 
 
 static void ActionRunningToIdle(Pilot * this){
+    TRACE("[%s] ACTION - Running to idle\n",this->nameTask)
     Pilot_ResetTO(this);
     Pilot_SendMvt(DEFAULT_VELOCITY_VECTOR);
 }
 
 
 static void ActionRunningToRunning(Pilot * this){
+    TRACE("[%s] ACTION - Running to running\n",this->nameTask)
     Pilot_EvalVel(this);
     Pilot_SendMvt(this->message.vel);
 }
 
 
 static void ActionRunningToBumpCheck(Pilot * this){
+    TRACE("[%s] ACTION - Running to bump check\n",this->nameTask)
     Pilot_EvalBump(this);
 }
 
 
 static void ActionBumpCheckToRunning(Pilot * this){
+    TRACE("[%s] ACTION - Bump check to running\n",this->nameTask)
     Pilot_SetTO(this);
 }
 
 
 static void ActionKill(Pilot * this){
+    TRACE("[%s] ACTION - Kill\n",this->nameTask)
     // TODO
 }
 
@@ -311,7 +331,7 @@ extern void Pilot_EventStop(Pilot * this) {
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
-extern void Pilot_EventToggleES(Pilot * this) {
+extern void Pilot_ToggleES(Pilot * this) {
 
     Wrapper wrapper = {
         .data.event = E_TOGGLE_ES
@@ -351,9 +371,11 @@ static void Pilot_EventNotBumped(Pilot * this){
 /* ----------------------- RUN FUNCTION ----------------------- */
 
 static void Pilot_Run(Pilot * this) {
-    Action action = A_SEND_MVT_0;
-    State state = S_IDLE;
+    ACTION action;
+    STATE state = S_IDLE;
     Wrapper wrapper;
+
+    TRACE("[%s] RUN\n")
 
     while (state != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
@@ -363,10 +385,10 @@ static void Pilot_Run(Pilot * this) {
         }
         else{
             action = stateMachine[state][wrapper.data.event].action;
-            TRACE("Action %s\n", Action_toString[action])
+            TRACE("Action %s\n", ACTION_toString[action])
 
             state = stateMachine[state][wrapper.data.event].nextState;
-            TRACE("State %s\n", State_toString[state])
+            TRACE("State %s\n", STATE_toString[state])
 
             if(state != S_FORGET){
                 this->message = wrapper.data;
@@ -384,7 +406,9 @@ Pilot *  Pilot_new() {
     pilotCounter++;
     Pilot * this = (Pilot *) malloc(sizeof(Pilot));
     this->mailbox = mailboxInit("Pilot",pilotCounter,sizeof(Msg));
-    this->watchdogBump = WatchdogConstruct(BUMP_TEST_REFRESH_RATE,Pilot_TOHandle,this);
+    this->watchdogBump = WatchdogConstruct(BUMP_TEST_REFRESH_RATE,&Pilot_TOHandle,this);
+    sprintf(this->nameTask, NAME_TASK, pilotCounter);
+
     // TODO : gestion d'erreurs
 
     return this;
@@ -399,6 +423,11 @@ int Pilot_Start(Pilot * this) {
 
 
 int Pilot_Stop(Pilot * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_KILL;
+    WatchdogCancel(this->watchdogBump);
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+
     int err = pthread_join(this->threadId,NULL);
     // TODO : gestion d'erreurs
 

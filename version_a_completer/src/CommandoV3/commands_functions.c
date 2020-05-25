@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "commands_functions.h"
+#include "pilot.h"
 
 #define DEFAULT_POWER_FWD 80
 #define DEFAULT_POWER_BCKWD 60
