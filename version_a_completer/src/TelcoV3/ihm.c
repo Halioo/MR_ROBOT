@@ -51,7 +51,7 @@ static void capture_choice()
     if (k_input == 'a') {
         printf("%s", get_msg(MSG_QUIT));
         data.command = C_QUIT;
-        Client_sendMsg(data);
+        //Client_sendMsg(data);
         flag_stop = UP;
     } else if (k_input == 'e') {
         clear_logs();
@@ -63,7 +63,7 @@ static void capture_choice()
         } else {
             Command command = list_commands[id];
             printf("%s", get_msg(command.msg));
-            Client_sendMsg(command.command_order);
+            //Client_sendMsg(command.command_order);
         }
         display();
     }

@@ -6,6 +6,7 @@
 #define CLIENT_IHM_H
 
 
+#include <robocom.h>
 #include "util.h"
 
 

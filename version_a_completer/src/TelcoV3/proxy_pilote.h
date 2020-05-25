@@ -6,6 +6,8 @@
 #define PROXY_PILOTE_H
 
 #include "util.h"
+#include <robocom.h>
+
 
 extern void Pilot_toggleES();
 extern void Pilot_setVelocity(VelocityVector);
