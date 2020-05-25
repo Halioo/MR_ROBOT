@@ -36,10 +36,13 @@
 #ifndef REMOTEUI_H
 #define REMOTEUI_H
 
-#include <robocom.h>
-
-#include "proxy_pilote.h"
 #include "ihm.h"
+#include "../../lib/include/mailbox.h"
+#include "../../lib/include/robocom.h"
+
+
+#include "proxy_pilot.h"
+
 
 typedef struct RemoteUI_t RemoteUI;
 
