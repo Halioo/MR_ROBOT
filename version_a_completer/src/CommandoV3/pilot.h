@@ -50,22 +50,22 @@ typedef struct
 /**
  * Start Pilot
  */
-extern void Pilot_start();
+extern int Pilot_start(Pilot * this);
 
 /**
  * Stop Pilot
  */
-extern void Pilot_stop();
+extern int Pilot_stop(Pilot * this);
 
 /**
  * initialize in memory the object Pilot
  */
-extern void Pilot_new();
+extern Pilot * Pilot_new();
 
 /**
  * destruct the object Pilot from memory 
  */
-extern void Pilot_free();
+extern int Pilot_free(Pilot * this);
 
 /**
  * setVelocity
@@ -90,6 +90,10 @@ extern PilotState Pilot_getState();
  */
 extern void Pilot_check();
 
+
+extern void Pilot_EventSetRobotVelocity(Pilot * this, VelocityVector vel);
+
+extern void Pilot_EventStop(Pilot * this);
 
 #endif /* PILOT_H */
 

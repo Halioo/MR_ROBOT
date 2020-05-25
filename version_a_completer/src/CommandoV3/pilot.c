@@ -97,7 +97,7 @@ static void action_NOP(){
 
 static const f_ptr actions_tab[ACTION_NB] = {
         &action_NOP,
-        &send_mvt,
+        &Pilot_SendMvt,
         &eval_vel,
         &eval_check
 };
@@ -161,7 +161,7 @@ static void run(Event event, VelocityVector vel) {
 
     if (event == E_INIT) {
         current_state = S_IDLE;
-        send_mvt(DEFAULT_VELOCITY_VECTOR);
+        Pilot_SendMvt(DEFAULT_VELOCITY_VECTOR);
     } else if (transition.next_state != S_FORGET) {
         current_state = transition.next_state;
         actions_tab[transition.action_to_perform](vel);

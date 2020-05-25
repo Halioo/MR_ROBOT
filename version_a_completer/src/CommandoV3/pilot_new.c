@@ -7,7 +7,24 @@
 
 #include "pilot.h"
 #include "robot.h"
+#include "mailbox.h"
+#include "watchdog.h"
 
+#define DEFAULT_SPEED (0)
+
+/**
+ * @brief Example instances counter used to have a unique queuename per thread
+ */
+static int pilotCounter = 0;
+
+/**
+ * Vector velocité par défaut : arrêt
+ */
+static const VelocityVector DEFAULT_VELOCITY_VECTOR =
+{
+    .dir = STOP,
+    .power = DEFAULT_SPEED
+};
 
 /**
  * @brief Liste des états du pilot
@@ -76,6 +93,10 @@ wrapperOf(Msg)
  */
 struct Pilot_t {
     // TODO : ajouter les paramètres statiques pour en faire un objet multi-instances
+    Msg message; ///< Structure utilisée pour passer les donnés de la BAL aux pointeurs de fonction
+    pthread_t threadId; ///< Pthread identifier for the active function of the class.
+    Mailbox * mailbox;
+    State myState; ///< Etat actuel de la MaE
 };
 
 
@@ -86,43 +107,74 @@ struct Pilot_t {
 /**
  * @brief Fonction appellée quand il ne faut rien faire
  */
-static void ActionNop();
+static void ActionNop(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut immobiliser le robot
  */
-static void ActionSendMvt0();
+static void ActionSendMvt0(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut passer de l'état IDLE à l'état RUNNING
  */
-static void ActionIdleToRunning();
+static void ActionIdleToRunning(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut passer de l'état RUNNING à l'état IDLE
  */
-static void ActionRunningToIdle();
+static void ActionRunningToIdle(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut passer de l'état RUNNING à l'état RUNNING
  */
-static void ActionRunningToRunning();
+static void ActionRunningToRunning(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut passer de l'état RUNNING à l'état BUMP_CHECK
  */
-static void ActionRunningToBumpCheck();
+static void ActionRunningToBumpCheck(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut passer de l'état BUMP_CHECK à l'état RUNNING
  */
-static void ActionBumpCheckToRunning();
+static void ActionBumpCheckToRunning(Pilot * this);
 
 /**
  * @brief Fonction appellée quand il faut détruire la MaE
  */
-static void ActionKill();
+static void ActionKill(Pilot * this);
 
+/*--------------------Prototypes des fonctions event-------------------------*/
+
+
+static void Pilot_EventToggleES(Pilot * this);
+
+static void Pilot_EventTOBump(Pilot * this);
+
+static void Pilot_EventBumped(Pilot * this);
+
+static void Pilot_EventNotBumped(Pilot * this);
+
+/**
+ * @brief Fonction run de la classe Pilot
+ */
+static void Pilot_Run(Pilot * this);
+
+/*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
+
+/*----------------------- STATE MACHINE DECLARATION -----------------------*/
+
+/**
+ * @brief Envoie un ordre de vitesse au robot
+ * @param vel
+ */
+static void Pilot_SendMvt(VelocityVector vel);
+
+/**
+ * @brief Evalue la vitesse et ajoute un message E_STOP si la vitesse est nulle
+ * @param vel
+ */
+static void Pilot_EvalVel(Pilot * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -167,38 +219,39 @@ static const Transition stateMachine[NB_State][NB_Event] = {
 
 // TODO : Write all the ACTION functions
 
-
-static void ActionNop(){
-
-}
-
-
-static void ActionSendMvt0(){
+static void ActionNop(Pilot * this){
 
 }
 
 
-static void ActionIdleToRunning(){
+static void ActionSendMvt0(Pilot * this){
+    Pilot_SendMvt(this->message.vel);
+}
+
+
+static void ActionIdleToRunning(Pilot * this){
+    Pilot_SendMvt(this->message.vel);
+    Pilot_EvalVel(this);
+    // TODO : setTO (waf)
+}
+
+
+static void ActionRunningToIdle(Pilot * this){
 
 }
 
 
-static void ActionRunningToIdle(){
+static void ActionRunningToRunning(Pilot * this){
 
 }
 
 
-static void ActionRunningToRunning(){
+static void ActionRunningToBumpCheck(Pilot * this){
 
 }
 
 
-static void ActionRunningToBumpCheck(){
-
-}
-
-
-static void ActionBumpCheckToRunning(){
+static void ActionBumpCheckToRunning(Pilot * this){
 
 }
 
@@ -208,23 +261,186 @@ static void ActionKill(){
 }
 
 
+/*----------------------- EVENT FUNCTIONS -----------------------*/
+// TODO : write the events functions
+
+extern void Pilot_EventSetRobotVelocity(Pilot * this, VelocityVector vel) {
+    Msg msg = {
+        .event = E_SET_ROBOT_VELOCITY,
+        .vel = vel
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+extern void Pilot_EventStop(Pilot * this) {
+    Msg msg = {
+        .event = E_STOP,
+        .vel = DEFAULT_VELOCITY_VECTOR
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventToggleES(Pilot * this) {
+    Msg msg = {
+        .event = E_TOGGLE_ES
+    };
+
+    Wrapper wrapper = {
+            .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventTOBump(Pilot * this){
+    Msg msg = {
+        .event = E_TO_BUMP
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventBumped(Pilot * this){
+    Msg msg = {
+        .event = E_BUMPED
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
+static void Pilot_EventNotBumped(Pilot * this){
+    Msg msg = {
+        .event = E_NOT_BUMPED
+    };
+
+    Wrapper wrapper = {
+        .data = msg
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
 
 
+/* ----------------------- RUN FUNCTION ----------------------- */
+
+static void Pilot_Run(Pilot * this) {
+    Action action = A_SEND_MVT_0;
+    State state = S_IDLE;
+    Wrapper wrapper;
+
+    while (state != S_DEATH) {
+        mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
+
+        if(wrapper.data.event == E_KILL){
+            this->myState = S_DEATH;
+        }
+        else{
+            action = stateMachine[state][wrapper.data.event].action;
+            TRACE("Action %s\n", Action_toString[action])
+
+            state = stateMachine[state][wrapper.data.event].nextState;
+            TRACE("State %s\n", State_toString[state])
+
+            if(state != S_FORGET){
+                this->message = wrapper.data;
+                actionPtrTab[action](this);
+                this->myState = state;
+            }
+        }
+    }
+}
 
 
+/* ----------------------- NEW START STOP FREE -----------------------*/
+
+Pilot *  Pilot_new() {
+    pilotCounter++;
+    Pilot * this = (Pilot *) malloc(sizeof(Pilot));
+    this->mailbox = mailboxInit("Pilot",pilotCounter,sizeof(Msg));
+    // TODO : gestion d'erreurs
+
+    return this;
+}
 
 
+int Pilot_start(Pilot * this) {
+    int err = pthread_create(this->threadId,NULL,(void *)Pilot_Run, this);
+    // TODO : gestion d'erreurs
+
+}
 
 
+int Pilot_stop(Pilot * this) {
+    int err = pthread_join(this->threadId,NULL);
+    // TODO : gestion d'erreurs
+
+}
 
 
+int Pilot_free(Pilot * this) {
+    mailboxClose(this->mailbox);
+    // TODO : gestion d'erreurs
+
+    free(this);
+    return 0;
+}
+
+/* ----------------------- OTHER FUNCTIONS -----------------------*/
 
 
+static void Pilot_SendMvt(VelocityVector vel) {
+    int vel_r = DEFAULT_SPEED, vel_l = DEFAULT_SPEED;
+    switch (vel.dir) {
+        case FORWARD:
+            vel_r = vel.power;
+            vel_l = vel.power;
+            break;
+        case BACKWARD:
+            vel_r = -vel.power;
+            vel_l = -vel.power;
+            break;
+        case RIGHT:
+            vel_r = -vel.power;
+            vel_l = vel.power;
+            break;
+        case LEFT:
+            vel_r = vel.power;
+            vel_l = -vel.power;
+            break;
+        default: break;
+    }
+    Robot_setWheelsVelocity(vel_r, vel_l);
+}
 
 
+static void Pilot_EvalVel(Pilot * this){
+    if(this->message.vel.dir == STOP || this->message.vel.power == 0){
+        Msg msg = {
+            .event = E_STOP
+        };
+        Wrapper wrapper = {
+            .data = msg
+        };
 
-
-
-
-
+        mailboxSendMsg(this->mailbox,wrapper.toString);
+    }
+}
 
