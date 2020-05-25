@@ -5,8 +5,6 @@ file(GLOB_RECURSE CLIENT_src "TelcoV3/*.c" "TelcoV3/*.h")
 add_executable(client main_client.c
     ${CLIENT_src}
 )
-
-
 add_executable(server main_server.c
     ${SERVER_src}
 )
@@ -20,6 +18,7 @@ target_link_libraries(server
     infox robocom watchdog mailbox
     pthread rt
 )
+
 
 get_property(loc_INFOX_DIR GLOBAL PROPERTY INFOX_DIR)
 get_property(loc_LIB_DIR GLOBAL PROPERTY LIB_DIR)

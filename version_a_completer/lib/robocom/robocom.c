@@ -3,13 +3,43 @@
 //
 
 #include <unistd.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <netdb.h>
 
 #include "robocom.h"
+
+
+#define DEFAULT_POWER_FWD 80
+#define DEFAULT_POWER_BCKWD 60
+#define DEFAULT_POWER_TURN 50
+
+/**
+ * Transforme une direction en un VelocityVector
+ * et l'envoie au pilote
+ */
+extern VelocityVector translateDir(DIRECTION dir) {
+    VelocityVector vel = {
+            .dir = dir,
+    };
+    switch (dir) {
+        case FORWARD:
+            vel.power = DEFAULT_POWER_FWD;
+            break;
+        case BACKWARD:
+            vel.power = DEFAULT_POWER_BCKWD;
+            break;
+        case LEFT:
+        case RIGHT:
+            vel.power = DEFAULT_POWER_TURN;
+            break;
+        default:
+            vel.power = 0;
+    }
+    return vel;
+}
+
+
 
 extern int createNwk(int nwkPort) {
     struct sockaddr_in serverAddr;
@@ -35,7 +65,7 @@ extern int connectNwk(char * nwkIp, int nwkPort) {
 
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(nwkPort);
-    serverAddr.sin_addr = *((struct in_addr *)gethostbyname (nwkIp)->h_addr_list[0]);
+    serverAddr.sin_addr = *((struct in_addr *)gethostbyname(nwkIp)->h_addr_list[0]);
 
     connect(connectSocket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
 
@@ -55,3 +85,4 @@ extern void sendNwk(int socket, RQ_data data_to_send) {
     // TODO error handling
     write(socket, &data.toString, sizeof(RQ_Wrapper));
 }
+

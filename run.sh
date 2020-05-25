@@ -20,9 +20,6 @@
 # -v est mise par défaut à <wip>
 
 
-
-
-
 # Absolute path to this script
 DIRPATH=$(dirname "$0")
 # Close simulator upon exit
@@ -87,10 +84,10 @@ case $version in
       make -s -C "$DIRPATH"/version_a_completer
     fi
     echo "-----STARTING WIP SERVER-----"
-    xterm -fa 'Monospace' -fs 15 -e "$DIRPATH"/version_a_completer/bin/robot_pc1&
+    xterm -fa 'Monospace' -fs 15 -e "$DIRPATH"/version_a_completer/bin/robot_pc1 2>temp/server.log &
     sleep 0.2
     echo "-----STARTING WIP CLIENT-----"
-    xterm -fa 'Monospace' -fs 15 -e "$DIRPATH"/version_a_completer/bin/robot_pc2
+    xterm -fa 'Monospace' -fs 15 -e "$DIRPATH"/version_a_completer/bin/robot_pc2 2>temp/client.log
     ;;
   * )
     echo "__/!\__ VERSION INTROUVABLE __/!\__" ;;

@@ -8,6 +8,7 @@
 #include <prose.h>
 
 #include "remoteui.h"
+#include "ihm.h"
 
 //#define LANG FRENCH
 
@@ -41,45 +42,57 @@ ENUM_DECL(STATE,
 )
 
 /**
- * @brief Enumaration of all the possible actions called by the state machine
- */
-ENUM_DECL(ACTION,
-    A_NOP,  ///< Nothing happens
-    A_SETIP,
-    A_ENTRY_MAINSCREEN,
-    A_ENTRY_LOGSCREEN,
-    A_MAINSCREEN_LOGSCREEN,
-    A_LOGSCREEN_MAINSCREEN,
-    A_LOG_LOOP,
-    A_QUIT,
-    A_KILL  ///< Kills the state machine
-)
-
-
-/**
  * @brief Enumeration of all the possible events that triggers the state machine
  */
 ENUM_DECL(EVENT,
     E_NOP,  ///< Do nothing
-    E_ENTRY_CONNECTSCREEN,
-    E_ENTRY_MAINSCREEN,
-    E_ENTRY_LOGSCREEN,
-
-    E_TO_LOGSCREEN,
-
-    E_PS_CONNECT_SUCCESS,
-    E_PS_CONNECT_FAIL,
-
-    E_GO_LOGSCREEN,
-    E_BACK_MAINSCREEN,
 
     E_SETIP,
-    E_SETDIR,
     E_VALIDATE,
+
+    E_CONNECT_SUCCESS,
+    E_CONNECT_FAILURE,
+
+    E_SETDIR,
     E_TOGGLE_ES,
+    E_GO_LOG,
+    E_BACK_MAIN,
+
+    E_AFTER_ONE_SEC,
+
     E_QUIT,
+
     E_KILL    ///< Kills the STATE machine
 )
+
+/**
+ * @brief Enumaration of all the possible actions called by the state machine
+ */
+ENUM_DECL(ACTION,
+    A_NOP,  ///< Nothing happens
+
+    A_INIT,
+    A_SETIP,
+
+    A_CONNECT,
+    A_CONNECT_SUCCESS,
+    A_CONNECT_FAILURE,
+
+    A_SETDIR,
+    A_TOGGLE_ES,
+
+    A_QUIT,
+
+    A_KILL  ///< Kills the state machine
+)
+
+ENUM_DECL(SCREEN,
+    CONNECT_SCREEN,
+    MAIN_SCREEN,
+    ERROR_SCREEN,
+    LOG_SCREEN
+)
+
 
 /**
  * @brief Transition structure of the STATE machine
@@ -94,7 +107,8 @@ typedef struct {
  */
 typedef struct {
     EVENT event; ///< EVENT sent in the message
-    char kin;
+    char ip[15];
+    DIRECTION dir;
 } Msg;
 
 /**
@@ -110,14 +124,16 @@ struct RemoteUI_t {
     pthread_t threadId; ///< Pthread identifier for the active function of the class.
     STATE state;        ///< Actual STATE of the STATE machine
     Msg msg;            ///< Structure used to pass parameters to the functions pointer.
+
     char nameTask[SIZE_TASK_NAME]; ///< Name of the task
     Mailbox * mb;
+    Watchdog * wd;
 
-    int k_input; ///< keyboard input
-    int currentEventNumber;
-    int previousEventNumber;
-    int myIp;
+    char myIP[15];
     int socket;
+
+    int previousEventNumber;
+    int currentEventNumber;
     VelocityVector vel;
 };
 
@@ -125,7 +141,7 @@ struct RemoteUI_t {
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
 
 /*------------- ACTION functions -------------*/
-// TODO : put here all the ACTION functions prototypes
+
 /**
  * @brief Function called when nothing needs to be done
  */
@@ -136,10 +152,14 @@ static void ActionNop(RemoteUI * this);
  */
 static void ActionKill(RemoteUI * this);
 
-/**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
- */
-static void ActionExample1FromIdle(RemoteUI * this);
+static void ActionInit(RemoteUI * this);
+static void ActionSetIp(RemoteUI * this);
+static void ActionConnect(RemoteUI * this);
+static void ActionConnectSuccess(RemoteUI * this);
+static void ActionConnectFailure(RemoteUI * this);
+static void ActionSetDir(RemoteUI * this);
+static void ActionToggleES(RemoteUI * this);
+static void ActionQuit(RemoteUI * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -152,11 +172,16 @@ typedef void (*ActionPtr)(RemoteUI *);
  * @brief Function pointer array used to call the ACTIONs of the STATE machine.
  */
 static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function pointers corresponding to the ACTION enum in the right order.
-        &ActionNop,
-        &ActionExample1FromRunning,
-        &ActionExample1FromIdle,
-        &ActionExample2,
-        &ActionKill
+    &ActionNop,
+    &ActionInit,
+    &ActionSetIp,
+    &ActionConnect,
+    &ActionConnectSuccess,
+    &ActionConnectFailure,
+    &ActionSetDir,
+    &ActionToggleES,
+    &ActionQuit,
+    &ActionKill
 };
 
 
@@ -168,84 +193,148 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE 
 };
 
 
+/* ----------------------- EVENT FUNCTIONS ----------------------- */
 
+extern void setIp(RemoteUI * this, char * ip) {
+    Wrapper wrapper;
+    wrapper.data.event = E_SETIP;
+    strcpy(wrapper.data.ip, ip);
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+
+extern void validate(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_VALIDATE;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+extern void connectSuccess(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_CONNECT_SUCCESS;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+extern void connectFailure(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_CONNECT_FAILURE;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+
+extern void setDir(RemoteUI * this, DIRECTION dir) {
+    Wrapper wrapper;
+    wrapper.data.event = E_SETDIR;
+    wrapper.data.dir = dir;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+extern void toggleEmergencyStop(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_TOGGLE_ES;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+
+extern void goScreenLog(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_GO_LOG;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+extern void backMainScreen(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_BACK_MAIN;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+
+extern void quit(RemoteUI * this) {
+    Wrapper wrapper;
+    wrapper.data.event = E_QUIT;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
 
 
 /**
- * Efface les logs de la console
- * (de manière un peu sale)
+ * @brief Example function that treats a wathdog event.
  */
-static void clear_logs()
-{
-    printf("\033c");
+extern void Wd_timeout(Watchdog * wd, void * caller) {
+    Wrapper wrapper;
+    wrapper.data.event = E_AFTER_ONE_SEC;
+    mailboxSendMsg(((RemoteUI *)caller)->mb, wrapper.toString);
+}
+
+/* ----------------------- ENTRY FUNCTIONS ----------------------- */
+
+static void Entry_connectScreen(RemoteUI * this) {
+    memset(this->myIP, 0, sizeof(this->myIP));
+}
+static void Entry_mainScreen(RemoteUI * this) {
+
+}
+static void Entry_logScreen(RemoteUI * this) {
+    WatchdogStart(this->wd);
+}
+
+/* ----------------------- AFTER FUNCTIONS ----------------------- */
+
+static void After_logScreen(RemoteUI * this) {
+    TRACE("[%s] AFTER - LOG_SCREEN\n", this->nameTask)
+    WatchdogCancel(this->wd);
+}
+
+/* ----------------------- ACTIONS FUNCTIONS ----------------------- */
+
+/**
+ * @brief Function called when nothing needs to be done
+ */
+static void ActionNop(RemoteUI * this) {
+    TRACE("[%s] ACTION - Nop\n", this->nameTask)
 }
 
 /**
- * Show all possible inputs in the terminal
+ * @brief Changes the STATE of the STATE machine to S_DEATH
  */
-static void display()
-{
-    system("stty cooked");
-    printf("%s", get_msg(MSG_COMMANDS));
-    fflush(stdout);
-    system("stty raw");
+static void ActionKill(RemoteUI * this) {
+    TRACE("[%s] ACTION - Kill\n", this->nameTask)
+    this->state = S_DEATH;
 }
 
-/**
- * Effectue l'action correspondant à la touche pressée
- */
-static void capture_choice()
-{
-    RQ_data data;
-
-    system("stty cooked");
-    // Si le user veut quitter, lève le flag
-    if (k_input == 'a') {
-        printf("%s", get_msg(MSG_QUIT));
-        data.command = C_QUIT;
-        Client_sendMsg(data);
-        flag_stop = ON;
-    } else if (k_input == 'e') {
-        clear_logs();
-    } else {
-        printf("%s", get_msg(MSG_COMMAND_ASKED));
-        int id = get_id((char)k_input);
-        if (id == -1) {
-            printf("%s", get_msg(MSG_UNKNOWN_COMMAND));
-        } else {
-            Command command = list_commands[id];
-            printf("%s", get_msg(command.msg));
-            Client_sendMsg(command.command_order);
-        }
-        display();
-    }
-    system ("stty raw");
+static void ActionInit(RemoteUI * this) {
+    TRACE("[%s] ACTION - Init\n", this->nameTask)
+    Entry_connectScreen(this);
 }
 
-/**
- * Fonction principale du programme
- * Boucle tant que le flag du stop n'est pas levé
- */
-static void run()
-{
-    // Stop displaying keys input in terminal
-    system("stty -echo");
-    display();
-    while (flag_stop == OFF) {
-        k_input = getchar();
-        capture_choice();
-    }
+static void ActionSetIp(RemoteUI * this) {
+    TRACE("[%s] ACTION - setIP\n", this->nameTask)
+    strcpy(this->myIP, this->msg.ip);
 }
 
-/**
- * Fonction de réinitialisation des paramètres
- */
-static void quit()
-{
-    // Reset terminal parameters
-    system("stty echo cooked");
+static void ActionConnect(RemoteUI * this) {
+    TRACE("[%s] ACTION - connect\n", this->nameTask)
+    // TODO Faire la tentative de connection ici
 }
 
+static void ActionConnectSuccess(RemoteUI * this) {
+    TRACE("[%s] ACTION - connect success\n", this->nameTask)
+    this->previousEventNumber = 0;
+    this->currentEventNumber = 0;
+    Entry_mainScreen(this);
+}
+
+static void ActionConnectFailure(RemoteUI * this) {
+    TRACE("[%s] ACTION - connect failure\n", this->nameTask)
+    // TODO displaySreen(ERROR_SCREEN)
+}
+
+static void ActionSetDir(RemoteUI * this) {
+    TRACE("[%s] ACTION - setDir\n", this->nameTask)
+    this->vel = translateDir(this->msg.dir);
+    Pilot_setVelocity(this->vel);
+}
+
+static void ActionToggleES(RemoteUI * this) {
+    TRACE("[%s] ACTION - toggleES\n", this->nameTask)
+    Pilot_toggleES();
+}
+
+static void ActionQuit(RemoteUI * this) {
+    TRACE("[%s] ACTION - quit\n", this->nameTask)
+    // TODO à implémenter
+}
 
 
 /* ----------------------- RUN FUNCTION ----------------------- */
@@ -265,7 +354,6 @@ static void RemoteUI_run(RemoteUI * this) {
 
         if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
-
         } else {
             action = stateMachine[this->state][wrapper.data.event].action;
 
@@ -291,9 +379,10 @@ static void RemoteUI_run(RemoteUI * this) {
  */
 extern RemoteUI * RemoteUI_new() {
     remoteUIcounter++;
-    TRACE("[RemoteUI] new function \n")
+    TRACE("[RemoteUI] NEW \n")
     RemoteUI * this = (RemoteUI *) malloc(sizeof(RemoteUI));
     this->mb = mailboxInit("RemoteUI", remoteUIcounter, sizeof(Msg));
+    this->wd = WatchdogConstruct(1000, &Wd_timeout, this);
     sprintf(this->nameTask, NAME_TASK, remoteUIcounter);
 }
 
@@ -313,20 +402,26 @@ extern int RemoteUI_start(RemoteUI * this)
 /**
  * Stop RemoteUI
  */
-extern int RemoteUI_stop()
-{
-    quit();
-    Client_stop();
-    //Pilot_stop();
-    printf("%s", get_msg(MSG_STOP));
-    fflush(stdout);
+extern int RemoteUI_stop(RemoteUI * this) {
+    // TODO : stop the object with it particularities
+    Wrapper wrapper;
+    wrapper.data.event = E_KILL;
+    WatchdogCancel(this->wd);
+    mailboxSendStop(this->mb, wrapper.toString);
+
+    int err = pthread_join(this->threadId, NULL);
+    STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
+
     return 0; // TODO: Handle the errors
 }
 
 /**
  * destruct the RemoteUI from memory
  */
-extern int RemoteUI_free() {
+extern int RemoteUI_free(RemoteUI * this) {
+    WatchdogDestroy(this->wd);
+    mailboxClose(this->mb);
+    free(this);
     return 0; // TODO: Handle the errors
 }
 
