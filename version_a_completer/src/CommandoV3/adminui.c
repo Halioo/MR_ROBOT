@@ -325,6 +325,7 @@ extern AdminUI * AdminUI_new(Pilot * pilot, Logger * logger) {
     this->mailbox = mailboxInit("AdminUI", adminUIcounter, sizeof(Msg));
     this->watchdogLog = WatchdogConstruct(1000, &AdminUI_TOHandle, this);
     sprintf(this->nameTask, NAME_TASK, adminUIcounter);
+    this->state = S_MAIN_SCREEN;
 
     this->myPilot = pilot;
     this->myLogger = logger;

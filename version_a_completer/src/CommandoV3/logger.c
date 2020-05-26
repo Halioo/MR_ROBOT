@@ -199,7 +199,7 @@ static void Logger_Run(Logger * this) {
     STATE state = S_IDLE;
     Wrapper wrapper;
 
-    while (state != S_DEATH) {
+    while (this->myState != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
 
         if(wrapper.data.event == E_KILL){
@@ -254,6 +254,7 @@ extern Logger * Logger_new() {
     this->watchdogPoll = WatchdogConstruct(POLLING_REFRESH_RATE,&Logger_TOHandle,this);
     this->myEvents = Logger_initEventList();
     this->indiceEvents = INDICE_INITIAL;
+    this->myState = S_IDLE;
 
     return this;
 }

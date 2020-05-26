@@ -133,6 +133,9 @@ struct RemoteUI_t {
     int previousEventNumber;
     int currentEventNumber;
     VelocityVector vel;
+
+    LogEvent * myEvents; // TODO : définir la taille max de myEvents pour ne pas être embêté
+    int myEventsCount;
 };
 
 
@@ -334,7 +337,6 @@ static void ActionQuit(RemoteUI * this) {
     // TODO à implémenter
 }
 
-
 /* ----------------------- RUN FUNCTION ----------------------- */
 
 /**
@@ -422,4 +424,18 @@ extern int RemoteUI_free(RemoteUI * this) {
     free(this);
     return 0; // TODO: Handle the errors
 }
+
+extern int RemoteUI_getSocket(RemoteUI * this){
+    return this->socket;
+}
+
+extern LogEvent * RemoteUI_setEvents(RemoteUI  * this, LogEvent * events){
+    this->myEvents = events;
+}
+
+extern int RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents){
+    this->myEventsCount = nbEvents;
+}
+
+
 

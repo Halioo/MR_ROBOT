@@ -304,7 +304,7 @@ static void ActionKill(Pilot * this){
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
-extern void Pilot_EventSetRobotVelocity(Pilot * this, VelocityVector vel) {
+extern void Pilot_setRobotVelocity(Pilot * this, VelocityVector vel) {
     Msg msg = {
         .event = E_SET_ROBOT_VELOCITY,
         .vel = vel
@@ -371,12 +371,12 @@ static void Pilot_EventNotBumped(Pilot * this){
 
 static void Pilot_Run(Pilot * this) {
     ACTION action;
-    STATE state = S_IDLE;
+    STATE state;
     Wrapper wrapper;
 
     TRACE("[%s] RUN\n",this->nameTask)
 
-    while (state != S_DEATH) {
+    while (this->myState != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
 
         if(wrapper.data.event == E_KILL){
@@ -407,7 +407,7 @@ Pilot *  Pilot_new() {
     this->mailbox = mailboxInit("Pilot",pilotCounter,sizeof(Msg));
     this->watchdogBump = WatchdogConstruct(BUMP_TEST_REFRESH_RATE,&Pilot_TOHandle,this);
     sprintf(this->nameTask, NAME_TASK, pilotCounter);
-
+    this->myState = S_IDLE;
     // TODO : gestion d'erreurs
 
     return this;

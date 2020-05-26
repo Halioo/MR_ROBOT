@@ -20,7 +20,7 @@ int main (int argc, char *argv[])
 //            .power = 80,
 //            .dir = FORWARD
 //    };
-//    Pilot_EventSetRobotVelocity(lePilote,vel);
+//    Pilot_setRobotVelocity(lePilote,vel);
 //
 //    Pilot_Stop(lePilote);
 //    Pilot_Free(lePilote);

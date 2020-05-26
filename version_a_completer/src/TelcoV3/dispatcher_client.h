@@ -11,12 +11,12 @@
 
 typedef struct Dispatcher_t Dispatcher;
 
-Dispatcher * Dispatcher_New();
+Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI);
 
-int Dispatcher_Start(Dispatcher * this);
+extern int Dispatcher_Start(Dispatcher * this);
 
-int Dispatcher_Stop(Dispatcher * this);
+extern int Dispatcher_Stop(Dispatcher * this);
 
-int Dispatcher_Free(Dispatcher * this);
+extern int Dispatcher_Free(Dispatcher * this);
 
 #endif //DISPATCHER_CLIENT_H
