@@ -54,6 +54,7 @@ typedef struct {
     COMMAND command;
     int from;
     int to;
+    int eventsCount;
     LogEvent logEvent[];
 
 } RQ_data;

@@ -191,9 +191,7 @@ static void ActionKill(Dispatcher * this) {
 void StartThreadListening(Dispatcher* this) {
     TRACE("Start Listening Dispatcher \n");
     this->flagListening = DOWN;
-    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
-    int socketRemoteUI;
-    int err = pthread_create(&(this->threadListening), NULL, (void *) readNwk, socketRemoteUI);
+    int err = pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
     if(err <0){
         PERRNO("Error when creating the thread\n");
     }
@@ -226,7 +224,7 @@ void StopThreadListening(Dispatcher* this) {
  * C_EVENTSCOUNT
  * 
  */
-void processData(Msg msgReceived){
+static void processData(Msg msgReceived){
 
     COMMAND cmd = msgReceived.dataReceived.command;
 
@@ -238,14 +236,35 @@ void processData(Msg msgReceived){
         break;
 
     case C_EVENTSCOUNT:
-        int length = (sizeof(msgReceived.dataReceived.logEvent/sizeof(LogEvent)));
-        RemoteUI_setEventsCount(length);
-        TRACE("Get the number of events %d", length);
+        RemoteUI_setEventsCount(msgReceived.dataReceived.eventsCount);
+        TRACE("Get the number of events %d", msgReceived.dataReceived.eventsCount);
         break;
 
     default:
         break;
     }    
+}
+
+/**
+ * @brief Proccess the data received
+ * 
+ * Commande possible :
+ * 
+ * C_EVENTS = 0,
+ * C_EVENTSCOUNT
+ * 
+ */
+static RQ_data Listen(Dispatcher * this){
+
+    RQ_data dataReceived;
+    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
+    int socketRemoteUI;
+
+    while(this->flagListening == DOWN){
+        dataReceived = readNwk(socketRemoteUI);
+    }
+    
+    return dataReceived;
 }
 
 

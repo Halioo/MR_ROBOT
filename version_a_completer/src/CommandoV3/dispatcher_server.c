@@ -231,22 +231,7 @@ void processData(Msg msgReceived){
 
     COMMAND cmd = msgReceived.dataReceived.command;
 
-    switch (cmd)
-    {
-    case C_EVENTS:
-        RemoteUI_setEvents(msgReceived.dataReceived.logEvent);
-        TRACE("Get events %c", msgReceived.dataReceived.logEvent);
-        break;
-
-    case C_EVENTSCOUNT:
-        int length = (sizeof(msgReceived.dataReceived.logEvent/sizeof(LogEvent)));
-        RemoteUI_setEventsCount(length);
-        TRACE("Get the number of events %d", length);
-        break;
-
-    default:
-        break;
-    }    
+  
 }
 
 
