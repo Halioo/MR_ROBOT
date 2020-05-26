@@ -270,13 +270,7 @@ void processData(Dispatcher * this, Msg msgReceived){
 }
 
 /**
- * @brief Proccess the data received
- * 
- * Commande possible :
- * 
- * C_EVENTS = 0,
- * C_EVENTSCOUNT
- * 
+ * @brief Listen and read the network constantly to see if there is a new data to process
  */
 static RQ_data Listen(Dispatcher * this){
     //TO DO : Définir le socket à utiliser pour 
