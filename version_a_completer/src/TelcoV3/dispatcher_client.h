@@ -6,6 +6,7 @@
 #include "util.h"
 #include "robocom.h"
 #include "mailbox.h"
+#include "remoteui.h"
 #include "../../lib/include/mailbox.h"
 
 typedef struct Dispatcher_t Dispatcher;

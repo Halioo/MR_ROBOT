@@ -98,7 +98,7 @@ wrapperOf(Msg)
  */
 struct Dispatcher_t {
     pthread_t threadId;             ///< Pthread identifier for the active function of the class.
-    pthread_t threadListening;       ///< Pthread identifier for the listening process
+    pthread_t threadListening;      ///< Pthread identifier for the listening process
     STATE state;                    ///< Actual STATE of the STATE machine
     Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
     char nameTask[SIZE_TASK_NAME];  ///< Name of the task
@@ -217,12 +217,13 @@ void processData(Msg msgReceived){
     switch (cmd)
     {
     case C_GET_EVENTS:
-        
+        RemoteUI_setEvents(tabEvents);
         TRACE("Get events %c", msgReceived.dataReceived.logEvent);
         break;
 
     case C_GET_EVENTS_NUMBER:
         int length = (sizeof(tabEvents/sizeof(EVENT)));
+        RemoteUI_setEventsCount(length);
         TRACE("Get the number of events %d", length);
         break;
 
