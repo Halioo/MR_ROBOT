@@ -25,6 +25,8 @@ int main (int argc, char *argv[])
 //    Pilot_Stop(lePilote);
 //    Pilot_Free(lePilote);
 
+    Logger * myLogger = Logger_new();
+    Logger_test(myLogger);
 
     return 0;
 }

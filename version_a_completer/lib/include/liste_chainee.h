@@ -11,6 +11,7 @@ typedef struct Element Element;
 struct Element{
     LogEvent logEvent;
     Element *suivant;
+    int indice;
 };
 
 typedef struct Liste Liste;
