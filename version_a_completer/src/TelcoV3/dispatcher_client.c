@@ -222,24 +222,23 @@ void StopThreadListening(Dispatcher* this) {
  * 
  * Commande possible :
  * 
- * C_GET_EVENTS = 0,
- * C_GET_EVENTS_COUNT
+ * C_EVENTS = 0,
+ * C_EVENTSCOUNT
  * 
  */
 void processData(Msg msgReceived){
 
     COMMAND cmd = msgReceived.dataReceived.command;
-    EVENT tabEvents[] = * msgReceived.dataReceived.logEvent;
 
     switch (cmd)
     {
-    case C_GET_EVENTS:
-        RemoteUI_setEvents(tabEvents);
+    case C_EVENTS:
+        RemoteUI_setEvents(msgReceived.dataReceived.logEvent);
         TRACE("Get events %c", msgReceived.dataReceived.logEvent);
         break;
 
-    case C_GET_EVENTS_NUMBER:
-        int length = (sizeof(tabEvents/sizeof(EVENT)));
+    case C_EVENTSCOUNT:
+        int length = (sizeof(msgReceived.dataReceived.logEvent/sizeof(LogEvent)));
         RemoteUI_setEventsCount(length);
         TRACE("Get the number of events %d", length);
         break;
