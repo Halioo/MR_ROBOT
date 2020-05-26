@@ -88,7 +88,8 @@ struct Dispatcher_t {
     char nameTask[SIZE_TASK_NAME];  ///< Name of the task
     Mailbox * mb;
     FLAG flagListening;
-
+    RemoteUI * myRemoteUI;
+    RQ_data dataToProcess;
     // TODO : add here the instance variables you need to use.
     //Watchdog * wd; ///< Example of a watchdog implementation
     //int b; ///< Instance example variable
@@ -123,6 +124,13 @@ static void ActionNop(Dispatcher * this);
  */
 static void ActionKill(Dispatcher * this);
 
+static void processData(Dispatcher * this);
+
+static void StartThreadListening(Dispatcher* this);
+static void StopThreadListening(Dispatcher* this);
+static void Listen(Dispatcher * this);
+
+
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -146,7 +154,7 @@ static const ActionPtr actionPtr[NB_ACTION] = {
 /**
  * @brief STATE machine of the Example class
  */
-static Transition stateMachine[NB_STATE - 1][NB_EVENT] = { 
+static Transition stateMachine[NB_STATE][NB_EVENT] = {
         [S_IDLE][E_START_LISTENING]         =       {S_LISTENING,	A_START_THREAD_LISTENING},
         [S_LISTENING][E_MSG_RECEIVED]       =       {S_LISTENING, A_PROCESS_DATA},
         [S_LISTENING][E_STOP_LISTENING]     =       {S_IDLE, A_START_THREAD_LISTENING},
@@ -158,18 +166,20 @@ static Transition stateMachine[NB_STATE - 1][NB_EVENT] = {
 
 // TODO : Write all the ACTION functions
 
-static void ActionStartThreadListening(Dispatcher * this) { 
-    StartThreadListening(this); 
-    TRACE("[ActionStartThreadListening]\n")
+static void ActionStartThreadListening(Dispatcher * this) {
+    TRACE("Start Listening Dispatcher \n");
+    this->flagListening = DOWN;
+    pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
 }
 
-static void ActionStopThreadListening(Dispatcher * this) { 
-    StopThreadListening(this);
-    TRACE("[ActionStopThreadListening]\n")
+static void ActionStopThreadListening(Dispatcher * this) {
+    TRACE("Stop Listening Dispatcher\n");
+    this->flagListening = UP;
+    pthread_join(this->threadListening, NULL);
 }
 
 static void ActionProcessData(Dispatcher * this) {  
-    processData(this->msg);
+    processData(this);
     TRACE("[ActionProcessData]\n")
 }
 
@@ -184,87 +194,39 @@ static void ActionKill(Dispatcher * this) {
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
-/**
- * @brief Start the thread to listen
- */
 
-void StartThreadListening(Dispatcher* this) {
-    TRACE("Start Listening Dispatcher \n");
-    this->flagListening = DOWN;
-    int err = pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
-    if(err <0){
-        PERRNO("Error when creating the thread\n");
-    }
-    TRACE("Create dispatcher Thread");
-}
+static void processData(Dispatcher * this){
 
-
-/**
- * @brief Start the thread to listen
- */
-
-void StopThreadListening(Dispatcher* this) {
-    TRACE("Stop Listening Dispatcher\n");
-    this->flagListening = UP;
-    int err = pthread_join(this->threadListening, NULL);
-    if(err <0){
-        PERRNO("Error when canceling the dispatcher thread\n");
-    }
-    TRACE("Stop dispatcher Thread");
-}
-
-
-
-/**
- * @brief Proccess the data received
- * 
- * Commande possible :
- * 
- * C_EVENTS = 0,
- * C_EVENTSCOUNT
- * 
- */
-static void processData(Msg msgReceived){
-
-    COMMAND cmd = msgReceived.dataReceived.command;
+    COMMAND cmd = this->dataToProcess.command;
 
     switch (cmd)
     {
     case C_EVENTS:
-        RemoteUI_setEvents(msgReceived.dataReceived.logEvent);
-        TRACE("Get events %c", msgReceived.dataReceived.logEvent);
+        RemoteUI_setEvents(this->myRemoteUI,this->dataToProcess.logEvent);
+        TRACE("Get events %c", this->dataToProcess.logEvent);
         break;
 
     case C_EVENTSCOUNT:
-        RemoteUI_setEventsCount(msgReceived.dataReceived.eventsCount);
-        TRACE("Get the number of events %d", msgReceived.dataReceived.eventsCount);
+        RemoteUI_setEventsCount(this->myRemoteUI, this->dataToProcess.eventsCount);
+        TRACE("Get the number of events %d", this->dataToProcess.eventsCount);
         break;
 
     default:
+        TRACE("Mauvaise commande")
         break;
-    }    
+    }
+    this->dataToProcess.command = C_NOP;
 }
 
-/**
- * @brief Proccess the data received
- * 
- * Commande possible :
- * 
- * C_EVENTS = 0,
- * C_EVENTSCOUNT
- * 
- */
-static RQ_data Listen(Dispatcher * this){
 
-    RQ_data dataReceived;
-    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
-    int socketRemoteUI;
+static void Listen(Dispatcher * this){
 
     while(this->flagListening == DOWN){
-        dataReceived = readNwk(socketRemoteUI);
+        this->dataToProcess = readNwk(RemoteUI_getSocket(this->myRemoteUI));
+        Wrapper wrapper;
+        wrapper.data.event = E_MSG_RECEIVED;
+        mailboxSendMsg(this->mb,wrapper.toString);
     }
-    
-    return dataReceived;
 }
 
 
@@ -277,6 +239,7 @@ static void DispatcherRun(Dispatcher * this) {
     ACTION action;
     STATE state;
     Wrapper wrapper;
+
 
     while (this->state != S_DEATH) {
         mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
@@ -302,14 +265,14 @@ static void DispatcherRun(Dispatcher * this) {
 }
 
 
-Dispatcher * Dispatcher_New() {
+Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI) {
     // TODO : initialize the object with it particularities
     dispatcherCounter ++; ///< Incrementing the instances counter.
     TRACE("DispatcherNew function \n")
     Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
     this->mb = mailboxInit("Dispatcher", dispatcherCounter, sizeof(Msg));
-    this->state = S_FORGET;
-
+    this->state = S_IDLE;
+    this->myRemoteUI = myRemoteUI;
     //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
 
     int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);

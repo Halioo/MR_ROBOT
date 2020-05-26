@@ -195,9 +195,7 @@ void StartThreadListening(Dispatcher* this) {
     /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
     int socketRemoteUI;
     int err = pthread_create(&(this->threadListening), NULL, (void *) readNwk, socketRemoteUI);
-    if(err <0){
-        PERRNO("Error when creating the thread\n");
-    }
+
     TRACE("Create dispatcher Thread");
 }
 
@@ -209,10 +207,8 @@ void StartThreadListening(Dispatcher* this) {
 void StopThreadListening(Dispatcher* this) {
     TRACE("Stop Listening Dispatcher\n");
     this->flagListening = UP;
-    int err = pthread_join(this->threadListening, NULL);
-    if(err <0){
-        PERRNO("Error when canceling the dispatcher thread\n");
-    }
+    pthread_join(this->threadListening, NULL);
+
     TRACE("Stop dispatcher Thread");
 }
 
