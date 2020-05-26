@@ -14,6 +14,7 @@
 
 #define SERVER_PORT 12345
 #define MAX_PENDING_CONNECTIONS (5)
+#define MAX_LOGEVENTS 100
 
 #define DEFAULT_POWER_FWD 80
 #define DEFAULT_POWER_BCKWD 60
@@ -58,7 +59,7 @@ typedef struct {
     int arg1;
     int arg2;
     char *argc;
-    LogEvent logEvent[];
+    LogEvent logEvent[MAX_LOGEVENTS];
 } RQ_data;
 
 /**
