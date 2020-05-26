@@ -13,9 +13,14 @@
 
  */
 
-static int myCurrentSocket = 0;
+vent * myEvents; // TODO : définir la taille max de mstatic int myCurrentSocket;
 
 /* ----------------------- FUNCTIONS ----------------------- */
+
+extern void ProxyLogger_new(int socket){
+    myCurrentSocket = socket;
+}
+
 extern void askEvents(int from, int to) {
     RQ_data data={
             .arg1=from,
@@ -57,10 +62,4 @@ extern void signalES(bool s){
     }
 
     sendNwk(myCurrentSocket,data);
-}
-
-
-
-extern void Proxy_Logger_store_Socket(int socket){
-    myCurrentSocket = socket; ///< Assign the new socket
 }

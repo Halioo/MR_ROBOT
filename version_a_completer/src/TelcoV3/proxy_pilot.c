@@ -13,9 +13,13 @@
 
  */
 
-static int myCurrentSocket = 0;
+static int myCurrentSocket;
 
 /* ----------------------- FUNCTIONS ----------------------- */
+
+extern void ProxyPilot_new(int socket){
+    myCurrentSocket = socket;
+}
 
 extern void Pilot_toggleES() {
     RQ_data data={
@@ -54,8 +58,4 @@ extern void Pilot_SetVelocity(VelocityVector vel) {
     };
     sendNwk(myCurrentSocket,data);
     TRACE("to: Pilot // msg: setVelocity")
-}
-
-extern void Proxy_Pilot_store_Socket(int socket){
-    myCurrentSocket = socket; ///< Assign the new socket
 }
