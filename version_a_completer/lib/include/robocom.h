@@ -23,11 +23,7 @@
 // ---------- Enums declarations ----------
 
 ENUM_DECL(DIRECTION, STOP, RIGHT, LEFT, FORWARD, BACKWARD)
-<<<<<<< 022bef0ad0266274ba0544e150c8c0be35fe9a8b
-ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_QUIT, C_CLEAR, C_ES, C_NOP, C_GET_EVENTS, C_GET_EVENTS_NUMBER)
-=======
 ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_EVENTSCOUNT, C_EVENTS, C_QUIT, C_CLEAR, C_ES, C_NOP)
->>>>>>> Implémentation du proxy_logger
 ENUM_DECL(RQ_TYPE, RQ_GET, RQ_POST, RQ_PUT, RQ_DELETE, RQ_ES)
 
 
@@ -39,6 +35,8 @@ typedef struct
     int power;
 } VelocityVector;
 
+
+
 /** the captor's states of the robot (bumper and luminosity) */
 typedef struct
 {
@@ -47,14 +45,17 @@ typedef struct
 } SensorState;
 
 typedef struct {
+    SensorState sens;
+    int speed;
+}LogEvent;
+
+typedef struct {
     RQ_TYPE rq_type;
     COMMAND command;
-<<<<<<< 022bef0ad0266274ba0544e150c8c0be35fe9a8b
-    EVENT logEvent[];
-=======
     int from;
     int to;
->>>>>>> Implémentation du proxy_logger
+    LogEvent logEvent[];
+
 } RQ_data;
 
 /**
