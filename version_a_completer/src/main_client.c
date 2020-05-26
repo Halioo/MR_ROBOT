@@ -2,7 +2,7 @@
 // Created by cleme on 05/02/2020.
 //
 
-#include "TelcoV3/remoteui.h"
+#include "remoteui.h"
 
 
 /**

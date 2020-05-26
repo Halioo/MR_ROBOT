@@ -36,30 +36,34 @@
 #ifndef REMOTEUI_H
 #define REMOTEUI_H
 
-#include "ihm.h"
-#include "../../lib/include/mailbox.h"
-#include "../../lib/include/robocom.h"
+#include "../../src/TelcoV3/ihm.h"
+#include "mailbox.h"
+#include "robocom.h"
 
 
-#include "proxy_pilot.h"
+#include "../../src/TelcoV3/proxy_pilot.h"
 
 
 typedef struct RemoteUI_t RemoteUI;
 
-extern void setIp(RemoteUI*, char * ip);
-extern void validate(RemoteUI*);
-extern void connectSuccess(RemoteUI*);
-extern void connectFailure(RemoteUI*);
+extern void RemoteUI_setEvents();
+extern void RemoteUI_setEventsCount(int nbEvents);
 
-extern void setDir(RemoteUI*, DIRECTION dir);
-extern void toggleEmergencyStop(RemoteUI*);
 
-extern void goScreenLog(RemoteUI*);
-extern void backMainScreen(RemoteUI*);
+extern void RemoteUI_setIp(RemoteUI*, char * ip);
+extern void RemoteUI_validate(RemoteUI*);
+extern void RemoteUI_connectSuccess(RemoteUI*);
+extern void RemoteUI_connectFailure(RemoteUI*);
+
+extern void RemoteUI_setDir(RemoteUI*, DIRECTION dir);
+extern void RemoteUI_toggleEmergencyStop(RemoteUI*);
+
+extern void RemoteUI_goScreenLog(RemoteUI*);
+extern void RemoteUI_backMainScreen(RemoteUI*);
 
 // TODO ajouter le getEvent/setEvent (transition intern de logScreen)
 
-extern void quit(RemoteUI*);
+extern void RemoteUI_quit(RemoteUI*);
 
 
 /**

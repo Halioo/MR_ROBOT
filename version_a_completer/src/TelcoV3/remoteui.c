@@ -196,53 +196,53 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE 
 
 /* ----------------------- EVENT FUNCTIONS ----------------------- */
 
-extern void setIp(RemoteUI * this, char * ip) {
+extern void RemoteUI_setIp(RemoteUI * this, char * ip) {
     Wrapper wrapper;
     wrapper.data.event = E_SETIP;
     strcpy(wrapper.data.ip, ip);
     mailboxSendMsg(this->mb, wrapper.toString);
 }
 
-extern void validate(RemoteUI * this) {
+extern void RemoteUI_validate(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_VALIDATE;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
-extern void connectSuccess(RemoteUI * this) {
+extern void RemoteUI_connectSuccess(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_CONNECT_SUCCESS;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
-extern void connectFailure(RemoteUI * this) {
+extern void RemoteUI_connectFailure(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_CONNECT_FAILURE;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
 
-extern void setDir(RemoteUI * this, DIRECTION dir) {
+extern void RemoteUI_setDir(RemoteUI * this, DIRECTION dir) {
     Wrapper wrapper;
     wrapper.data.event = E_SETDIR;
     wrapper.data.dir = dir;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
-extern void toggleEmergencyStop(RemoteUI * this) {
+extern void RemoteUI_toggleEmergencyStop(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_TOGGLE_ES;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
 
-extern void goScreenLog(RemoteUI * this) {
+extern void RemoteUI_goScreenLog(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_GO_LOG;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
-extern void backMainScreen(RemoteUI * this) {
+extern void RemoteUI_backMainScreen(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_BACK_MAIN;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
 
-extern void quit(RemoteUI * this) {
+extern void RemoteUI_quit(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_QUIT;
     mailboxSendMsg(this->mb, wrapper.toString);
