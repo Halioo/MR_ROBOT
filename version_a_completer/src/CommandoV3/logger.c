@@ -11,7 +11,6 @@
  */
 #define NAME_TASK "LoggerTask%d"
 #define POLLING_REFRESH_RATE (250000)
-#define INDICE_INITIAL (-1)
 
 static int loggerCounter = 0;
 

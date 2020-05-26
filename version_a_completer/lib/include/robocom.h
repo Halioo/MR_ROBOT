@@ -25,7 +25,7 @@
 
 ENUM_DECL(DIRECTION, STOP, RIGHT, LEFT, FORWARD, BACKWARD)
 ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_EVENTSCOUNT, C_EVENTS, C_SETIP, C_VALIDATE, C_GOSCREENLOG, C_BACKMAINSCREEN, C_QUIT, C_CLEAR, C_ES, C_NOP)
-ENUM_DECL(RQ_TYPE, RQ_GET, RQ_POST, RQ_PUT, RQ_DELETE, RQ_ES)
+ENUM_DECL(RQ_TYPE, RQ_ASK, RQ_SET, RQ_END, RQ_ES)
 
 
 // ---------- Struct declarations ----------
@@ -59,7 +59,7 @@ typedef struct {
     int arg1;
     int arg2;
     char *argc;
-    LogEvent logEvent[MAX_LOGEVENTS];
+    LogEvent logEvent;
 } RQ_data;
 
 /**

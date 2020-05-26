@@ -5,7 +5,7 @@
 
 #include "robocom.h"
 
-
+#define INDICE_INITIAL (-1)
 
 typedef struct Element Element;
 struct Element{

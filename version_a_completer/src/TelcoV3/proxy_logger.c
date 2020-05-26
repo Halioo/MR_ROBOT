@@ -13,7 +13,7 @@
 
  */
 
-vent * myEvents; // TODO : définir la taille max de mstatic int myCurrentSocket;
+LogEvent * myEvents; // TODO : définir la taille max de mstatic int myCurrentSocket;
 
 /* ----------------------- FUNCTIONS ----------------------- */
 
