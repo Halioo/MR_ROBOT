@@ -126,8 +126,6 @@ static void ActionKill(Dispatcher * this);
 
 static void processData(Dispatcher * this);
 
-static void StartThreadListening(Dispatcher* this);
-static void StopThreadListening(Dispatcher* this);
 static void Listen(Dispatcher * this);
 
 

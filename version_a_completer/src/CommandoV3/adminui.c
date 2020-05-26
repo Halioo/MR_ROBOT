@@ -397,8 +397,9 @@ static void AdminUI_TOHandle(void * this){
     mailboxSendMsg(((AdminUI*)this)->mailbox,wrapper.toString);
 }
 
-static void updateEvents(){
-
+static void updateEvents(AdminUI * this){
+    this->currentEventNumber = Logger_getEventsCount(this->myLogger);
+    // TODO
 }
 
 

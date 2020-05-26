@@ -3,6 +3,7 @@
 //
 
 #include "TelcoV3/ihm.h"
+#include "remoteui.h"
 
 
 /**

@@ -8,8 +8,9 @@
 #include "util.h"
 #include <robocom.h>
 
+extern void ProxyPilot_new(int socket);
+
 extern void Pilot_toggleES();
 extern void Pilot_SetVelocity(VelocityVector vel);
-extern void Proxy_Pilot_store_Socket(int socket);
 
 #endif //PROXY_PILOT_H

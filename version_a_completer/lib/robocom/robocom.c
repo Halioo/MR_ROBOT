@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <netdb.h>
+#include <arpa/inet.h>
 
 #include "robocom.h"
 
@@ -65,7 +65,7 @@ extern int connectNwk(char * nwkIp, int nwkPort) {
 
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(nwkPort);
-    serverAddr.sin_addr = *((struct in_addr *)gethostbyname(nwkIp)->h_addr_list[0]);
+    serverAddr.sin_addr.s_addr = inet_addr(nwkIp);
 
     connect(connectSocket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
 

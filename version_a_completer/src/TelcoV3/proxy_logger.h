@@ -6,6 +6,8 @@
 
 static bool boolES;
 
+extern void ProxyLogger_new(int socket);
+
 extern void askEvents(int from, int to);
 
 extern void askEventsCount();
@@ -13,8 +15,6 @@ extern void askEventsCount();
 extern void clearEvents();
 
 extern void signalES(bool s);
-
-extern void Proxy_Logger_store_Socket(int socket);
 
 #endif //PROXY_LOGGER_H
 
