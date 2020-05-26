@@ -88,6 +88,8 @@ struct Dispatcher_t {
     Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
     char nameTask[SIZE_TASK_NAME];  ///< Name of the task
     Mailbox * mb;
+    Pilot * pilot;
+    Logger * logger;
     FLAG flagListening;
 
     // TODO : add here the instance variables you need to use.
@@ -170,7 +172,7 @@ static void ActionStopThreadListening(Dispatcher * this) {
 }
 
 static void ActionProcessData(Dispatcher * this) {  
-    processData(this->msg);
+    processData(this, this->msg);
     TRACE("[ActionProcessData]\n")
 }
 
@@ -194,10 +196,7 @@ void StartThreadListening(Dispatcher* this) {
     this->flagListening = DOWN;
     /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
     int socketRemoteUI;
-    int err = pthread_create(&(this->threadListening), NULL, (void *) readNwk, socketRemoteUI);
-    if(err <0){
-        PERRNO("Error when creating the thread\n");
-    }
+    pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
     TRACE("Create dispatcher Thread");
 }
 
@@ -209,10 +208,7 @@ void StartThreadListening(Dispatcher* this) {
 void StopThreadListening(Dispatcher* this) {
     TRACE("Stop Listening Dispatcher\n");
     this->flagListening = UP;
-    int err = pthread_join(this->threadListening, NULL);
-    if(err <0){
-        PERRNO("Error when canceling the dispatcher thread\n");
-    }
+    pthread_join(this->threadListening, NULL);
     TRACE("Stop dispatcher Thread");
 }
 
@@ -223,15 +219,84 @@ void StopThreadListening(Dispatcher* this) {
  * 
  * Commande possible :
  * 
+ * C_LEFT = 0,
+ * C_RIGHT,
+ * C_FORWARD,
+ * C_BACKWARD,
+ * C_STOP,
+ * C_LOGS,
+ * C_STATE,
+ * C_QUIT
+ * 
+ * 
+ */
+void processData(Dispatcher * this, Msg msgReceived){
+
+    COMMAND cmd = msgReceived.dataReceived.command;
+
+    switch (cmd)
+    {
+    case C_LEFT:
+        VelocityVector vel;
+        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        TRACE("Going Left");
+        break;
+    case C_RIGHT:
+        VelocityVector vel;
+        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        TRACE("Going Right");
+        break;
+    case C_FORWARD:
+        VelocityVector vel;
+        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        TRACE("Going Forward");
+        break;
+    case C_BACKWARD:
+        VelocityVector vel;
+        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        TRACE("Going Backward");
+        break;
+    case C_STOP:
+        Pilot_Stop(this->pilot);
+        TRACE("Stop");
+        break;
+    case C_LOGS:
+        TRACE("Logs");
+        break;
+    case C_STATE:
+        Pilot_getState();
+        TRACE("State");
+        break;
+    case C_QUIT:
+        TRACE("Quit");
+        break;
+
+    default:
+        break;
+    }  
+  
+}
+
+/**
+ * @brief Proccess the data received
+ * 
+ * Commande possible :
+ * 
  * C_EVENTS = 0,
  * C_EVENTSCOUNT
  * 
  */
-void processData(Msg msgReceived){
+static RQ_data Listen(Dispatcher * this){
 
-    COMMAND cmd = msgReceived.dataReceived.command;
+    RQ_data dataReceived;
+    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
+    int socketRemoteUI;
 
-  
+    while(this->flagListening == DOWN){
+        dataReceived = readNwk(socketRemoteUI);
+    }
+    
+    return dataReceived;
 }
 
 
