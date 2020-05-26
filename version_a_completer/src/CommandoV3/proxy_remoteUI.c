@@ -1,8 +1,7 @@
 //
-// Created by cleme on 24/05/2020.
+// Created by gwendal on 26/05/2020.
 //
-
-#include "proxy_pilot.h"
+#include "proxy_remoteUI.h"
 
 /*----------------------- STATIC VARIABLES -----------------------*/
 /**
@@ -16,18 +15,24 @@
 static int myCurrentSocket = 0;
 
 /* ----------------------- FUNCTIONS ----------------------- */
+extern void setIp(char * ip){
+    RQ_data data={
+            //.rq_type=RQ_ES
+            .command=C_SETIP,
+            .argc=ip
+    };
+    sendNwk(myCurrentSocket,data);
+}
 
-extern void Pilot_toggleES() {
+extern void toggleEmergencyStop(){
     RQ_data data={
             //.rq_type=RQ_ES
             .command=C_ES
     };
     sendNwk(myCurrentSocket,data);
-    TRACE("to: Pilot // msg: toggleES\n")
 }
 
-extern void Pilot_SetVelocity(VelocityVector vel) {
-    DIRECTION dir=vel.dir;
+extern void setDir(DIRECTION dir){
     COMMAND command;
     switch (dir){
         case FORWARD:
@@ -53,9 +58,36 @@ extern void Pilot_SetVelocity(VelocityVector vel) {
             //.rq_type=RQ_PUT //TODO ou RQ_POST? j'ai du mal à faire la différence
     };
     sendNwk(myCurrentSocket,data);
-    TRACE("to: Pilot // msg: setVelocity")
 }
 
-extern void Proxy_Pilot_store_Socket(int socket){
+extern void validate(){
+    RQ_data data={
+            //.rq_type=RQ_ES
+            .command=C_VALIDATE
+    };
+    sendNwk(myCurrentSocket,data);
+}
+
+extern void goScreenLog(){
+    RQ_data data={
+            //.rq_type=RQ_ES
+            .command=C_GOSCREENLOG
+    };
+    sendNwk(myCurrentSocket,data);
+}
+
+extern void backMainScreen(){
+    RQ_data data={
+            //.rq_type=RQ_ES
+            .command=C_BACKMAINSCREEN
+    };
+    sendNwk(myCurrentSocket,data);
+}
+
+
+extern void Proxy_RemoteUI_store_Socket(int socket){
     myCurrentSocket = socket; ///< Assign the new socket
 }
+
+
+

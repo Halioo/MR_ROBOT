@@ -18,8 +18,8 @@ static int myCurrentSocket = 0;
 /* ----------------------- FUNCTIONS ----------------------- */
 extern void askEvents(int from, int to) {
     RQ_data data={
-            .from=from,
-            .to=to,
+            .arg1=from,
+            .arg2=to,
             .command=C_EVENTS
             //.rq_type=RQ_GET
     };
@@ -61,6 +61,6 @@ extern void signalES(bool s){
 
 
 
-extern void Proxy_Pilot_store_Socket(int socket){
+extern void Proxy_Logger_store_Socket(int socket){
     myCurrentSocket = socket; ///< Assign the new socket
 }
