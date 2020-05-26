@@ -127,6 +127,9 @@ static void ActionNop(Dispatcher * this);
  */
 static void ActionKill(Dispatcher * this);
 
+static void processData(Dispatcher * this);
+
+static void Listen(Dispatcher * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -175,7 +178,7 @@ static void ActionStopThreadListening(Dispatcher * this) {
 }
 
 static void ActionProcessData(Dispatcher * this) {  
-    processData(this, this->msg);
+    processData(this);
     TRACE("[ActionProcessData]\n")
 }
 
@@ -209,13 +212,12 @@ static void ActionKill(Dispatcher * this) {
  * 
  * 
  */
-void processData(Dispatcher * this, Msg msgReceived){
+void processData(Dispatcher * this){
 
-    COMMAND cmd = msgReceived.dataReceived.command;
+    COMMAND cmd = this->msg.dataReceived.command;
     VelocityVector vel =
     {
-        .dir = STOP,
-        .power = 80
+        .dir = STOP
     };
 
     switch (cmd)
@@ -272,7 +274,7 @@ void processData(Dispatcher * this, Msg msgReceived){
 /**
  * @brief Listen and read the network constantly to see if there is a new data to process
  */
-static RQ_data Listen(Dispatcher * this){
+static void Listen(Dispatcher * this){
     //TO DO : Définir le socket à utiliser pour 
     int socketBidon;
 

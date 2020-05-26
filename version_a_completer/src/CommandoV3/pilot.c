@@ -483,6 +483,7 @@ static void Pilot_EvalBump(Pilot * this){
 }
 
 static void Pilot_SendMvt(VelocityVector vel) {
+    vel = translateDir(vel.dir);
     int vel_r = DEFAULT_SPEED, vel_l = DEFAULT_SPEED;
     switch (vel.dir) {
         case FORWARD:
