@@ -1,12 +1,10 @@
-#ifndef DISPATCHER_CLIENT_H
-#define DISPATCHER_CLIENT_H
+#ifndef DISPATCHER_SERVER_H
+#define DISPATCHER_SERVER_H
 
 #include <pthread.h>
 
-#include "util.h"
-#include "robocom.h"
-#include "mailbox.h"
-#include "remoteui.h"
+#include "../../lib/include/util.h"
+#include "../../lib/include/robocom.h"
 #include "../../lib/include/mailbox.h"
 
 typedef struct Dispatcher_t Dispatcher;
@@ -19,4 +17,4 @@ int Dispatcher_Stop(Dispatcher * this);
 
 int Dispatcher_Free(Dispatcher * this);
 
-#endif //DISPATCHER_CLIENT_H
+#endif //DISPATCHER_SERVER_H

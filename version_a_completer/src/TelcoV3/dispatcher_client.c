@@ -84,8 +84,7 @@ typedef struct {
  */
 typedef struct {
     EVENT event;                ///< EVENT sent in the message
-    int eventsCount;            ///< Example of an other parameter
-    EVENT tabEvents[10];        ///< Example of a possible parameter
+    RQ_data dataReceived;       ///Data received when a msg arrived (RQ_TYPE, COMMAND)
 } Msg;
 
 /**
@@ -98,10 +97,11 @@ wrapperOf(Msg)
  * @brief Structure of the Example object
  */
 struct Dispatcher_t {
-    pthread_t threadId; ///< Pthread identifier for the active function of the class.
-    STATE state;        ///< Actual STATE of the STATE machine
-    Msg msg;            ///< Structure used to pass parameters to the functions pointer.
-    char nameTask[SIZE_TASK_NAME]; ///< Name of the task
+    pthread_t threadId;             ///< Pthread identifier for the active function of the class.
+    pthread_t threadListening;      ///< Pthread identifier for the listening process
+    STATE state;                    ///< Actual STATE of the STATE machine
+    Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
+    char nameTask[SIZE_TASK_NAME];  ///< Name of the task
     Mailbox * mb;
 
     // TODO : add here the instance variables you need to use.
@@ -121,7 +121,9 @@ typedef void (*ActionPtr)(Dispatcher*);
  */
 static const ActionPtr actionPtr[NB_ACTION] = { 
         &ActionNop,
+        &ActionStartThreadListening,
         &ActionProcessData,
+        &ActionStopThreadListening,
         &ActionKill
 };
 
@@ -141,8 +143,19 @@ static Transition stateMachine[NB_STATE - 1][NB_EVENT] = {
 
 // TODO : Write all the ACTION functions
 
+static void ActionStartThreadListening(Dispatcher * this) { 
+    StartThreadListening(this); 
+    TRACE("[ActionStartThreadListening]\n")
+}
+
+static void ActionStopThreadListening(Dispatcher * this) { 
+    StopThreadListening(this);
+    TRACE("[ActionStopThreadListening]\n")
+}
+
 static void ActionProcessData(Dispatcher * this) {  
-    TRACE("[ActionProcessData] - %d\n", this->msg.tabEvents)
+    processData(this->msg);
+    TRACE("[ActionProcessData]\n")
 }
 
 static void ActionNop(Dispatcher * this) {
@@ -154,101 +167,70 @@ static void ActionKill(Dispatcher * this) {
     this->state = S_DEATH;
 }
 
-/*----------------------- Function Dispatcher -----------------------*/
+/*----------------------- EVENT FUNCTIONS -----------------------*/
+
+/**
+ * @brief Start the thread to listen
+ */
+
+void StartThreadListening(Dispatcher* this) {
+    TRACE("Start Listening Dispatcher \n");
+
+    int err = pthread_create(&(this->threadListening), NULL, (void *) processData, this);
+    if(err <0){
+        PERRNO("Error when creating the thread\n");
+    }
+    TRACE("Create dispatcher Thread");
+}
+
+
+/**
+ * @brief Start the thread to listen
+ */
+
+void StopThreadListening(Dispatcher* this) {
+    TRACE("Stop Listening Dispatcher\n");
+
+    int err = pthread_cancel(this->threadListening);
+    if(err <0){
+        PERRNO("Error when canceling the dispatcher thread\n");
+    }
+    TRACE("Stop dispatcher Thread");
+}
+
+
 
 /**
  * @brief Proccess the data received
  * 
- * Commande possible : CES FONCTIONS SONT A MODIFIER
- *  ASK_NOTHING = 0, 
- *	ASK_DISCONNECT, 
- *	ASK_DIR_FORWARD, 
- *	ASK_DIR_BACKWARD, 
- *	ASK_DIR_RIGHT, 
- *	ASK_DIR_LEFT,
- *	ASK_DIR_STOP,
- *	ASK_MORE_SPEED,
- *	ASK_LESS_SPEED,
- *	ASK_LOG,
- *	ASK_STOP
- */
-void processData(Buffer buf, COMMANDE * cmd){
-
-	TRACE ("Data received ");
-
-	///< comparison of the data sent by the client with the different possible commande
-	if (strcmp((char*)buf, "/CMD:0")==0)*cmd = ASK_DISCONNECT;
-    else if (strcmp((char*)buf, "/DIR:Z")==0)*cmd = ASK_DIR_FORWARD;
-    else if (strcmp((char*)buf, "/DIR:S")==0)*cmd = ASK_DIR_BACKWARD;
-    else if (strcmp((char*)buf, "/DIR:D")==0)*cmd = ASK_DIR_RIGHT;
-    else if (strcmp((char*)buf, "/DIR:Q")==0)*cmd = ASK_DIR_LEFT;
-    else if (strcmp((char*)buf, "/DIR:0")==0)*cmd = ASK_DIR_STOP;
-    else if (strcmp((char*)buf, "/DIR:+")==0)*cmd = ASK_LESS_SPEED;
-    else if (strcmp((char*)buf, "/DIR:-")==0)*cmd = ASK_MORE_SPEED;
-	else if (strcmp((char*)buf, "/CMD:1")==0)*cmd = ASK_STOP;
-    else if (strcmp((char*)buf, "/CMD:2")==0)*cmd = ASK_STOP;
-	else *cmd = ASK_NOTHING;
-}
-
-
-/**
- * Send the commande to the right class
+ * Commande possible :
  * 
- *  Commande possible :
- *  ASK_NOTHING = 0, 
- *	ASK_DISCONNECT, 
- *	ASK_DIR_FORWARD, 
- *	ASK_DIR_BACKWARD, 
- *	ASK_DIR_RIGHT, 
- *	ASK_DIR_LEFT,
- *	ASK_DIR_STOP,
- *	ASK_MORE_SPEED,
- *	ASK_LESS_SPEED,
- *	ASK_LOG,
- *	ASK_STOP
+ * C_GET_EVENTS = 0,
+ * C_GET_EVENTS_COUNT
+ * 
  */
-void sendCmd(COMMANDE cmd){
+void processData(Msg msgReceived){
+
+    COMMANDE cmd = msgReceived.dataReceived.command;
+    EVENT tabEvents[] = * msgReceived.dataReceived.logEvent;
+
     switch (cmd)
     {
-    case ASK_DISCONNECT:
-        TRACE("Disconnect");
-        ServerDisconnectClient();
-        DispatcherSignalDisconnected();
+    case C_GET_EVENTS:
+        RemoteUI_setEvents(tabEvents);
+        TRACE("Get events %c", msgReceived.dataReceived.logEvent);
         break;
-    case ASK_DIR_FORWARD:
-        TRACE("Forward");
+
+    case C_GET_EVENTS_NUMBER:
+        int length = (sizeof(tabEvents/sizeof(EVENT)));
+        RemoteUI_setEventsCount(length);
+        TRACE("Get the number of events %d", length);
         break;
-    case ASK_DIR_BACKWARD:
-        TRACE("Backward");
-        break;
-    case ASK_DIR_RIGHT:
-        TRACE("Right");
-        break;
-    case ASK_DIR_LEFT:
-        TRACE("Left");
-        break;
-    case ASK_DIR_STOP:
-        TRACE("Stop");
-        break;
-    case ASK_MORE_SPEED:
-        TRACE("More speed");
-        break;
-    case ASK_LESS_SPEED:
-        TRACE("Less speed");
-        break;
-    case ASK_LOG:
-        TRACE("Log");
-        break;
-    case ASK_STOP:
-        TRACE("Stop everything");
-        //Not yet implemented
-        break;
-    
+
     default:
         break;
     }    
 }
-
 
 
 /* ----------------------- RUN FUNCTION ----------------------- */
@@ -285,9 +267,7 @@ static void DispatcherRun(Dispatcher * this) {
 }
 
 
-
-
-Dispatcher * DispatcherNew() {
+Dispatcher * Dispatcher_New() {
     // TODO : initialize the object with it particularities
     dispatcherCounter ++; ///< Incrementing the instances counter.
     TRACE("DispatcherNew function \n")
@@ -304,7 +284,7 @@ Dispatcher * DispatcherNew() {
 }
 
 
-int DispatcherStart(Dispatcher * this) {
+int Dispatcher_Start(Dispatcher * this) {
     // TODO : start the object with it particularities
     TRACE("ExampleStart function \n")
     int err = pthread_create(&(this->threadId), NULL, (void *) DispatcherRun, this);
@@ -314,7 +294,7 @@ int DispatcherStart(Dispatcher * this) {
 }
 
 
-int DispatcherStop(Dispatcher * this) {
+int Dispatcher_Stop(Dispatcher * this) {
     // TODO : stop the object with it particularities
     Msg msg = { .event = E_KILL };
 
@@ -331,7 +311,7 @@ int DispatcherStop(Dispatcher * this) {
 }
 
 
-int DispatcherFree(Dispatcher * this) {
+int Dispatcher_Free(Dispatcher * this) {
     // TODO : free the object with it particularities
     TRACE("ExampleFree function \n")
     mailboxClose(this->mb);
@@ -339,12 +319,4 @@ int DispatcherFree(Dispatcher * this) {
     free(this);
 
     return 0; // TODO: Handle the errors
-}
-
-extern void setEvents() {
-    TRACE("from : remoteUI // msg: setEvents \n")
-}
-
-extern void setEventsCount() {
-    TRACE("to : remoteUI // msg: setEventsCount")
 }
