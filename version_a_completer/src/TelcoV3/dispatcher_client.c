@@ -222,7 +222,7 @@ void processData(Msg msgReceived){
         break;
 
     case C_GET_EVENTS_NUMBER:
-        int length = (sizeof(tabEvents/sizeof(EVENT));
+        int length = (sizeof(tabEvents/sizeof(EVENT)));
         TRACE("Get the number of events %d", length);
         break;
 
