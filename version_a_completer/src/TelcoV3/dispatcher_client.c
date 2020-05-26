@@ -18,23 +18,6 @@ static int dispatcherCounter = 0;
  */
 #define SIZE_TASK_NAME 20
 
-/**
- * @brief enumeration of the possible command that can send the client
- */
-
-ENUM_DECL(COMMANDE,
-	ASK_NOTHING, 
-	ASK_DISCONNECT, 
-	ASK_DIR_FORWARD, 
-	ASK_DIR_BACKWARD, 
-	ASK_DIR_RIGHT, 
-	ASK_DIR_LEFT,
-	ASK_DIR_STOP,
-	ASK_MORE_SPEED,
-	ASK_LESS_SPEED,
-	ASK_LOG,
-	ASK_STOP
- )
 
 /**
  * @brief Enumeration of all the STATEs that can be taken by the STATE machine
@@ -87,6 +70,7 @@ typedef struct {
     RQ_data dataReceived;       ///Data received when a msg arrived (RQ_TYPE, COMMAND)
 } Msg;
 
+
 /**
  * @brief Wrapper enum. It is used to send EVENTs and parameters in a mailBox.
  */
@@ -103,11 +87,42 @@ struct Dispatcher_t {
     Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
     char nameTask[SIZE_TASK_NAME];  ///< Name of the task
     Mailbox * mb;
+    FLAG flagListening;
 
     // TODO : add here the instance variables you need to use.
     //Watchdog * wd; ///< Example of a watchdog implementation
     //int b; ///< Instance example variable
 };
+
+/*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
+
+/*------------- ACTION functions -------------*/
+
+/**
+ * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ */
+static void ActionStartThreadListening(Dispatcher * this);
+
+/**
+ * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ */
+static void ActionStopThreadListening(Dispatcher * this);
+
+/**
+ * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ */
+static void ActionProcessData(Dispatcher * this);
+
+/**
+ * @brief Function called when nothing needs to be done
+ */
+static void ActionNop(Dispatcher * this);
+
+/**
+ * @brief Changes the STATE of the STATE machine to S_DEATH
+ */
+static void ActionKill(Dispatcher * this);
+
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -175,8 +190,10 @@ static void ActionKill(Dispatcher * this) {
 
 void StartThreadListening(Dispatcher* this) {
     TRACE("Start Listening Dispatcher \n");
-
-    int err = pthread_create(&(this->threadListening), NULL, (void *) processData, this);
+    this->flagListening = DOWN;
+    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
+    int socketRemoteUI;
+    int err = pthread_create(&(this->threadListening), NULL, (void *) readNwk, socketRemoteUI);
     if(err <0){
         PERRNO("Error when creating the thread\n");
     }
@@ -190,8 +207,8 @@ void StartThreadListening(Dispatcher* this) {
 
 void StopThreadListening(Dispatcher* this) {
     TRACE("Stop Listening Dispatcher\n");
-
-    int err = pthread_cancel(this->threadListening);
+    this->flagListening = UP;
+    int err = pthread_join(this->threadListening, NULL);
     if(err <0){
         PERRNO("Error when canceling the dispatcher thread\n");
     }
@@ -211,7 +228,7 @@ void StopThreadListening(Dispatcher* this) {
  */
 void processData(Msg msgReceived){
 
-    COMMANDE cmd = msgReceived.dataReceived.command;
+    COMMAND cmd = msgReceived.dataReceived.command;
     EVENT tabEvents[] = * msgReceived.dataReceived.logEvent;
 
     switch (cmd)
