@@ -23,7 +23,7 @@
 // ---------- Enums declarations ----------
 
 ENUM_DECL(DIRECTION, STOP, RIGHT, LEFT, FORWARD, BACKWARD)
-ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_QUIT)
+ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_EVENTSCOUNT, C_EVENTS, C_SETIP, C_VALIDATE, C_GOSCREENLOG, C_BACKMAINSCREEN, C_QUIT, C_CLEAR, C_ES, C_NOP)
 ENUM_DECL(RQ_TYPE, RQ_GET, RQ_POST, RQ_PUT, RQ_DELETE, RQ_ES)
 
 
@@ -35,6 +35,8 @@ typedef struct
     int power;
 } VelocityVector;
 
+
+
 /** the captor's states of the robot (bumper and luminosity) */
 typedef struct
 {
@@ -43,8 +45,20 @@ typedef struct
 } SensorState;
 
 typedef struct {
+    SensorState sens;
+    int speed;
+}LogEvent;
+
+typedef struct {
     RQ_TYPE rq_type;
     COMMAND command;
+    int from;
+    int to;
+    int eventsCount;
+    int arg1;
+    int arg2;
+    char *argc;
+    LogEvent logEvent[];
 } RQ_data;
 
 /**

@@ -7,15 +7,15 @@ add_executable(client main_client.c
 )
 add_executable(server main_server.c
     ${SERVER_src}
-        CommandoV3/logger.c CommandoV3/logger.h)
+        CommandoV3/logger.c CommandoV3/logger.h CommandoV3/proxy_remoteUI.c CommandoV3/proxy_remoteUI.h)
 
 
 target_link_libraries(client
-    infox robocom watchdog mailbox
+    infox robocom watchdog mailbox liste_chainee
     pthread rt
 )
 target_link_libraries(server
-    infox robocom watchdog mailbox
+    infox robocom watchdog mailbox liste_chainee
     pthread rt
 )
 

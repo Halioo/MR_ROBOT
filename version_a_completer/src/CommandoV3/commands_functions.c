@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "commands_functions.h"
+#include "pilot.h"
 
 #define DEFAULT_POWER_FWD 80
 #define DEFAULT_POWER_BCKWD 60
@@ -15,7 +16,7 @@
  */
 extern void ask_mvt(DIRECTION dir)
 {
-    Pilot_SetVelocity(translateDir(dir));
+//    Pilot_SetVelocity(translateDir(dir));
 }
 
 /**
@@ -24,9 +25,9 @@ extern void ask_mvt(DIRECTION dir)
  */
 extern void ask4log()
 {
-    Pilot_check();
-    PilotState pt = Pilot_getState();
+//    Pilot_check();
+//    PilotState pt = Pilot_getState();
     //clear_logs();
     //printf(get_msg(MSG_LOGS), pt.speed, pt.collision, pt.luminosity);
-    printf("%d :: %d :: %f\n", pt.speed, pt.collision, pt.luminosity);
+//    printf("%d :: %d :: %f\n", pt.speed, pt.collision, pt.luminosity);
 }

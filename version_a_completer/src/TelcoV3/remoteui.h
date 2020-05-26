@@ -88,5 +88,12 @@ extern int RemoteUI_stop(RemoteUI*);
  */
 extern int RemoteUI_free(RemoteUI*);
 
+/* ------------------------ OTHER FUNCTIONS ---------------------*/
+
+extern LogEvent * RemoteUI_setEvents(RemoteUI  * this, LogEvent * events);
+
+extern int RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents);
+
+extern int RemoteUI_getSocket(RemoteUI * this);
 
 #endif /* REMOTEUI_H */
