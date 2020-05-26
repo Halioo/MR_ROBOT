@@ -91,6 +91,7 @@ struct Dispatcher_t {
     Pilot * pilot;
     Logger * logger;
     FLAG flagListening;
+    RQ_data dataToProcess;
 
     // TODO : add here the instance variables you need to use.
     //Watchdog * wd; ///< Example of a watchdog implementation
@@ -162,12 +163,14 @@ static Transition stateMachine[NB_STATE - 1][NB_EVENT] = {
 // TODO : Write all the ACTION functions
 
 static void ActionStartThreadListening(Dispatcher * this) { 
-    StartThreadListening(this); 
+    this->flagListening = DOWN;
+    pthread_create(&(this->threadListening), NULL, (void *) Listen, this); 
     TRACE("[ActionStartThreadListening]\n")
 }
 
 static void ActionStopThreadListening(Dispatcher * this) { 
-    StopThreadListening(this);
+    this->flagListening = UP;
+    pthread_join(this->threadListening, NULL);
     TRACE("[ActionStopThreadListening]\n")
 }
 
@@ -187,32 +190,6 @@ static void ActionKill(Dispatcher * this) {
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
-/**
- * @brief Start the thread to listen
- */
-
-void StartThreadListening(Dispatcher* this) {
-    TRACE("Start Listening Dispatcher \n");
-    this->flagListening = DOWN;
-    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
-    int socketRemoteUI;
-    pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
-    TRACE("Create dispatcher Thread");
-}
-
-
-/**
- * @brief Start the thread to listen
- */
-
-void StopThreadListening(Dispatcher* this) {
-    TRACE("Stop Listening Dispatcher\n");
-    this->flagListening = UP;
-    pthread_join(this->threadListening, NULL);
-    TRACE("Stop dispatcher Thread");
-}
-
-
 
 /**
  * @brief Proccess the data received
@@ -226,41 +203,49 @@ void StopThreadListening(Dispatcher* this) {
  * C_STOP,
  * C_LOGS,
  * C_STATE,
- * C_QUIT
+ * C_QUIT,
+ * C_EVENTS,
+ * C_EVENTSCOUNT
  * 
  * 
  */
 void processData(Dispatcher * this, Msg msgReceived){
 
     COMMAND cmd = msgReceived.dataReceived.command;
+    VelocityVector vel =
+    {
+        .dir = STOP,
+        .power = 80
+    };
 
     switch (cmd)
     {
     case C_LEFT:
-        VelocityVector vel;
-        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        vel.dir = LEFT;
+        Pilot_setRobotVelocity(this->pilot, vel);
         TRACE("Going Left");
         break;
     case C_RIGHT:
-        VelocityVector vel;
-        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        vel.dir = RIGHT;
+        Pilot_setRobotVelocity(this->pilot, vel);
         TRACE("Going Right");
         break;
     case C_FORWARD:
-        VelocityVector vel;
-        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        vel.dir = FORWARD;
+        Pilot_setRobotVelocity(this->pilot, vel);
         TRACE("Going Forward");
         break;
     case C_BACKWARD:
-        VelocityVector vel;
-        Pilot_EventSetRobotVelocity(this->pilot, vel);
+        vel.dir = BACKWARD;
+        Pilot_setRobotVelocity(this->pilot, vel);
         TRACE("Going Backward");
         break;
     case C_STOP:
-        Pilot_Stop(this->pilot);
+        Pilot_EventStop(this->pilot);
         TRACE("Stop");
         break;
     case C_LOGS:
+        //TO DO : A définir si utile ou non
         TRACE("Logs");
         break;
     case C_STATE:
@@ -270,7 +255,14 @@ void processData(Dispatcher * this, Msg msgReceived){
     case C_QUIT:
         TRACE("Quit");
         break;
-
+    case C_EVENTS:
+        Logger_setEvents(this->dataToProcess.logEvent, this->logger);
+        TRACE("Get events %c", this->dataToProcess.logEvent);
+        break;
+    case C_EVENTSCOUNT:
+        Logger_setEventsCount(this->dataToProcess.eventsCount, this->logger);
+        TRACE("Get the number of events %d", this->dataToProcess.eventsCount);
+        break;
     default:
         break;
     }  
@@ -287,16 +279,15 @@ void processData(Dispatcher * this, Msg msgReceived){
  * 
  */
 static RQ_data Listen(Dispatcher * this){
-
-    RQ_data dataReceived;
-    /// TO DO : REMPLACER LE SOCKET REMOTE UI AVEC UN ACESSEUR AU VRAI SOCKET CORRESPONDANT A REMOTE UI
-    int socketRemoteUI;
+    //TO DO : Définir le socket à utiliser pour 
+    int socketBidon;
 
     while(this->flagListening == DOWN){
-        dataReceived = readNwk(socketRemoteUI);
+        this->dataToProcess = readNwk(RemoteUI_getSocket(socketBidon));
+        Wrapper wrapper;
+        wrapper.data.event = E_MSG_RECEIVED;
+        mailboxSendMsg(this->mb,wrapper.toString);
     }
-    
-    return dataReceived;
 }
 
 
@@ -334,13 +325,15 @@ static void DispatcherRun(Dispatcher * this) {
 }
 
 
-Dispatcher * Dispatcher_New() {
+Dispatcher * Dispatcher_New(Logger * logger, Pilot * pilot) {
     // TODO : initialize the object with it particularities
     dispatcherCounter ++; ///< Incrementing the instances counter.
     TRACE("DispatcherNew function \n")
     Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
     this->mb = mailboxInit("Dispatcher", dispatcherCounter, sizeof(Msg));
-    this->state = S_FORGET;
+    this->state = S_IDLE;
+    this->pilot = pilot;
+    this->logger = logger;
 
     //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
 
