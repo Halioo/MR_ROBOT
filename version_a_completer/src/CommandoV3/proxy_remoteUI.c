@@ -4,14 +4,11 @@
 #include "proxy_remoteUI.h"
 
 /*----------------------- STATIC VARIABLES -----------------------*/
+
 /**
-
  * @var int myCurrentSocket
-
  * @brief Current socket to which the next message will be sent
-
  */
-
 static int myCurrentSocket = 0;
 
 /* ----------------------- FUNCTIONS ----------------------- */

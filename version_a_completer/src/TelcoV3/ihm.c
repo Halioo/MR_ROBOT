@@ -6,16 +6,17 @@
 #include "ihm.h"
 
 #include "util.h"
-#include "robocom.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ncurses.h>
+#include <pthread.h>
 
 
-RemoteUI * remoteUI;
-char k_input;
+//RemoteUI * remoteUI;
+char userInput;
 FLAG flag_stop = DOWN;
-
+pthread_t threadId;
 
 // Calcul du nombre de commandes possibles (la commande pour quitter est exclue)
 static const int command_number = sizeof(list_commands) / sizeof(list_commands[0]);
@@ -49,7 +50,6 @@ static const char * get_msg(TYPES_MSG type_msg)
 }
 
 
-
 /**
  * Efface les logs de la console
  * (de manière un peu sale)
@@ -70,9 +70,11 @@ static void display()
     system("stty raw");
 }
 
+
 /**
  * Effectue l'action correspondant à la touche pressée
  */
+/**
 static void capture_choice()
 {
     RQ_data data;
@@ -100,12 +102,13 @@ static void capture_choice()
     }
     system ("stty raw");
 }
-
+*/
 
 /**
  * Fonction principale du programme
  * Boucle tant que le flag du stop n'est pas levé
  */
+ /**
 static void run()
 {
     // Stop displaying keys input in terminal
@@ -116,6 +119,7 @@ static void run()
         capture_choice();
     }
 }
+  */
 
 /**
  * Fonction de réinitialisation des paramètres
@@ -135,3 +139,45 @@ extern int stop()
     fflush(stdout);
     return 0; // TODO: Handle the errors
 }
+
+
+static void ihm_run() {
+    while(flag_stop == DOWN) {
+        userInput = getch();
+        if (userInput == 'a') {
+            flag_stop = UP;
+        } else {
+            mvprintw(5, 10, "%c", userInput);
+        }
+        refresh();
+    }
+}
+
+
+extern int ihm_new() {
+    // Initialise l'écran ncurses
+    initscr();
+    noecho();
+    refresh();
+    return 0;
+}
+extern int ihm_start() {
+    TRACE("ExampleStart function \n")
+    int err = pthread_create(&threadId, NULL, (void *) &ihm_run, NULL);
+    STOP_ON_ERROR(err != 0, "Error when creating the thread")
+    return 0;
+}
+extern int ihm_stop() {
+    int err = pthread_join(threadId, NULL);
+    STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
+    return 0;
+}
+extern int ihm_free() {
+    // Détruit l'écran
+    endwin();
+    return 0;
+}
+
+
+
+

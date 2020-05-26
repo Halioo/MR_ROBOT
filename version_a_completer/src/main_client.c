@@ -2,7 +2,7 @@
 // Created by cleme on 05/02/2020.
 //
 
-#include "TelcoV3/remoteui.h"
+#include "TelcoV3/ihm.h"
 
 
 /**
@@ -10,9 +10,9 @@
  */
 int main (int argc, char *argv[])
 {
-    RemoteUI *remoteUi=RemoteUI_new();
-    RemoteUI_start(remoteUi);
-    RemoteUI_stop(remoteUi);
-    RemoteUI_free(remoteUi);
+    ihm_new();
+    ihm_start();
+    ihm_stop();
+    ihm_free();
     return 0;
 }

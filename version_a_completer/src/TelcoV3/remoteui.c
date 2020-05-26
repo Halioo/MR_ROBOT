@@ -168,6 +168,7 @@ static void ActionConnectFailure(RemoteUI * this);
 static void ActionSetDir(RemoteUI * this);
 static void ActionToggleES(RemoteUI * this);
 static void ActionAfterOneSec(RemoteUI * this);
+static void ActionQuitLog(RemoteUI * this);
 static void ActionQuit(RemoteUI * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/

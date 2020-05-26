@@ -16,6 +16,12 @@
 #endif
 
 
+extern int ihm_new();
+extern int ihm_start();
+extern int ihm_stop();
+extern int ihm_free();
+
+
 // GESTION DE LA LANGUE D'AFFICHAGE
 
 ENUM_DECL(LANGUAGE, FRENCH, ENGLISH, GERMAN)
@@ -23,8 +29,7 @@ ENUM_DECL(LANGUAGE, FRENCH, ENGLISH, GERMAN)
 ENUM_DECL(TYPES_MSG, MSG_DEFAULT, MSG_START, MSG_STOP, MSG_COMMANDS, MSG_LOGS, MSG_QUIT, MSG_UNKNOWN_COMMAND, MSG_COMMAND_ASKED, MSG_COMMAND_LEFT,MSG_COMMAND_RIGHT,MSG_COMMAND_FWD, MSG_COMMAND_BCKWD, MSG_COMMAND_STOP, MSG_COMMAND_LOGS, MSG_COMMAND_STATE)
 
 
-static char const * const msg[NB_TYPES_MSG][NB_LANGUAGE] =
-{
+static char const * const msg[NB_TYPES_MSG][NB_LANGUAGE] = {
     {   // MSG_DEFAULT
         "Langue : Français\n",
         "Language : English\n",
