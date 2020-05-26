@@ -85,7 +85,7 @@ extern void backMainScreen(){
 }
 
 
-extern void Proxy_Pilot_store_Socket(int socket){
+extern void Proxy_RemoteUI_store_Socket(int socket){
     myCurrentSocket = socket; ///< Assign the new socket
 }
 

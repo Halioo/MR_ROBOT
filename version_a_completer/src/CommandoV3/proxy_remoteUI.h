@@ -14,7 +14,7 @@ extern void validate();
 extern void goScreenLog();
 extern void backMainScreen();
 
-extern void Proxy_Pilot_store_Socket(int socket);
+extern void Proxy_RemoteUI_store_Socket(int socket);
 
 
 #endif //MR_ROBOT_PROXY_REMOTEUI_H

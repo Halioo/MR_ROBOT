@@ -61,6 +61,6 @@ extern void signalES(bool s){
 
 
 
-extern void Proxy_Pilot_store_Socket(int socket){
+extern void Proxy_Logger_store_Socket(int socket){
     myCurrentSocket = socket; ///< Assign the new socket
 }
