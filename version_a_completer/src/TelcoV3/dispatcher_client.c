@@ -169,8 +169,6 @@ static void ActionKill(Dispatcher * this) {
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
-
-
 /**
  * @brief Start the thread to listen
  */
@@ -205,56 +203,27 @@ void StopThreadListening(Dispatcher* this) {
 /**
  * @brief Proccess the data received
  * 
- * Commande possible : CES FONCTIONS SONT A MODIFIER
- *  ASK_NOTHING = 0, 
- *	ASK_DISCONNECT, 
- *	ASK_DIR_FORWARD, 
- *	ASK_DIR_BACKWARD, 
- *	ASK_DIR_RIGHT, 
- *	ASK_DIR_LEFT,
- *	ASK_DIR_STOP,
- *	ASK_MORE_SPEED,
- *	ASK_LESS_SPEED,
- *	ASK_LOG,
- *	ASK_STOP
+ * Commande possible :
+ * 
+ * C_GET_EVENTS = 0,
+ * C_GET_EVENTS_COUNT
+ * 
  */
 void processData(Msg msgReceived){
 
     COMMANDE cmd = msgReceived.dataReceived.command;
+    EVENT tabEvents[] = * msgReceived.dataReceived.logEvent;
 
     switch (cmd)
     {
-    case C_LEFT:
+    case C_GET_EVENTS:
         
-        TRACE("Going Left");
+        TRACE("Get events %c", msgReceived.dataReceived.logEvent);
         break;
 
-    case C_RIGHT:
-        TRACE("Going Forward");
-        break;
-
-    case C_FORWARD:
-        TRACE("Going Backward");
-        break;
-
-    case C_BACKWARD:
-        TRACE("Going Right");
-        break;
-
-    case C_STOP:
-        TRACE("Stop");
-        break;
-
-    case C_LOGS:
-        TRACE("Logs");
-        break;
-
-    case C_STATE:
-        TRACE("State");
-        break;
-
-    case C_QUIT:
-        TRACE("Quit");
+    case C_GET_EVENTS_NUMBER:
+        int length = (sizeof(tabEvents/sizeof(EVENT));
+        TRACE("Get the number of events %d", length);
         break;
 
     default:

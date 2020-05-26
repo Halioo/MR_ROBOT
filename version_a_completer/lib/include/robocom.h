@@ -23,7 +23,7 @@
 // ---------- Enums declarations ----------
 
 ENUM_DECL(DIRECTION, STOP, RIGHT, LEFT, FORWARD, BACKWARD)
-ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_QUIT)
+ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_QUIT, C_GET_EVENTS, C_GET_EVENTS_NUMBER)
 ENUM_DECL(RQ_TYPE, RQ_GET, RQ_POST, RQ_PUT, RQ_DELETE, RQ_ES)
 
 
@@ -45,6 +45,7 @@ typedef struct
 typedef struct {
     RQ_TYPE rq_type;
     COMMAND command;
+    EVENT logEvent[];
 } RQ_data;
 
 /**
