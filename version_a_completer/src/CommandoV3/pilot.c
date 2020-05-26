@@ -10,7 +10,7 @@
 
 #define SIZE_TASK_NAME (20)
 #define DEFAULT_SPEED (0)
-#define BUMP_TEST_REFRESH_RATE (100000)
+#define BUMP_TEST_REFRESH_RATE (1000000)
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -48,7 +48,6 @@ ENUM_DECL(STATE,
  * @brief Liste des évènements du pilot
  */
 ENUM_DECL(EVENT,
-        E_NOP,                  ///< Ne rien faire
         E_SET_ROBOT_VELOCITY,   ///< Demande d'envoi d'une vitesse au robot
         E_STOP,                 ///< Met la vitesse du robot à 0
         E_TOGGLE_ES,            ///< Signal d'urgence reçu
@@ -206,7 +205,7 @@ static void Pilot_ResetTO(Pilot * this);
  * @brief Fonction qui gère ce qu'il se passe quand le watchdog
  * @param this
  */
-static void Pilot_TOHandle(Watchdog *wd, void * this);
+static void Pilot_TOHandle(void * this);
 
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
@@ -375,7 +374,7 @@ static void Pilot_Run(Pilot * this) {
     STATE state = S_IDLE;
     Wrapper wrapper;
 
-    TRACE("[%s] RUN\n")
+    TRACE("[%s] RUN\n",this->nameTask)
 
     while (state != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
@@ -425,10 +424,10 @@ int Pilot_Start(Pilot * this) {
 int Pilot_Stop(Pilot * this) {
     Wrapper wrapper;
     wrapper.data.event = E_KILL;
-    WatchdogCancel(this->watchdogBump);
     mailboxSendMsg(this->mailbox,wrapper.toString);
+    WatchdogCancel(this->watchdogBump);
 
-    int err = pthread_join(this->threadId,NULL);
+    pthread_join(this->threadId,NULL);
     // TODO : gestion d'erreurs
 
 }
@@ -464,7 +463,7 @@ static void Pilot_ResetTO(Pilot * this){
     WatchdogCancel(this->watchdogBump);
 }
 
-static void Pilot_TOHandle(Watchdog * wd, void * this){
+static void Pilot_TOHandle(void * this){
 
     Wrapper wrapper = {
         .data.event = E_TO_BUMP

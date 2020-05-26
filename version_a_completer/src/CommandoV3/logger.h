@@ -13,20 +13,6 @@
 
 typedef struct Logger_t Logger;
 
-typedef struct LogEvent_t LogEvent;
-
-
-
-/**
- * get the robot sensorState
- */
-extern SensorState Logger_getSensorState(Logger * this);
-
-/**
- * get the robot speed
- */
-extern int Logger_getRobotSpeed(Logger * this);
-
 /**
  * to be notified when an emergency stop is needed
  */
@@ -64,10 +50,6 @@ extern void Logger_startPolling(Logger * this);
  */
 extern void Logger_stopPolling(Logger * this);
 
-/**
- * Evenement pour détruire la MaE
- */
-extern void Logger_quit(Logger * this);
 
 /**
  * clear events
@@ -84,7 +66,7 @@ extern int Logger_getEventsCount(Logger * this);
  * you have to pass an array of LogEvent in parameters to put the LogEvents collected in it. The size should be <(to-from)+1>.
  * I had to do this because I cannot return a localy created array
  */
-extern LogEvent* Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this);
+extern void Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this);
 
 /**
  * create the logger
@@ -105,5 +87,6 @@ extern void Logger_stop(Logger * this);
  * free the logger
  */
 extern void Logger_free(Logger * this);
+
 
 #endif //MR_ROBOT_LOGGER_H
