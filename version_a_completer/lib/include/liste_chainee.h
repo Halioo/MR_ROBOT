@@ -5,26 +5,24 @@
 
 #include "robocom.h"
 
-typedef struct LogEvent_t{
+typedef struct {
     SensorState sens;
     int speed;
 }LogEvent;
 
 typedef struct Element Element;
-struct Element
-{
-    struct LogEvent_t logEvent;
+struct Element{
+    LogEvent logEvent;
     Element *suivant;
 };
 
 typedef struct Liste Liste;
-struct Liste
-{
+struct Liste{
     Element *premier;
 };
 
 Liste *initialisation();
-void insertion(Liste *liste, struct LogEvent_t logEvent);
+void insertion(Liste *liste, LogEvent logEvent);
 void suppression(Liste *liste);
 
 #endif //MR_ROBOT_LISTE_CHAINEE_H

@@ -10,6 +10,7 @@
  * followed by the number of the instance
  */
 #define NAME_TASK "LoggerTask%d"
+#define POLLING_REFRESH_RATE (250000)
 
 static int loggerCounter = 0;
 
@@ -35,7 +36,7 @@ ENUM_DECL(EVENT,
           E_START_POLLING,      // Evenement pour commencer à scruter le robot
           E_STOP_POLLING,       // Evenement pour arrêter de scruter le robot
           E_TO_POLL,            // Evenement appelé à expiration du timer de 250ms
-          E_KILL                  ///< Détruit la MaE
+          E_KILL                ///< Détruit la MaE
 )
 
 /**
@@ -46,8 +47,7 @@ ENUM_DECL(ACTION,
           A_NOP,                ///< Ne rien faire
           A_START_POLLING,      ///< On lance le timer
           A_STOP_POLLING,       ///< On reset le timer - sert d'action pour quitter
-          A_POLL,               ///< On relève l'état du robot
-          A_KILL
+          A_POLL               ///< On relève l'état du robot
 )
 
 /**
@@ -77,18 +77,13 @@ wrapperOf(Msg)
  */
 struct Logger_t {
     pthread_t threadId; ///< Pthread identifier for the active function of the class.
-    SensorState sens;
-    int speed;
     Mailbox * mailbox;
+    Watchdog * watchdogPoll;
     Msg message; ///< Structure utilisée pour passer les donnés de la BAL aux pointeurs de fonction
     STATE myState; ///< Etat actuel de la MaE
     Liste * myEvents;
 
 };
-
-/*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
-
-static void Logger_polling(Logger *this);
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
@@ -99,7 +94,6 @@ static void ActionStopPolling(Logger * this);
 
 static void ActionPoll(Logger * this);
 
-static void ActionKll(Logger * this);
 
 /* ----------------------- EVENT FUNCTIONS ----------------------- */
 
@@ -109,10 +103,35 @@ static void Logger_EventTOPoll(Logger * this);
 /*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
 
 /**
+ * @brief initialise la liste chainée d'events
+ */
+static Liste * Logger_initEventList();
+
+/**
+ * @brief ajoute un event à la liste d'events
+ */
+static void Logger_appendEvent(LogEvent logEvent, Logger * this);
+
+/**
+ * @brief supprime la liste d'events en mémoire
+ */
+static void Logger_removeEventList(Logger * this);
+
+/**
+ * @brief supprime le dernier event ajoute
+ */
+static void Logger_removeEvent(Liste * liste);
+
+/**quit
  * @brief Fonction run de la classe Logger
  */
 static void Logger_Run(Logger * this);
 
+static void Logger_setTO(Logger * this);
+
+static void Logger_resetTO(Logger * this);
+
+static void Logger_TOHandle(void * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -129,7 +148,6 @@ static const ActionPtr actionPtrTab[NB_ACTION]={
         &ActionPoll,
         &ActionStartPolling,
         &ActionStopPolling,
-        &ActionKll
 };
 
 /**
@@ -140,7 +158,7 @@ static Transition stateMachine[NB_STATE][NB_EVENT] ={
         [S_IDLE][E_START_POLLING] = {S_POLLING, A_START_POLLING},
         [S_POLLING][E_STOP_POLLING] = {S_IDLE, A_STOP_POLLING},
         [S_POLLING][E_TO_POLL] = {S_POLLING, A_POLL},
-        [S_IDLE][E_KILL] = {S_DEATH, A_STOP_POLLING},
+        [S_IDLE][E_KILL] = {S_DEATH, A_NOP},
         [S_POLLING][E_KILL] = {S_DEATH, A_STOP_POLLING}
 };
 
@@ -155,13 +173,14 @@ extern void Logger_startPolling(Logger * this) {
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
-extern void Logger_EventStopPolling(Logger * this) {
+extern void Logger_stopPolling(Logger * this) {
 
     Wrapper wrapper = {
             .data.event = E_STOP_POLLING
     };
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
+
 
 extern void Logger_EventTOPoll(Logger * this) {
 
@@ -207,23 +226,31 @@ static void ActionNop(Logger * this){
 }
 
 static void ActionPoll(Logger * this) {
-    /*Watchdog *watchdog;
-    WatchdogCallback callback={watchdog, &Logger_polling};
-    watchdog=WatchdogConstruct(250,*callback, this);
-    WatchdogStart(watchdog);
-    WatchdogCancel(watchdog);
-    WatchdogDestroy(watchdog);
-     */
-    //TODO je comprends pas le watchdog donc à refaire
+
+    SensorState sens = Robot_getSensorState();
+    int speed = Robot_getRobotSpeed();
+    LogEvent logEvent = {.speed = speed,
+                         .sens = sens};
+    Logger_appendEvent(logEvent,this);
 }
+
+static void ActionStartPolling(Logger * this){
+    Logger_setTO(this);
+}
+
+static void ActionStopPolling(Logger * this){
+    Logger_resetTO(this);
+}
+
 
 /* ----------------------- NEW START STOP FREE -----------------------*/
 
-extern Logger *  Logger_new() {
+extern Logger * Logger_new() {
     loggerCounter++;
     Logger * this = (Logger *) malloc(sizeof(Logger));
-    this->mailbox = mailboxInit("Pilot",loggerCounter,sizeof(Msg));
-    this->myEvents=initialisation();
+    this->mailbox = mailboxInit("Logger",loggerCounter,sizeof(Msg));
+    this->watchdogPoll = WatchdogConstruct(POLLING_REFRESH_RATE,&Logger_TOHandle,this);
+    this->myEvents = Logger_initEventList();
 
     return this;
 }
@@ -234,44 +261,86 @@ extern void Logger_start(Logger * this) {
 }
 
 extern void Logger_stop(Logger * this) {
-    pthread_join(this->threadId,NULL);
+    Wrapper wrapper;
+    wrapper.data.event = E_KILL;
+    mailboxSendMsg(this->mailbox,wrapper.toString);
 
+    WatchdogCancel(this->watchdogPoll);
+    pthread_join(this->threadId,NULL);
 }
 
 extern void Logger_free(Logger * this) {
     mailboxClose(this->mailbox);
+    WatchdogDestroy(this->watchdogPoll);
     free(this);
 }
 
-/* ----------------------- STATIC FUNCTION DEFINITION -----------------------*/
+/* ----------------------- GESTION DE LA LISTE CHAINEE -----------------------*/
 
+static Liste * Logger_initEventList(){
+    Liste * liste = malloc(sizeof(*liste));
+    Element *element = malloc(sizeof(*element));
 
-static void Logger_polling(Logger *this){
-    this->sens=Logger_getSensorState(this);
-    this->speed=Logger_getRobotSpeed(this);
-    LogEvent logEvent={this->sens,this->speed};
-    insertion(this->myEvents, logEvent);
-    Logger_Run(this);
+    if (liste == NULL || element == NULL){
+        perror("Erreur d'initialisation de la liste d'events en mémoire");
+        exit(EXIT_FAILURE);
+    }
+
+    element->logEvent.speed = 0;
+    element->logEvent.sens.collision_f = 0;
+    element->logEvent.sens.luminosity = 0;
+
+    liste->premier = element;
+
+    return liste;
 }
 
-/* ----------------------- FUNCTION DEFINITION -----------------------*/
+static void Logger_appendEvent(LogEvent logEvent, Logger * this){
 
-extern SensorState Logger_getSensorState(Logger * this){
-    SensorState sens=Robot_getSensorState();
-    return sens;
+    /* Création du nouvel élément */
+    Element *nouveau = malloc(sizeof(*nouveau));
+    if (this->myEvents == NULL || nouveau == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+    nouveau->logEvent = logEvent;
+
+    /* Insertion de l'élément au début de la liste */
+    nouveau->suivant = this->myEvents->premier;
+    this->myEvents->premier = nouveau;
 }
 
-extern int Logger_getRobotSpeed(Logger * this){
-    int speed=Robot_getRobotSpeed();
-    return speed;
+static void Logger_removeEventList(Logger * this){
+
+    Element *actuel = this->myEvents->premier;
+
+    while (actuel != NULL)
+    {
+        actuel = this->myEvents->premier;
+        Logger_removeEvent(this->myEvents);
+    }
+    free(this->myEvents);
 }
+
+static void Logger_removeEvent(Liste * liste){
+    if (liste == NULL){
+        exit(EXIT_FAILURE);
+    }
+
+    if (liste->premier != NULL){
+        Element *aSupprimer = liste->premier;
+        liste->premier = liste->premier->suivant;
+        free(aSupprimer);
+    }
+}
+
 
 extern void Logger_signalES(Logger *this){
-    this->myState=S_DEATH;
-    Logger_Run(this);
+
+
 }
 
-extern LogEvent* Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this){
+extern void Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this){
     int count=0;
     //LogEvent logEventToReturn[(to-from)+1];
 
@@ -282,11 +351,9 @@ extern LogEvent* Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Lo
         if(count>=from && count<=to){
             logEventToReturn[count]=actuel->logEvent;
             count++;
-
         }
         actuel = actuel->suivant;
     }
-    return logEventToReturn;
 }
 
 extern int Logger_getEventsCount(Logger * this){
@@ -304,9 +371,52 @@ extern int Logger_getEventsCount(Logger * this){
 
 
 extern void Logger_clearEvents(Logger * this){
-    suppression(this->myEvents);
+    Logger_removeEventList(this);
+}
+
+static void Logger_setTO(Logger * this){
+    WatchdogStart(this->watchdogPoll);
+}
+
+static void Logger_resetTO(Logger * this){
+    WatchdogCancel(this->watchdogPoll);
+}
+
+static void Logger_TOHandle(void * this){
+
+    Wrapper wrapper = {
+            .data.event = E_TO_POLL
+    };
+    mailboxSendMsg(((Logger*)this)->mailbox,wrapper.toString);
 }
 
 
+extern void Logger_test(Logger * this){
+    LogEvent aled1 = {
+            .sens.luminosity = 1,
+            .sens.collision_f = DOWN,
+            .speed = 1
+    };
 
+    LogEvent aled2 = {
+            .sens.luminosity = 2,
+            .sens.collision_f = UP,
+            .speed = 12
+    };
+
+    LogEvent aled3 = {
+            .sens.luminosity = 3,
+            .sens.collision_f = DOWN,
+            .speed = 123
+    };
+
+    Logger_appendEvent(aled1,this);
+    Logger_appendEvent(aled2,this);
+    Logger_appendEvent(aled3,this);
+
+
+
+
+
+}
 

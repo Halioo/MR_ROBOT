@@ -8,8 +8,7 @@ Liste *initialisation()
     Liste *liste = malloc(sizeof(*liste));
     Element *element = malloc(sizeof(*element));
 
-    if (liste == NULL || element == NULL)
-    {
+    if (liste == NULL || element == NULL){
         exit(EXIT_FAILURE);
     }
 
@@ -17,14 +16,13 @@ Liste *initialisation()
     element->logEvent.sens.collision_f = 0;
     element->logEvent.sens.luminosity = 0;
 
-
     liste->premier = element;
 
     return liste;
 }
 
 
-void insertion(Liste *liste, struct LogEvent_t logEvent)
+void insertion(Liste *liste, LogEvent logEvent)
 {
     /* Création du nouvel élément */
     Element *nouveau = malloc(sizeof(*nouveau));
@@ -42,13 +40,11 @@ void insertion(Liste *liste, struct LogEvent_t logEvent)
 
 void suppression(Liste *liste)
 {
-    if (liste == NULL)
-    {
+    if (liste == NULL){
         exit(EXIT_FAILURE);
     }
 
-    if (liste->premier != NULL)
-    {
+    if (liste->premier != NULL){
         Element *aSupprimer = liste->premier;
         liste->premier = liste->premier->suivant;
         free(aSupprimer);

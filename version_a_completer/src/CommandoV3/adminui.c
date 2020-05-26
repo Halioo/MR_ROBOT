@@ -147,7 +147,7 @@ static void setTO(AdminUI * this);
 
 static void resetTO(AdminUI * this);
 
-static void AdminUI_TOHandle(Watchdog * wd, void * this);
+static void AdminUI_TOHandle(void * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -274,7 +274,7 @@ static void ActionTOLog(AdminUI * this){
 }
 
 static void ActionQuit(AdminUI * this){
-    Logger_stopPolling(this->myLogger);
+//    Logger_stopPolling(this->myLogger);
 }
 
 
@@ -388,7 +388,7 @@ static void resetTO(AdminUI * this){
     WatchdogCancel(this->watchdogLog);
 }
 
-static void AdminUI_TOHandle(Watchdog * wd, void * this){
+static void AdminUI_TOHandle(void * this){
 
     Wrapper wrapper = {
             .data.event = E_TO_LOG
@@ -396,7 +396,9 @@ static void AdminUI_TOHandle(Watchdog * wd, void * this){
     mailboxSendMsg(((AdminUI*)this)->mailbox,wrapper.toString);
 }
 
+static void updateEvents(){
 
+}
 
 
 
