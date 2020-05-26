@@ -45,7 +45,7 @@ typedef struct
 typedef struct {
     RQ_TYPE rq_type;
     COMMAND command;
-    EVENT logEvent[];
+//    EVENT logEvent[];
 } RQ_data;
 
 /**

@@ -89,4 +89,8 @@ extern void Logger_stop(Logger * this);
 extern void Logger_free(Logger * this);
 
 
+// TODO : remove me after tests
+extern void Logger_test(Logger * this);
+
+
 #endif //MR_ROBOT_LOGGER_H

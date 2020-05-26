@@ -11,6 +11,7 @@
  */
 #define NAME_TASK "LoggerTask%d"
 #define POLLING_REFRESH_RATE (250000)
+#define INDICE_INITIAL (-1)
 
 static int loggerCounter = 0;
 
@@ -82,6 +83,7 @@ struct Logger_t {
     Msg message; ///< Structure utilisée pour passer les donnés de la BAL aux pointeurs de fonction
     STATE myState; ///< Etat actuel de la MaE
     Liste * myEvents;
+    int indiceEvents;
 
 };
 
@@ -251,6 +253,7 @@ extern Logger * Logger_new() {
     this->mailbox = mailboxInit("Logger",loggerCounter,sizeof(Msg));
     this->watchdogPoll = WatchdogConstruct(POLLING_REFRESH_RATE,&Logger_TOHandle,this);
     this->myEvents = Logger_initEventList();
+    this->indiceEvents = INDICE_INITIAL;
 
     return this;
 }
@@ -289,6 +292,7 @@ static Liste * Logger_initEventList(){
     element->logEvent.speed = 0;
     element->logEvent.sens.collision_f = 0;
     element->logEvent.sens.luminosity = 0;
+    element->indice = INDICE_INITIAL;
 
     liste->premier = element;
 
@@ -296,6 +300,7 @@ static Liste * Logger_initEventList(){
 }
 
 static void Logger_appendEvent(LogEvent logEvent, Logger * this){
+    ++this->indiceEvents;
 
     /* Création du nouvel élément */
     Element *nouveau = malloc(sizeof(*nouveau));
@@ -304,10 +309,12 @@ static void Logger_appendEvent(LogEvent logEvent, Logger * this){
         exit(EXIT_FAILURE);
     }
     nouveau->logEvent = logEvent;
+    nouveau->indice = this->indiceEvents;
 
     /* Insertion de l'élément au début de la liste */
     nouveau->suivant = this->myEvents->premier;
     this->myEvents->premier = nouveau;
+
 }
 
 static void Logger_removeEventList(Logger * this){
@@ -337,23 +344,6 @@ static void Logger_removeEvent(Liste * liste){
 
 extern void Logger_signalES(Logger *this){
 
-
-}
-
-extern void Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this){
-    int count=0;
-    //LogEvent logEventToReturn[(to-from)+1];
-
-    Element *actuel = this->myEvents->premier;
-
-    while (actuel != NULL)
-    {
-        if(count>=from && count<=to){
-            logEventToReturn[count]=actuel->logEvent;
-            count++;
-        }
-        actuel = actuel->suivant;
-    }
 }
 
 extern int Logger_getEventsCount(Logger * this){
@@ -366,7 +356,22 @@ extern int Logger_getEventsCount(Logger * this){
         count++;
         actuel = actuel->suivant;
     }
-    return count;
+    return count -1; //-1 car il faut ignorer l'élément ajouté à l'initailisation
+}
+
+extern void Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this){
+    int indice = to-from;
+    //*logEventToReturn = malloc(indice+1 * sizeof(LogEvent));
+
+    Element *actuel = this->myEvents->premier;
+    while (actuel->indice > INDICE_INITIAL){
+        if((actuel->indice >= from) && (actuel->indice <= to)){
+            logEventToReturn[indice] = actuel->logEvent;
+            printf(" i : %d | retour : %d | actuel : %d\n",actuel->indice,logEventToReturn[indice].speed,actuel->logEvent.speed);
+            --indice;
+        }
+        actuel = actuel->suivant;
+    }
 }
 
 
@@ -392,31 +397,76 @@ static void Logger_TOHandle(void * this){
 
 
 extern void Logger_test(Logger * this){
+    LogEvent aled0 = {
+            .sens.luminosity = 0,
+            .sens.collision_f = DOWN,
+            .speed = 0
+    };
+
     LogEvent aled1 = {
             .sens.luminosity = 1,
-            .sens.collision_f = DOWN,
+            .sens.collision_f = UP,
             .speed = 1
     };
 
     LogEvent aled2 = {
             .sens.luminosity = 2,
-            .sens.collision_f = UP,
+            .sens.collision_f = DOWN,
             .speed = 12
     };
 
     LogEvent aled3 = {
             .sens.luminosity = 3,
-            .sens.collision_f = DOWN,
+            .sens.collision_f = UP,
             .speed = 123
     };
 
+    LogEvent aled4 = {
+            .sens.luminosity = 1,
+            .sens.collision_f = DOWN,
+            .speed = 1234
+    };
+
+    LogEvent aled5 = {
+            .sens.luminosity = 2,
+            .sens.collision_f = UP,
+            .speed = 12345
+    };
+
+    LogEvent aled6 = {
+            .sens.luminosity = 3,
+            .sens.collision_f = DOWN,
+            .speed = 123456
+    };
+
+    LogEvent aled7 = {
+            .sens.luminosity = 4,
+            .sens.collision_f = UP,
+            .speed = 1234567
+    };
+
+    Logger_appendEvent(aled0,this);
     Logger_appendEvent(aled1,this);
     Logger_appendEvent(aled2,this);
     Logger_appendEvent(aled3,this);
+    Logger_appendEvent(aled4,this);
+    Logger_appendEvent(aled5,this);
+    Logger_appendEvent(aled6,this);
+    Logger_appendEvent(aled7,this);
 
+    int count = Logger_getEventsCount(this);
 
+    int from = 6;
+    int to = 7;
+    int taille = to-from+1;
 
+    LogEvent events[taille-1];
+    Logger_getEvents(from,to,events,this);
 
+    printf("\n");
+    for (int i = 0; i < taille; ++i) {
+        printf(" i : %d | valeur : %d\n",i,events[i].speed);
+    }
 
 }
 
