@@ -134,35 +134,5 @@ static Command list_commands[] = {
     {'e', MSG_COMMAND_LOGS, C_LOGS}
 };
 
-// Calcul du nombre de commandes possibles (la commande pour quitter est exclue)
-static const int command_number = sizeof(list_commands) / sizeof(list_commands[0]);
-
-/**
- * Cherche l'id de la commande correspondant à
- * la touche passée en paramètre
- *
- * @param elem
- * @return l'id de la commande, -1 si
- * la touche ne correspond à aucun élément
- */
-static int get_id(char elem)
-{
-    int id = -1;
-    for (int i=0; i < command_number; i++) {
-        if (list_commands[i].key == elem) {
-            id = i;
-        }
-    }
-    return id;
-}
-
-/**
- * Retourne le string correspondant au type de message
- * passé en paramètre
- */
-static const char * get_msg(TYPES_MSG type_msg)
-{
-    return msg[type_msg][LANG];
-}
 
 #endif //CLIENT_IHM_H
