@@ -26,9 +26,9 @@ static int dispatcherCounter = 0;
  */
 ENUM_DECL(STATE,
     S_FORGET,               ///< Nothing happens
-    S_IDLE,        ///< Idle STATE
+    S_IDLE,                 ///< Idle STATE
     S_LISTENING,            ///< Running STATE
-    S_DEATH                 ///< Transition STATE for stopping the STATE machine
+    S_DEATH                 ///< Transition STATE to stop the STATE machine
 )
 
 
@@ -36,11 +36,11 @@ ENUM_DECL(STATE,
  * @brief Enumeration of all the possible ACTIONs called by the STATE machine
  */
 ENUM_DECL(ACTION,
-    A_NOP,                         ///< Nothing happens
-    A_START_THREAD_LISTENING,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
-    A_PROCESS_DATA,
-    A_STOP_THREAD_LISTENING,              ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE                    
-    A_KILL                         ///< Kills the STATE machine
+    A_NOP,                          ///< Nothing happens
+    A_START_THREAD_LISTENING,       ///< ACTION called when passing from the IDLE STATE to the LISTENING STATE
+    A_PROCESS_DATA,                 ///< ACTION called when passing we received a msg and we stay in the LISTENING STATE
+    A_STOP_THREAD_LISTENING,        ///< ACTION called when passing from the LISTENING STATE to the IDLE STATE                    
+    A_KILL                          ///< Kills the STATE machine
 )
 
 
@@ -48,10 +48,9 @@ ENUM_DECL(ACTION,
  * @brief Enumeration of all the possible EVENTs that triggers the STATE machine
  */
 ENUM_DECL(EVENT,
-    E_MSG_RECEIVED,         ///< Do nothing
-    E_START_LISTENING,      ///< EVENT VEL IS NULL THAT STOP POLLING
-    E_STOP_LISTENING,       /// 
-    E_STOP,                 ///< EVENT SET VEL THAT START POLLING
+    E_MSG_RECEIVED,         ///< EVENT MSG RECEIVED THAT CALL PROCESS DATA
+    E_START_LISTENING,      ///< EVENT TO START LISTENING
+    E_STOP_LISTENING,       ///< EVENT TO STOP LISTENING
     E_KILL                  ///< Kills the STATE machine
 )
 
