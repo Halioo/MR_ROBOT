@@ -387,8 +387,8 @@ extern void Logger_askEvents(int from,int to, Logger * this){
 
 }
 
-extern void Logger_askEventsCount(Liste * liste){
-    int nbEvent = Logger_getEventsCount(liste);
+extern void Logger_askEventsCount(Logger * this){
+    int nbEvent = Logger_getEventsCount(this->myEvents);
     RemoteUI_setEventsCount(nbEvent);
 }
 

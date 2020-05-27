@@ -197,7 +197,7 @@ static void ActionKill(Dispatcher * this) {
 
 
 static void processData(Dispatcher * this){
-    // TODO : appeler cette fonction dans un while bloquant ?
+
     RQ_Wrapper wrapper;
     mailboxReceive(this->mailboxMessagesADecoder,wrapper.toString);
     RQ_TYPE request_type = wrapper.request.rq_type;
@@ -284,7 +284,6 @@ Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI) {
     this->state = S_IDLE;
     this->myRemoteUI = myRemoteUI;
     this->listeEventsReconstituee = ListeChainee_init();
-    //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
 
     int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);
     STOP_ON_ERROR(err < 0, "Error when setting the tasks name.")

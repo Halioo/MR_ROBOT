@@ -15,7 +15,7 @@ extern void Logger_askEvents(int from,int to, Logger * this){
     sendNwk(PostmanTelco_getSocketComm(),msgToSend);
 }
 
-extern void Logger_askEventsCount(Liste * liste){
+extern void Logger_askEventsCount(Logger * this){
     RQ_data msgToSend = {
             .rq_type = RQ_ASK_EVENTS_NB
     };

@@ -398,7 +398,6 @@ static void AdminUI_TOHandle(void * this){
 }
 
 static void updateEvents(AdminUI * this){
-    Logger_askEventsCount(myEvents);
     // TODO
 }
 

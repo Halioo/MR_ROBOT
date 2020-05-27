@@ -20,7 +20,7 @@ extern void Logger_signalES(Logger * this);
 
 
 extern void Logger_askEvents(int from,int to, Logger * this);
-extern void Logger_askEventsCount(Liste * liste);
+extern void Logger_askEventsCount(Logger * this);
 
 
 extern Liste * Logger_getEvents(int from, int to, Logger * this);
