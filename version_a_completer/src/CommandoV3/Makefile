@@ -23,7 +23,7 @@ CCFLAGS += -I..
 all: $(OBJ)
 
 .c.o:
-	$(CC) -c $(CCFLAGS) $< -o $@
+	$(CC) -c $(CCFLAGS) $(LDFLAGS) $< -o $@
 
 # Nettoyage.
 .PHONY: clean

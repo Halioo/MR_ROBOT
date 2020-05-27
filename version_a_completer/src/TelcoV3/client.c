@@ -30,7 +30,8 @@ static void init()
     server_address.sin_port = htons(SERVER_PORT);
     //server_address.sin_addr = *((struct in_addr *)gethostbyname (SERVER_ADRESS)->h_addr_list[0]);
     // Connection request to server, exit if fail
-    if (connect(socket_to_connect, (SA*)&server_address, sizeof(server_address)) != 0) {
+    int error_connect=connect(socket_to_connect, (SA*)&server_address, sizeof(server_address));
+    if (error_connect!=0) {
         TRACE("connection with the server failed!\n")
     } else {
         TRACE("connected to the server...\n")
@@ -44,9 +45,10 @@ static void init()
 extern void Client_sendMsg(RQ_data data) {
     RQ_data data_to_send;
     data_to_send.command = htonl(data.command);
-    if (write(socket_to_connect, &data_to_send, sizeof(data_to_send)) <0) {
+    int error_write=write(socket_to_connect, &data_to_send, sizeof(data_to_send));
+    if (error_write <0) {
         TRACE("--- Sending message failed !\n")
-        close(socket_to_connect);
+        Client_stop();
     } else {
         TRACE("Message sent successfully...\n")
     }
@@ -69,5 +71,11 @@ extern void Client_start() {
  * Stop the client
  */
 extern void Client_stop() {
-    close(socket_to_connect);
+    int error_close=close(socket_to_connect);
+    if (error_close!=0){
+        TRACE("Stopping client failed !\n")
+    }
+    else{
+        TRACE("Client stopped successfully...\n");
+    }
 }
