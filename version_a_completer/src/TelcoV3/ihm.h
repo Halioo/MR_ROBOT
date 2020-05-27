@@ -6,8 +6,8 @@
 #define CLIENT_IHM_H
 
 
-#include <robocom.h>
-#include "util.h"
+#include "../../lib/include/robocom.h"
+#include "../../lib/include/util.h"
 
 
 // Default langage

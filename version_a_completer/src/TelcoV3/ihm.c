@@ -5,15 +5,12 @@
 
 #include "ihm.h"
 
-#include "util.h"
-#include "robocom.h"
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <mailbox.h>
-#include <prose.h>
+#include "../../lib/include/mailbox.h"
+#include "../../../infox_prose-x86_64-v0.3/include/infox/prose/prose.h"
 
 
 char k_input;

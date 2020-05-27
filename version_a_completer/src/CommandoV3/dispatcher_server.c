@@ -1,8 +1,8 @@
 #include "dispatcher_server.h"
-#include "liste_chainee.h"
+#include "../../lib/include/liste_chainee.h"
 #include "postmanCommando.h"
-#include "remoteui.h"
-#include "logger.h"
+#include "../../lib/include/remoteui.h"
+#include "../../lib/include/logger.h"
 
 /**
  * @brief Example instances counter used to have a unique queuename per thread

@@ -2,9 +2,9 @@
 // Created by cleme on 24/05/2020.
 //
 
-#include "pilot.h"
+#include "../../lib/include/pilot.h"
 #include "postmanTelco.h"
-#include "robocom.h"
+#include "../../lib/include/robocom.h"
 
 
 /* ----------------------- FUNCTIONS ----------------------- */

@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "util.h"
 
-#include "pilot.h"
+#include "../../lib/include/pilot.h"
 #include "robot.h"
 #include "mailbox.h"
 #include "watchdog.h"

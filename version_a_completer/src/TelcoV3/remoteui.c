@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "remoteui.h"
-#include "liste_chainee.h"
+#include "../../lib/include/remoteui.h"
+#include "../../lib/include/liste_chainee.h"
 
 
 //#define LANG FRENCH
