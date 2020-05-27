@@ -201,6 +201,9 @@ static void Logger_Run(Logger * this) {
     STATE state = S_IDLE;
     Wrapper wrapper;
 
+    TRACE("[Logger] RUN\n")
+    TRACE("[Logger] : %s\n",STATE_toString[this->myState])
+
     while (this->myState != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
 
@@ -251,6 +254,7 @@ static void ActionStopPolling(Logger * this){
 
 extern Logger * Logger_new() {
     loggerCounter++;
+    TRACE("[Logger] NEW \n")
     Logger * this = (Logger *) malloc(sizeof(Logger));
     this->mailbox = mailboxInit("Logger",loggerCounter,sizeof(Msg));
     this->watchdogPoll = WatchdogConstruct(POLLING_REFRESH_RATE,&Logger_TOHandle,this);
@@ -262,7 +266,8 @@ extern Logger * Logger_new() {
 }
 
 extern void Logger_start(Logger * this) {
-    pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
+    int err = pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
+    TRACE("[Logger] START \n")
 
 }
 
@@ -273,12 +278,16 @@ extern void Logger_stop(Logger * this) {
 
     WatchdogCancel(this->watchdogPoll);
     pthread_join(this->threadId,NULL);
+    TRACE("[Logger] STOP \n")
+
 }
 
 extern void Logger_free(Logger * this) {
     mailboxClose(this->mailbox);
     WatchdogDestroy(this->watchdogPoll);
     free(this);
+    TRACE("[Logger] FREE \n")
+
 }
 
 /* ----------------------- GESTION DE LA LISTE CHAINEE -----------------------*/

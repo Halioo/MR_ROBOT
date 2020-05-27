@@ -292,6 +292,8 @@ static void AdminUI_run(AdminUI * this) {
     Logger_startPolling(this->myLogger);
 
     TRACE("[%s] RUN\n", this->nameTask)
+    TRACE("[AdminUI] : %s\n",STATE_toString[this->state])
+
 
     while (this->state != S_DEATH) {
         mailboxReceive(this->mailbox, wrapper.toString); ///< Receiving an EVENT from the mailbox
@@ -313,6 +315,7 @@ static void AdminUI_run(AdminUI * this) {
             }
         }
     }
+    TRACE ("AdminUI FINI : %s\n",STATE_toString[this->state])
 }
 
 
@@ -343,11 +346,9 @@ extern AdminUI * AdminUI_new(Pilot * pilot, Logger * logger) {
  */
 extern int AdminUI_start(AdminUI * this)
 {
-    TRACE("[AdminUI] start function \n")
-//    printf("%s", get_msg(MSG_START));
-    int err = pthread_create(&(this->threadId), NULL, (void *) AdminUI_run, this);
+    pthread_create(&(this->threadId), NULL, (void *) AdminUI_run, this);
 
-    // TODO: Handle the errors
+    TRACE("[AdminUI] START \n")
     return 0;
 }
 
@@ -355,7 +356,6 @@ extern int AdminUI_start(AdminUI * this)
  * Stop AdminUI
  */
 extern int AdminUI_stop(AdminUI * this) {
-    // TODO : stop the object with it particularities
     Wrapper wrapper;
     wrapper.data.event = E_KILL;
     WatchdogCancel(this->watchdogLog);
@@ -363,6 +363,8 @@ extern int AdminUI_stop(AdminUI * this) {
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
+
+    TRACE("[AdminUI] STOP \n")
 
     return 0; // TODO: Handle the errors
 }
@@ -374,6 +376,8 @@ extern int AdminUI_free(AdminUI * this) {
     WatchdogDestroy(this->watchdogLog);
     mailboxClose(this->mailbox);
     free(this);
+
+    TRACE("[AdminUI] FREE \n")
 
     return 0; // TODO: Handle the errors
 }

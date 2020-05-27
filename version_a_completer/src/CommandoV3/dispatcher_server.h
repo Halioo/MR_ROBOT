@@ -13,7 +13,7 @@
 
 typedef struct Dispatcher_t Dispatcher;
 
-Dispatcher * Dispatcher_New();
+Dispatcher * Dispatcher_New(Pilot * myPilot, Logger * myLogger);
 
 int Dispatcher_Start(Dispatcher * this);
 
