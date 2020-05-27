@@ -349,10 +349,10 @@ extern void Logger_signalES(Logger *this){
 
 }
 
-extern int Logger_getEventsCount(Liste * myList){
+extern int Logger_getEventsCount(Logger * this){
     pthread_mutex_lock(&mutexLockEventsCount);
     int count=0;
-    Element *actuel = myList->premier;
+    Element *actuel = this->myEvents->premier;
 
     while (actuel->indice > INDICE_INITIAL)
     {

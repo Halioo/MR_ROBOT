@@ -10,7 +10,6 @@
 #include "../../lib/include/pilot.h"
 
 static int adminUIcounter = 0;
-static Liste * myEvents;
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -103,7 +102,7 @@ struct AdminUI_t {
     Watchdog * watchdogLog;
     Pilot * myPilot;
     Logger * myLogger;
-    char myEvents[1];
+    Liste *  myEvents;
 
     int previousEventNumber;
     int currentEventNumber;
@@ -274,7 +273,7 @@ static void ActionTOLog(AdminUI * this){
 }
 
 static void ActionQuit(AdminUI * this){
-//    Logger_stopPolling(this->myLogger);
+    Logger_stopPolling(this->myLogger);
 }
 
 
@@ -287,6 +286,10 @@ static void AdminUI_run(AdminUI * this) {
     ACTION action;
     STATE state;
     Wrapper wrapper;
+
+    // Action de la transition initiale
+    this->currentEventNumber = this->previousEventNumber = 0;
+    Logger_startPolling(this->myLogger);
 
     TRACE("[%s] RUN\n", this->nameTask)
 
@@ -398,7 +401,10 @@ static void AdminUI_TOHandle(void * this){
 }
 
 static void updateEvents(AdminUI * this){
-    // TODO
+    this->currentEventNumber = Logger_getEventsCount(this->myLogger);
+    this->myEvents = Logger_getEvents(this->previousEventNumber,this->currentEventNumber,this->myLogger);
+    this->previousEventNumber = this->currentEventNumber;
+
 }
 
 

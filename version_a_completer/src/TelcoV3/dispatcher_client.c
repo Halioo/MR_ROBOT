@@ -209,7 +209,6 @@ static void processData(Dispatcher * this){
 
         case (RQ_END_SET_EVENT):
             RemoteUI_setEvents(this->listeEventsReconstituee);
-            ListeChainee_reset(this->listeEventsReconstituee);
             break;
 
         case (RQ_SET_EVENT_NB):

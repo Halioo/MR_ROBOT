@@ -3,12 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "../../lib/include/mailbox.h"
+#include "mailbox.h"
 
-#include "proxy_pilot.h"
-#include "../../lib/include/remoteui.h"
+#include "pilot.h"
+#include "remoteui.h"
 #include "ihm.h"
-#include "../../lib/include/liste_chainee.h"
+#include "liste_chainee.h"
+#include "pilot.h"
+#include "logger.h"
 
 
 
@@ -146,12 +148,14 @@ struct RemoteUI_t {
     int currentEventNumber;
     VelocityVector vel;
 
-    LogEvent * myEvents; // TODO : définir la taille max de myEvents pour ne pas être embêté
+    Liste * myEvents;
     int myEventsCount;
 };
 
 
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
+
+static void updateEvents(RemoteUI * this);
 
 /*------------- ACTION functions -------------*/
 
@@ -296,10 +300,11 @@ static void Entry_connectScreen(RemoteUI * this) {
     memset(this->myIP, 0, sizeof(this->myIP));
 }
 static void Entry_mainScreen(RemoteUI * this) {
-
+    // displayScreen(MAIN_SCREEN);
 }
 static void Entry_logScreen(RemoteUI * this) {
     WatchdogStart(this->wd);
+    updateEvents(this);
 }
 
 /* ----------------------- FROM FUNCTIONS ----------------------- */
@@ -356,12 +361,14 @@ static void ActionConnectFailure(RemoteUI * this) {
 static void ActionSetDir(RemoteUI * this) {
     TRACE("[%s] ACTION - setDir\n", this->nameTask)
     this->vel = translateDir(this->msg.dir);
-    Pilot_SetVelocity(this->vel);
+    Pilot * unused;
+    Pilot_setRobotVelocity(unused,this->vel);
 }
 
 static void ActionToggleES(RemoteUI * this) {
     TRACE("[%s] ACTION - toggleES\n", this->nameTask)
-    Pilot_toggleES();
+    Pilot * unused;
+    Pilot_ToggleES(unused);
 }
 
 static void ActionAfterOneSec(RemoteUI * this) {
@@ -393,6 +400,13 @@ extern void RemoteUI_setEventsCount(int nbEvents){
     myNbEvents = nbEvents;
 }
 
+static void updateEvents(RemoteUI * this){
+    Logger * unused;
+//    this->currentEventNumber = Logger_getEventsCount(unused);
+//    this->myEvents = Logger_getEvents(this->previousEventNumber,this->currentEventNumber,unused);
+    this->previousEventNumber = this->currentEventNumber;
+
+}
 
 /* ----------------------- RUN FUNCTION ----------------------- */
 

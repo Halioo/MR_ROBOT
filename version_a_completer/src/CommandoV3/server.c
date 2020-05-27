@@ -143,6 +143,7 @@ static void run() {// TODO : Write all the ACTION functions
 extern void Server_start() {
     Pilot * myPilot = Pilot_new();
     Pilot_Start(myPilot);
+
     init();
     run();
 }
