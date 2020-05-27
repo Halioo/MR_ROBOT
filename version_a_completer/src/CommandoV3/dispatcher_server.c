@@ -1,12 +1,15 @@
 #include "dispatcher_server.h"
-
+#include "liste_chainee.h"
+#include "postmanCommando.h"
+#include "remoteui.h"
+#include "logger.h"
 
 /**
  * @brief Example instances counter used to have a unique queuename per thread
  */
 static int dispatcherCounter = 0;
 
-/* ----------------------- MAILBOX DEFINITIONS -----------------------*/
+/* ----------------------- MAILBORemoteUI_getSocket(this->myRemoteUI)X DEFINITIONS -----------------------*/
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -24,22 +27,22 @@ static int dispatcherCounter = 0;
  * @brief Enumeration of all the STATEs that can be taken by the STATE machine
  */
 ENUM_DECL(STATE,
-    S_FORGET,               ///< Nothing happens
-    S_IDLE,        ///< Idle STATE
-    S_LISTENING,            ///< Running STATE
-    S_DEATH                 ///< Transition STATE for stopping the STATE machine
+          S_FORGET,               ///< Nothing happens
+          S_IDLE,        ///< Idle STATE
+          S_LISTENING,            ///< Running STATE
+          S_DEATH                 ///< Transition STATE for stopping the STATE machine
 )
 
 
 /**
- * @brief Enumaration of all the possible ACTIONs called by the STATE machine
+ * @brief Enumeration of all the possible ACTIONs called by the STATE machine
  */
 ENUM_DECL(ACTION,
-    A_NOP,                         ///< Nothing happens
-    A_START_THREAD_LISTENING,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
-    A_PROCESS_DATA,
-    A_STOP_THREAD_LISTENING,              ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE                    
-    A_KILL                         ///< Kills the STATE machine
+          A_NOP,                         ///< Nothing happens
+          A_START_THREAD_LISTENING,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
+          A_PROCESS_DATA,
+          A_STOP_THREAD_LISTENING,              ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE
+          A_KILL                         ///< Kills the STATE machine
 )
 
 
@@ -47,11 +50,11 @@ ENUM_DECL(ACTION,
  * @brief Enumeration of all the possible EVENTs that triggers the STATE machine
  */
 ENUM_DECL(EVENT,
-    E_MSG_RECEIVED,         ///< Do nothing
-    E_START_LISTENING,      ///< EVENT VEL IS NULL THAT STOP POLLING
-    E_STOP_LISTENING,       /// 
-    E_STOP,                 ///< EVENT SET VEL THAT START POLLING
-    E_KILL                  ///< Kills the STATE machine
+          E_MSG_RECEIVED,         ///< Do nothing
+          E_START_LISTENING,      ///< EVENT VEL IS NULL THAT STOP POLLING
+          E_STOP_LISTENING,       ///
+          E_STOP,                 ///< EVENT SET VEL THAT START POLLING
+          E_KILL                  ///< Kills the STATE machine
 )
 
 
@@ -87,15 +90,12 @@ struct Dispatcher_t {
     STATE state;                    ///< Actual STATE of the STATE machine
     Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
     char nameTask[SIZE_TASK_NAME];  ///< Name of the task
-    Mailbox * mb;
-    Pilot * pilot;
-    Logger * logger;
+    Mailbox * mailboxEvents;
+    Mailbox * mailboxMessagesADecoder;
     FLAG flagListening;
-    RQ_data dataToProcess;
+    Pilot * myPilot;
+    Logger * myLogger;
 
-    // TODO : add here the instance variables you need to use.
-    //Watchdog * wd; ///< Example of a watchdog implementation
-    //int b; ///< Instance example variable
 };
 
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
@@ -131,6 +131,8 @@ static void processData(Dispatcher * this);
 
 static void Listen(Dispatcher * this);
 
+
+
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
 /**
@@ -141,7 +143,7 @@ typedef void (*ActionPtr)(Dispatcher*);
 /**
  * @brief Function pointer array used to call the ACTIONs of the STATE machine.
  */
-static const ActionPtr actionPtr[NB_ACTION] = { 
+static const ActionPtr actionPtr[NB_ACTION] = {
         &ActionNop,
         &ActionStartThreadListening,
         &ActionProcessData,
@@ -153,7 +155,7 @@ static const ActionPtr actionPtr[NB_ACTION] = {
 /**
  * @brief STATE machine of the Example class
  */
-static Transition stateMachine[NB_STATE - 1][NB_EVENT] = { 
+static Transition stateMachine[NB_STATE][NB_EVENT] = {
         [S_IDLE][E_START_LISTENING]         =       {S_LISTENING,	A_START_THREAD_LISTENING},
         [S_LISTENING][E_MSG_RECEIVED]       =       {S_LISTENING, A_PROCESS_DATA},
         [S_LISTENING][E_STOP_LISTENING]     =       {S_IDLE, A_START_THREAD_LISTENING},
@@ -165,19 +167,19 @@ static Transition stateMachine[NB_STATE - 1][NB_EVENT] = {
 
 // TODO : Write all the ACTION functions
 
-static void ActionStartThreadListening(Dispatcher * this) { 
+static void ActionStartThreadListening(Dispatcher * this) {
+    TRACE("Start Listening Dispatcher \n");
     this->flagListening = DOWN;
-    pthread_create(&(this->threadListening), NULL, (void *) Listen, this); 
-    TRACE("[ActionStartThreadListening]\n")
+    pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
 }
 
-static void ActionStopThreadListening(Dispatcher * this) { 
+static void ActionStopThreadListening(Dispatcher * this) {
+    TRACE("Stop Listening Dispatcher\n");
     this->flagListening = UP;
     pthread_join(this->threadListening, NULL);
-    TRACE("[ActionStopThreadListening]\n")
 }
 
-static void ActionProcessData(Dispatcher * this) {  
+static void ActionProcessData(Dispatcher * this) {
     processData(this);
     TRACE("[ActionProcessData]\n")
 }
@@ -194,95 +196,48 @@ static void ActionKill(Dispatcher * this) {
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
 
-/**
- * @brief Proccess the data received
- * 
- * Commande possible :
- * 
- * C_LEFT = 0,
- * C_RIGHT,
- * C_FORWARD,
- * C_BACKWARD,
- * C_STOP,
- * C_LOGS,
- * C_STATE,
- * C_QUIT,
- * C_EVENTS,
- * C_EVENTSCOUNT
- * 
- * 
- */
-void processData(Dispatcher * this){
+static void processData(Dispatcher * this){
 
-    COMMAND cmd = this->msg.dataReceived.command;
-    VelocityVector vel =
-    {
-        .dir = STOP
-    };
+    RQ_Wrapper wrapper;
+    mailboxReceive(this->mailboxMessagesADecoder,wrapper.toString);
+    RQ_TYPE request_type = wrapper.request.rq_type;
 
-    switch (cmd)
-    {
-    case C_LEFT:
-        vel.dir = LEFT;
-        Pilot_setRobotVelocity(this->pilot, vel);
-        TRACE("Going Left");
-        break;
-    case C_RIGHT:
-        vel.dir = RIGHT;
-        Pilot_setRobotVelocity(this->pilot, vel);
-        TRACE("Going Right");
-        break;
-    case C_FORWARD:
-        vel.dir = FORWARD;
-        Pilot_setRobotVelocity(this->pilot, vel);
-        TRACE("Going Forward");
-        break;
-    case C_BACKWARD:
-        vel.dir = BACKWARD;
-        Pilot_setRobotVelocity(this->pilot, vel);
-        TRACE("Going Backward");
-        break;
-    case C_STOP:
-        Pilot_EventStop(this->pilot);
-        TRACE("Stop");
-        break;
-    case C_LOGS:
-        //TO DO : A définir si utile ou non
-        TRACE("Logs");
-        break;
-    case C_STATE:
-        Pilot_getState();
-        TRACE("State");
-        break;
-    case C_QUIT:
-        TRACE("Quit");
-        break;
-    case C_EVENTS:
-        Logger_setEvents(this->dataToProcess.logEvent, this->logger);
-        TRACE("Get events %c", this->dataToProcess.logEvent);
-        break;
-    case C_EVENTSCOUNT:
-        Logger_setEventsCount(this->dataToProcess.eventsCount, this->logger);
-        TRACE("Get the number of events %d", this->dataToProcess.eventsCount);
-        break;
-    default:
-        break;
-    }  
-  
+    switch (request_type) {
+        case (RQ_SET_VEL):
+            Pilot_setRobotVelocity(this->myPilot,wrapper.request.vel);
+            break;
+
+        case (RQ_TOGGLE_ES):
+            Pilot_ToggleES(this->myPilot);
+            break;
+
+        case (RQ_ASK_EVENTS):
+            Logger_askEvents(wrapper.request.from,wrapper.request.to,this->myLogger);
+            break;
+
+        case (RQ_ASK_EVENTS_NB):
+            Logger_askEventsCount(this->myLogger);
+            break;
+
+        default:
+
+            break;
+    }
+
 }
 
-/**
- * @brief Listen and read the network constantly to see if there is a new data to process
- */
-static void Listen(Dispatcher * this){
-    //TO DO : Définir le socket à utiliser pour 
-    int socketBidon;
 
+static void Listen(Dispatcher * this){
+    RQ_data msgLu;
+    Wrapper wrapper;
+    RQ_Wrapper wrapperData;
     while(this->flagListening == DOWN){
-        this->dataToProcess = readNwk(RemoteUI_getSocket(socketBidon));
-        Wrapper wrapper;
+        msgLu = readNwk(PostmanCommando_getSocketComm());
+        wrapperData.request = msgLu;
+        mailboxSendMsg(this->mailboxMessagesADecoder,wrapperData.toString);
+
         wrapper.data.event = E_MSG_RECEIVED;
-        mailboxSendMsg(this->mb,wrapper.toString);
+        mailboxSendMsg(this->mailboxEvents,wrapper.toString);
     }
 }
 
@@ -297,8 +252,9 @@ static void DispatcherRun(Dispatcher * this) {
     STATE state;
     Wrapper wrapper;
 
+
     while (this->state != S_DEATH) {
-        mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
+        mailboxReceive(this->mailboxEvents, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
         if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
@@ -321,17 +277,16 @@ static void DispatcherRun(Dispatcher * this) {
 }
 
 
-Dispatcher * Dispatcher_New(Logger * logger, Pilot * pilot) {
+Dispatcher * Dispatcher_New(Pilot * myPilot, Logger * myLogger) {
     // TODO : initialize the object with it particularities
     dispatcherCounter ++; ///< Incrementing the instances counter.
     TRACE("DispatcherNew function \n")
     Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
-    this->mb = mailboxInit("Dispatcher", dispatcherCounter, sizeof(Msg));
+    this->mailboxEvents = mailboxInit("mailboxDispatcherEvents", dispatcherCounter, sizeof(Msg));
+    this->mailboxMessagesADecoder = mailboxInit("mailboxDispatcherData", dispatcherCounter, sizeof(RQ_data));
     this->state = S_IDLE;
-    this->pilot = pilot;
-    this->logger = logger;
-
-    //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
+    this->myPilot = myPilot;
+    this->myLogger = myLogger;
 
     int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);
     STOP_ON_ERROR(err < 0, "Error when setting the tasks name.")
@@ -351,13 +306,12 @@ int Dispatcher_Start(Dispatcher * this) {
 
 
 int Dispatcher_Stop(Dispatcher * this) {
-    // TODO : stop the object with it particularities
-    Msg msg = { .event = E_KILL };
+    Msg messsage = { .event = E_KILL };
 
     Wrapper wrapper;
-    wrapper.data = msg;
+    wrapper.data = messsage;
 
-    mailboxSendStop(this->mb, wrapper.toString);
+    mailboxSendStop(this->mailboxEvents, wrapper.toString);
     TRACE("Waiting for the thread to terminate \n")
 
     int err = pthread_join(this->threadId, NULL);
@@ -370,10 +324,9 @@ int Dispatcher_Stop(Dispatcher * this) {
 int Dispatcher_Free(Dispatcher * this) {
     // TODO : free the object with it particularities
     TRACE("ExampleFree function \n")
-    mailboxClose(this->mb);
+    mailboxClose(this->mailboxEvents);
 
     free(this);
 
     return 0; // TODO: Handle the errors
 }
-

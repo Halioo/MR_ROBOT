@@ -5,7 +5,7 @@
 
 #include "robocom.h"
 
-
+#define INDICE_INITIAL (-1)
 
 typedef struct Element Element;
 struct Element{
@@ -14,13 +14,14 @@ struct Element{
     int indice;
 };
 
-typedef struct Liste Liste;
-struct Liste{
+typedef struct {
     Element *premier;
-};
+} Liste;
 
-Liste *initialisation();
-void insertion(Liste *liste, LogEvent logEvent);
-void suppression(Liste *liste);
+extern Liste *ListeChainee_init();
+void ListeChainee_ajout(Liste *liste, LogEvent logEvent);
+void ListeChainee_supprDernierElem(Liste *liste);
+void ListeChainee_reset(Liste * liste);
+
 
 #endif //MR_ROBOT_LISTE_CHAINEE_H

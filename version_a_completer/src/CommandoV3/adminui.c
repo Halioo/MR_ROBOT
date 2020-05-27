@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <prose.h>
 #include "adminui.h"
 #include "robocom.h"
 #include "mailbox.h"
@@ -11,6 +10,7 @@
 #include "pilot.h"
 
 static int adminUIcounter = 0;
+static Liste * myEvents;
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -398,7 +398,6 @@ static void AdminUI_TOHandle(void * this){
 }
 
 static void updateEvents(AdminUI * this){
-    this->currentEventNumber = Logger_getEventsCount(this->myLogger);
     // TODO
 }
 

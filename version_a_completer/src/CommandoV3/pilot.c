@@ -317,19 +317,6 @@ extern void Pilot_setRobotVelocity(Pilot * this, VelocityVector vel) {
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
-extern void Pilot_EventStop(Pilot * this) {
-    Msg msg = {
-        .event = E_STOP,
-        .vel = DEFAULT_VELOCITY_VECTOR
-    };
-
-    Wrapper wrapper = {
-        .data = msg
-    };
-
-    mailboxSendMsg(this->mailbox,wrapper.toString);
-}
-
 extern void Pilot_ToggleES(Pilot * this) {
 
     Wrapper wrapper = {

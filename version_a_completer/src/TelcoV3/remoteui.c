@@ -1,5 +1,4 @@
 
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,11 +8,15 @@
 #include "proxy_pilot.h"
 #include "remoteui.h"
 #include "ihm.h"
+#include "liste_chainee.h"
+
 
 //#define LANG FRENCH
 
 
 static int remoteUIcounter = 0;
+static Liste * myEvents;
+static int myNbEvents;
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -378,6 +381,18 @@ static void ActionQuit(RemoteUI * this) {
     mailboxSendMsg(this->mb, wrapper.toString);
 }
 
+/* ----------------------- OTHER FUNCTIONS ----------------------- */
+
+extern void RemoteUI_setEvents(Liste * liste){
+    ListeChainee_reset(myEvents);
+    myEvents = liste;
+}
+
+extern void RemoteUI_setEventsCount(int nbEvents){
+    myNbEvents = nbEvents;
+}
+
+
 /* ----------------------- RUN FUNCTION ----------------------- */
 
 /**
@@ -424,6 +439,7 @@ extern RemoteUI * RemoteUI_new() {
     RemoteUI * this = (RemoteUI *) malloc(sizeof(RemoteUI));
     this->mb = mailboxInit("RemoteUI", remoteUIcounter, sizeof(Msg));
     this->wd = WatchdogConstruct(1000, &Wd_timeout, this);
+    myEvents = ListeChainee_init();
     sprintf(this->nameTask, NAME_TASK, remoteUIcounter);
     return this;
 }
@@ -467,17 +483,6 @@ extern int RemoteUI_free(RemoteUI * this) {
     return 0; // TODO: Handle the errors
 }
 
-extern int RemoteUI_getSocket(RemoteUI * this){
-    return this->socket;
-}
-
-extern void RemoteUI_setEvents(RemoteUI  * this, LogEvent * events){
-    this->myEvents = events;
-}
-
-extern void RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents){
-    this->myEventsCount = nbEvents;
-}
 
 
 

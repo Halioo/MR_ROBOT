@@ -18,25 +18,15 @@ typedef struct Logger_t Logger;
  */
 extern void Logger_signalES(Logger * this);
 
-/**
- * ??????????????????
- */
-extern void Logger_askEvents(int from,int to,Logger * this);
 
-/**
- * ??????????????????
- */
+extern void Logger_askEvents(int from,int to, Logger * this);
 extern void Logger_askEventsCount(Logger * this);
 
-/**
- * ??????????????????
- */
-extern void Logger_setEvents(LogEvent *events, Logger * this);
 
-/**
- * ??????????????????
- */
-extern void Logger_setEventsCount(int indice,Logger * this);
+extern Liste * Logger_getEvents(int from, int to, Logger * this);
+
+extern int Logger_getEventsCount(Liste * liste);
+
 
 /* ----------------------- EVENT FUNCTIONS ----------------------- */
 
@@ -56,17 +46,7 @@ extern void Logger_stopPolling(Logger * this);
  */
 extern void Logger_clearEvents(Logger * this);
 
-/**
- * return the number of events
- */
-extern int Logger_getEventsCount(Logger * this);
 
-/**
- * get a tab of event from indice "from" to "to"
- * you have to pass an array of LogEvent in parameters to put the LogEvents collected in it. The size should be <(to-from)+1>.
- * I had to do this because I cannot return a localy created array
- */
-extern void Logger_getEvents(int from, int to,LogEvent *logEventToReturn,Logger * this);
 
 /**
  * create the logger
