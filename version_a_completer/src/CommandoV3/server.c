@@ -9,11 +9,11 @@
 #include <sys/socket.h>
 #include <string.h>
 
-#include "util.h"
-#include "robocom.h"
+#include "../../lib/include/util.h"
+#include "../../lib/include/robocom.h"
 
 #include "server.h"
-#include "pilot.h"
+#include "../../lib/include/pilot.h"
 #include "commands_functions.h"
 
 
@@ -143,6 +143,7 @@ static void run() {// TODO : Write all the ACTION functions
 extern void Server_start() {
     Pilot * myPilot = Pilot_new();
     Pilot_Start(myPilot);
+
     init();
     run();
 }

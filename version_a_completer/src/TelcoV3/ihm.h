@@ -28,7 +28,7 @@
 #ifndef IHM_H
 #define IHM_H
 
-#include "util.h"
+#include "../../lib/include/util.h"
 
 #include "messages.h"
 

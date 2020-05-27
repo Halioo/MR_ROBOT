@@ -2,9 +2,9 @@
 // Created by cleme on 24/05/2020.
 //
 
-#include "pilot.h"
+#include "../../lib/include/pilot.h"
 #include "postmanTelco.h"
-#include "robocom.h"
+#include "../../lib/include/robocom.h"
 
 
 /* ----------------------- FUNCTIONS ----------------------- */
@@ -25,3 +25,12 @@ extern void Pilot_ToggleES(Pilot * this){
     };
     sendNwk(PostmanTelco_getSocketComm(),msgToSend);
 }
+
+
+extern void Pilot_quit(Pilot * this) {
+    RQ_data msgToSend = {
+            .rq_type = RQ_QUIT
+    };
+    sendNwk(PostmanTelco_getSocketComm(),msgToSend);
+}
+

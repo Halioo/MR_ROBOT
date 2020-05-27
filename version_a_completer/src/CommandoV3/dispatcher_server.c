@@ -1,8 +1,6 @@
 #include "dispatcher_server.h"
-#include "liste_chainee.h"
 #include "postmanCommando.h"
-#include "remoteui.h"
-#include "logger.h"
+#include "../../lib/include/remoteui.h"
 
 /**
  * @brief Example instances counter used to have a unique queuename per thread
@@ -168,13 +166,13 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = {
 // TODO : Write all the ACTION functions
 
 static void ActionStartThreadListening(Dispatcher * this) {
-    TRACE("Start Listening Dispatcher \n");
+    TRACE("Start Listening Dispatcher \n")
     this->flagListening = DOWN;
     pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
 }
 
 static void ActionStopThreadListening(Dispatcher * this) {
-    TRACE("Stop Listening Dispatcher\n");
+    TRACE("Stop Listening Dispatcher\n")
     this->flagListening = UP;
     pthread_join(this->threadListening, NULL);
 }
@@ -219,6 +217,11 @@ static void processData(Dispatcher * this){
             Logger_askEventsCount(this->myLogger);
             break;
 
+        case (RQ_QUIT):
+            Pilot_quit(this->myPilot);
+            Logger_quit(this->myLogger);
+            break;
+
         default:
 
             break;
@@ -252,6 +255,9 @@ static void DispatcherRun(Dispatcher * this) {
     STATE state;
     Wrapper wrapper;
 
+    TRACE("[Dispatcher server] RUN\n")
+    TRACE("[Dispatcher server] : %s\n",STATE_toString[this->state])
+
 
     while (this->state != S_DEATH) {
         mailboxReceive(this->mailboxEvents, wrapper.toString); ///< Receiving an EVENT from the mailbox
@@ -278,9 +284,8 @@ static void DispatcherRun(Dispatcher * this) {
 
 
 Dispatcher * Dispatcher_New(Pilot * myPilot, Logger * myLogger) {
-    // TODO : initialize the object with it particularities
     dispatcherCounter ++; ///< Incrementing the instances counter.
-    TRACE("DispatcherNew function \n")
+    TRACE("[Dispatcher] NEW \n")
     Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
     this->mailboxEvents = mailboxInit("mailboxDispatcherEvents", dispatcherCounter, sizeof(Msg));
     this->mailboxMessagesADecoder = mailboxInit("mailboxDispatcherData", dispatcherCounter, sizeof(RQ_data));
@@ -290,43 +295,42 @@ Dispatcher * Dispatcher_New(Pilot * myPilot, Logger * myLogger) {
 
     int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);
     STOP_ON_ERROR(err < 0, "Error when setting the tasks name.")
+    createNwk(SERVER_PORT);
 
-    return this; // TODO: Handle the errors
+
+    return this;
 }
 
 
 int Dispatcher_Start(Dispatcher * this) {
-    // TODO : start the object with it particularities
-    TRACE("ExampleStart function \n")
     int err = pthread_create(&(this->threadId), NULL, (void *) DispatcherRun, this);
     STOP_ON_ERROR(err != 0, "Error when creating the thread")
+    TRACE("[Dispatcher] START \n")
 
-    return 0; // TODO: Handle the errors
+    return 0;
 }
 
 
 int Dispatcher_Stop(Dispatcher * this) {
-    Msg messsage = { .event = E_KILL };
 
+    Msg messsage = { .event = E_KILL };
     Wrapper wrapper;
     wrapper.data = messsage;
-
     mailboxSendStop(this->mailboxEvents, wrapper.toString);
-    TRACE("Waiting for the thread to terminate \n")
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
+    TRACE("[Dispatcher] STOP \n")
+    return 0;
 
-    return 0; // TODO: Handle the errors
 }
 
 
 int Dispatcher_Free(Dispatcher * this) {
-    // TODO : free the object with it particularities
-    TRACE("ExampleFree function \n")
+    TRACE("[Dispatcher] FREE\n")
     mailboxClose(this->mailboxEvents);
 
     free(this);
+    return 0;
 
-    return 0; // TODO: Handle the errors
 }

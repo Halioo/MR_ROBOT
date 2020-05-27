@@ -55,7 +55,7 @@ extern int createNwk(int nwkPort) {
 
     bind(createSocket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
     listen(createSocket, MAX_PENDING_CONNECTIONS);
-
+    TRACE("Network créé\n")
     return createSocket;
 }
 
@@ -68,6 +68,7 @@ extern int connectNwk(char * nwkIp, int nwkPort) {
     serverAddr.sin_addr.s_addr = inet_addr(nwkIp);
 
     connect(connectSocket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
+    TRACE("Network connecté")
 
     return connectSocket;
 }

@@ -5,7 +5,7 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-#include "util.h"
+#include "../../lib/include/util.h"
 
 // GESTION DE LA LANGUE D'AFFICHAGE
 

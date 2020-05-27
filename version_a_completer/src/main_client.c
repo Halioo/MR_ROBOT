@@ -3,7 +3,7 @@
 //
 
 #include "TelcoV3/ihm.h"
-#include "remoteui.h"
+#include "../lib/include/remoteui.h"
 
 
 /**
@@ -11,9 +11,13 @@
  */
 int main (int argc, char *argv[])
 {
-    ihm_new();
-    ihm_start();
-    ihm_stop();
-    ihm_free();
+//    Ihm * monIhm = IhmNew();
+//    IhmStart(monIhm);
+//    IhmStop(monIhm);
+//    IhmFree(monIhm);
+    RemoteUI * myRemoteUI = RemoteUI_new();
+    RemoteUI_start(myRemoteUI);
+
+
     return 0;
 }

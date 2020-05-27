@@ -38,6 +38,7 @@
 
 #include "../../src/TelcoV3/ihm.h"
 #include "mailbox.h"
+#include "pilot.h"
 #include "robocom.h"
 #include "liste_chainee.h"
 

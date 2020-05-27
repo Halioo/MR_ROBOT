@@ -4,13 +4,12 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "adminui.h"
-#include "robocom.h"
-#include "mailbox.h"
-#include "logger.h"
-#include "pilot.h"
+#include "../../lib/include/robocom.h"
+#include "../../lib/include/mailbox.h"
+#include "../../lib/include/logger.h"
+#include "../../lib/include/pilot.h"
 
 static int adminUIcounter = 0;
-static Liste * myEvents;
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -103,7 +102,7 @@ struct AdminUI_t {
     Watchdog * watchdogLog;
     Pilot * myPilot;
     Logger * myLogger;
-    char myEvents[1];
+    Liste *  myEvents;
 
     int previousEventNumber;
     int currentEventNumber;
@@ -247,7 +246,7 @@ static void ActionKill(AdminUI * this) {
 }
 
 static void ActionGoScreenLog(AdminUI * this){
-    updateEvents();
+    updateEvents(this);
     displayScreen(LOG_SCREEN);
     setTO(this);
 }
@@ -268,13 +267,13 @@ static void ActionToggleES(AdminUI * this){
 }
 
 static void ActionTOLog(AdminUI * this){
-    updateEvents();
+    updateEvents(this);
     displayScreen(LOG_SCREEN);
     setTO(this);
 }
 
 static void ActionQuit(AdminUI * this){
-//    Logger_stopPolling(this->myLogger);
+    Logger_stopPolling(this->myLogger);
 }
 
 
@@ -288,7 +287,13 @@ static void AdminUI_run(AdminUI * this) {
     STATE state;
     Wrapper wrapper;
 
+    // Action de la transition initiale
+    this->currentEventNumber = this->previousEventNumber = 0;
+    Logger_startPolling(this->myLogger);
+
     TRACE("[%s] RUN\n", this->nameTask)
+    TRACE("[AdminUI] : %s\n",STATE_toString[this->state])
+
 
     while (this->state != S_DEATH) {
         mailboxReceive(this->mailbox, wrapper.toString); ///< Receiving an EVENT from the mailbox
@@ -310,6 +315,7 @@ static void AdminUI_run(AdminUI * this) {
             }
         }
     }
+    TRACE ("AdminUI FINI : %s\n",STATE_toString[this->state])
 }
 
 
@@ -340,11 +346,9 @@ extern AdminUI * AdminUI_new(Pilot * pilot, Logger * logger) {
  */
 extern int AdminUI_start(AdminUI * this)
 {
-    TRACE("[AdminUI] start function \n")
-//    printf("%s", get_msg(MSG_START));
-    int err = pthread_create(&(this->threadId), NULL, (void *) AdminUI_run, this);
+    pthread_create(&(this->threadId), NULL, (void *) AdminUI_run, this);
 
-    // TODO: Handle the errors
+    TRACE("[AdminUI] START \n")
     return 0;
 }
 
@@ -352,7 +356,6 @@ extern int AdminUI_start(AdminUI * this)
  * Stop AdminUI
  */
 extern int AdminUI_stop(AdminUI * this) {
-    // TODO : stop the object with it particularities
     Wrapper wrapper;
     wrapper.data.event = E_KILL;
     WatchdogCancel(this->watchdogLog);
@@ -360,6 +363,8 @@ extern int AdminUI_stop(AdminUI * this) {
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
+
+    TRACE("[AdminUI] STOP \n")
 
     return 0; // TODO: Handle the errors
 }
@@ -371,6 +376,8 @@ extern int AdminUI_free(AdminUI * this) {
     WatchdogDestroy(this->watchdogLog);
     mailboxClose(this->mailbox);
     free(this);
+
+    TRACE("[AdminUI] FREE \n")
 
     return 0; // TODO: Handle the errors
 }
@@ -398,7 +405,10 @@ static void AdminUI_TOHandle(void * this){
 }
 
 static void updateEvents(AdminUI * this){
-    // TODO
+    this->currentEventNumber = Logger_getEventsCount(this->myLogger);
+    this->myEvents = Logger_getEvents(this->previousEventNumber,this->currentEventNumber,this->myLogger);
+    this->previousEventNumber = this->currentEventNumber;
+
 }
 
 

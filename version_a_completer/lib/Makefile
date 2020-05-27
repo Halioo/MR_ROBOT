@@ -4,7 +4,7 @@
 # @author Matthias Brun, Clément Puybareau
 #
 
-PACKAGES = robocom watchdog mailbox
+PACKAGES = robocom watchdog mailbox liste_chainee
 
 # Inclusion depuis le niveau du package.
 CCFLAGS += -I.

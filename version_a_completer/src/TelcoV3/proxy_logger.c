@@ -1,6 +1,6 @@
 
-#include "robocom.h"
-#include "logger.h"
+#include "../../lib/include/robocom.h"
+#include "../../lib/include/logger.h"
 #include "postmanTelco.h"
 
 
@@ -21,5 +21,4 @@ extern void Logger_askEventsCount(Logger * this){
     };
     sendNwk(PostmanTelco_getSocketComm(),msgToSend);
 }
-
 

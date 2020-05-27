@@ -3,10 +3,10 @@
 
 #include <pthread.h>
 
-#include "util.h"
-#include "robocom.h"
-#include "mailbox.h"
-#include "remoteui.h"
+#include "../../lib/include/util.h"
+#include "../../lib/include/robocom.h"
+#include "../../lib/include/mailbox.h"
+#include "../../lib/include/remoteui.h"
 #include "../../lib/include/mailbox.h"
 
 typedef struct Dispatcher_t Dispatcher;

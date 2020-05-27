@@ -1,10 +1,10 @@
 //
 // Created by gwendal on 25/05/2020.
 //
-#include "util.h"
-#include "logger.h"
+#include "../../lib/include/util.h"
+#include "../../lib/include/logger.h"
 #include "robot.h"
-#include "remoteui.h"
+#include "../../lib/include/remoteui.h"
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -99,11 +99,6 @@ static void ActionStopPolling(Logger * this);
 static void ActionPoll(Logger * this);
 
 
-/* ----------------------- EVENT FUNCTIONS ----------------------- */
-
-static void Logger_EventTOPoll(Logger * this);
-
-
 /*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
 
 /**
@@ -186,10 +181,9 @@ extern void Logger_stopPolling(Logger * this) {
 }
 
 
-extern void Logger_EventTOPoll(Logger * this) {
-
+extern void Logger_quit(Logger * this){
     Wrapper wrapper = {
-            .data.event = E_TO_POLL
+            .data.event = E_KILL
     };
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
@@ -200,6 +194,9 @@ static void Logger_Run(Logger * this) {
     ACTION action;
     STATE state = S_IDLE;
     Wrapper wrapper;
+
+    TRACE("[Logger] RUN\n")
+    TRACE("[Logger] : %s\n",STATE_toString[this->myState])
 
     while (this->myState != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
@@ -251,6 +248,7 @@ static void ActionStopPolling(Logger * this){
 
 extern Logger * Logger_new() {
     loggerCounter++;
+    TRACE("[Logger] NEW \n")
     Logger * this = (Logger *) malloc(sizeof(Logger));
     this->mailbox = mailboxInit("Logger",loggerCounter,sizeof(Msg));
     this->watchdogPoll = WatchdogConstruct(POLLING_REFRESH_RATE,&Logger_TOHandle,this);
@@ -262,7 +260,8 @@ extern Logger * Logger_new() {
 }
 
 extern void Logger_start(Logger * this) {
-    pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
+    int err = pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
+    TRACE("[Logger] START \n")
 
 }
 
@@ -273,12 +272,16 @@ extern void Logger_stop(Logger * this) {
 
     WatchdogCancel(this->watchdogPoll);
     pthread_join(this->threadId,NULL);
+    TRACE("[Logger] STOP \n")
+
 }
 
 extern void Logger_free(Logger * this) {
     mailboxClose(this->mailbox);
     WatchdogDestroy(this->watchdogPoll);
     free(this);
+    TRACE("[Logger] FREE \n")
+
 }
 
 /* ----------------------- GESTION DE LA LISTE CHAINEE -----------------------*/
@@ -349,10 +352,10 @@ extern void Logger_signalES(Logger *this){
 
 }
 
-extern int Logger_getEventsCount(Liste * myList){
+extern int Logger_getEventsCount(Logger * this){
     pthread_mutex_lock(&mutexLockEventsCount);
     int count=0;
-    Element *actuel = myList->premier;
+    Element *actuel = this->myEvents->premier;
 
     while (actuel->indice > INDICE_INITIAL)
     {
@@ -388,7 +391,7 @@ extern void Logger_askEvents(int from,int to, Logger * this){
 }
 
 extern void Logger_askEventsCount(Logger * this){
-    int nbEvent = Logger_getEventsCount(this->myEvents);
+    int nbEvent = Logger_getEventsCount(this);
     RemoteUI_setEventsCount(nbEvent);
 }
 
@@ -473,7 +476,7 @@ extern void Logger_test(Logger * this)
     Logger_appendEvent(aled6,this);
     Logger_appendEvent(aled7,this);
 
-    int count = Logger_getEventsCount(this->myEvents);
+    int count = Logger_getEventsCount(this);
 
     int from = 3;
     int to = 6;

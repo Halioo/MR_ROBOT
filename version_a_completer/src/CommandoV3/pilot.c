@@ -1,12 +1,12 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include "util.h"
 
-#include "pilot.h"
+#include "../../lib/include/util.h"
+#include "../../lib/include/pilot.h"
 #include "robot.h"
-#include "mailbox.h"
-#include "watchdog.h"
+#include "../../lib/include/mailbox.h"
+#include "../../lib/include/watchdog.h"
 
 #define SIZE_TASK_NAME (20)
 #define DEFAULT_SPEED (0)
@@ -326,6 +326,14 @@ extern void Pilot_ToggleES(Pilot * this) {
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
+extern void Pilot_quit(Pilot * this){
+    Wrapper wrapper = {
+            .data.event = E_KILL
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
 static void Pilot_EventTOBump(Pilot * this){
 
     Wrapper wrapper = {
@@ -362,6 +370,7 @@ static void Pilot_Run(Pilot * this) {
     Wrapper wrapper;
 
     TRACE("[%s] RUN\n",this->nameTask)
+    TRACE("[Pilot] : %s\n",STATE_toString[this->myState])
 
     while (this->myState != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
@@ -390,6 +399,8 @@ static void Pilot_Run(Pilot * this) {
 
 Pilot *  Pilot_new() {
     pilotCounter++;
+    TRACE("[Pilot] NEW \n")
+
     Pilot * this = (Pilot *) malloc(sizeof(Pilot));
     this->mailbox = mailboxInit("Pilot",pilotCounter,sizeof(Msg));
     this->watchdogBump = WatchdogConstruct(BUMP_TEST_REFRESH_RATE,&Pilot_TOHandle,this);
@@ -402,8 +413,8 @@ Pilot *  Pilot_new() {
 
 
 int Pilot_Start(Pilot * this) {
-    int err = pthread_create(&(this->threadId),NULL,(void *)Pilot_Run, this);
-    // TODO : gestion d'erreurs
+    pthread_create(&(this->threadId),NULL,(void *)Pilot_Run, this);
+    TRACE("[Pilot] START \n")
 
 }
 
@@ -415,17 +426,19 @@ int Pilot_Stop(Pilot * this) {
     WatchdogCancel(this->watchdogBump);
 
     pthread_join(this->threadId,NULL);
-    // TODO : gestion d'erreurs
-
+    TRACE("[Pilot] STOP \n")
+    return 0;
 }
 
 
 int Pilot_Free(Pilot * this) {
     mailboxClose(this->mailbox);
     WatchdogDestroy(this->watchdogBump);
-    // TODO : gestion d'erreurs
 
     free(this);
+
+    TRACE("[Pilot] FREE \n")
+
     return 0;
 }
 

@@ -13,12 +13,13 @@
  */
 
 #include <pthread.h>
-#include <mailbox.h>
+#include "../../lib/include/mailbox.h"
 #include <ncurses.h>
 
-#include "util.h"
+#include "../../lib/include/util.h"
 #include "ihm.h"
-#include "remoteUI.h"
+#include "../../lib/include/remoteui.h"
+
 
 /**
  * @brief Ihm instances counter used to have a unique queuename per thread

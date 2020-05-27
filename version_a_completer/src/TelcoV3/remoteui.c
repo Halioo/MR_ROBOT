@@ -3,12 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <mailbox.h>
+#include "mailbox.h"
 
-#include "proxy_pilot.h"
+#include "pilot.h"
 #include "remoteui.h"
 #include "ihm.h"
 #include "liste_chainee.h"
+#include "pilot.h"
+#include "logger.h"
+
 
 
 //#define LANG FRENCH
@@ -145,12 +148,14 @@ struct RemoteUI_t {
     int currentEventNumber;
     VelocityVector vel;
 
-    LogEvent * myEvents; // TODO : définir la taille max de myEvents pour ne pas être embêté
+    Liste * myEvents;
     int myEventsCount;
 };
 
 
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
+
+static void updateEvents(RemoteUI * this);
 
 /*------------- ACTION functions -------------*/
 
@@ -174,6 +179,10 @@ static void ActionToggleES(RemoteUI * this);
 static void ActionAfterOneSec(RemoteUI * this);
 static void ActionQuitLog(RemoteUI * this);
 static void ActionQuit(RemoteUI * this);
+
+/*------------- RUN function -------------*/
+
+static void RemoteUI_run(RemoteUI * this);
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
@@ -295,10 +304,11 @@ static void Entry_connectScreen(RemoteUI * this) {
     memset(this->myIP, 0, sizeof(this->myIP));
 }
 static void Entry_mainScreen(RemoteUI * this) {
-
+    // displayScreen(MAIN_SCREEN);
 }
 static void Entry_logScreen(RemoteUI * this) {
     WatchdogStart(this->wd);
+    updateEvents(this);
 }
 
 /* ----------------------- FROM FUNCTIONS ----------------------- */
@@ -355,12 +365,14 @@ static void ActionConnectFailure(RemoteUI * this) {
 static void ActionSetDir(RemoteUI * this) {
     TRACE("[%s] ACTION - setDir\n", this->nameTask)
     this->vel = translateDir(this->msg.dir);
-    Pilot_SetVelocity(this->vel);
+    Pilot * unused;
+    Pilot_setRobotVelocity(unused,this->vel);
 }
 
 static void ActionToggleES(RemoteUI * this) {
     TRACE("[%s] ACTION - toggleES\n", this->nameTask)
-    Pilot_toggleES();
+    Pilot * unused;
+    Pilot_ToggleES(unused);
 }
 
 static void ActionAfterOneSec(RemoteUI * this) {
@@ -379,6 +391,7 @@ static void ActionQuit(RemoteUI * this) {
     Wrapper wrapper;
     wrapper.data.event = E_KILL;
     mailboxSendMsg(this->mb, wrapper.toString);
+
 }
 
 /* ----------------------- OTHER FUNCTIONS ----------------------- */
@@ -392,6 +405,13 @@ extern void RemoteUI_setEventsCount(int nbEvents){
     myNbEvents = nbEvents;
 }
 
+static void updateEvents(RemoteUI * this){
+    Logger * unused;
+//    this->currentEventNumber = Logger_getEventsCount(unused);
+//    this->myEvents = Logger_getEvents(this->previousEventNumber,this->currentEventNumber,unused);
+    this->previousEventNumber = this->currentEventNumber;
+
+}
 
 /* ----------------------- RUN FUNCTION ----------------------- */
 
@@ -404,8 +424,10 @@ static void RemoteUI_run(RemoteUI * this) {
     Wrapper wrapper;
 
     TRACE("[%s] RUN\n", this->nameTask)
+    TRACE("allo");
+    TRACE("[%s] %s\n", this->nameTask,STATE_toString[this->state])
 
-    while (this->state != S_DEATH) {
+    while (1) {
         mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
         if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
@@ -440,6 +462,7 @@ extern RemoteUI * RemoteUI_new() {
     this->mb = mailboxInit("RemoteUI", remoteUIcounter, sizeof(Msg));
     this->wd = WatchdogConstruct(1000, &Wd_timeout, this);
     myEvents = ListeChainee_init();
+    this->state = S_CONNECT_SCREEN;
     sprintf(this->nameTask, NAME_TASK, remoteUIcounter);
     return this;
 }
@@ -450,11 +473,10 @@ extern RemoteUI * RemoteUI_new() {
  */
 extern int RemoteUI_start(RemoteUI * this)
 {
-    TRACE("[RemoteUI] start function \n")
-    //printf("%s", get_msg(MSG_START));
-    int err = pthread_create(&(this->threadId), NULL, (void *) RemoteUI_run, this);
+    pthread_create(&(this->threadId), NULL, (void *) RemoteUI_run, this);
+    TRACE("[RemoteUI] start function\n")
 
-    return 0; // TODO: Handle the errors
+    return 0;
 }
 
 /**
@@ -470,7 +492,7 @@ extern int RemoteUI_stop(RemoteUI * this) {
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
 
-    return 0; // TODO: Handle the errors
+    return 0;
 }
 
 /**
