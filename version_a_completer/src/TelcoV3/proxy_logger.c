@@ -6,14 +6,13 @@
 
 /*----------------------- STATIC VARIABLES -----------------------*/
 /**
-
  * @var int myCurrentSocket
-
  * @brief Current socket to which the next message will be sent
-
  */
 
-vent * myEvents; // TODO : définir la taille max de mstatic int myCurrentSocket;
+LogEvent * myEvents; // TODO : définir la taille max de mstatic
+int myCurrentSocket;
+
 
 /* ----------------------- FUNCTIONS ----------------------- */
 

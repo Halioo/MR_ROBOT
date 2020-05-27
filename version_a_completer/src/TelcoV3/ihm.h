@@ -1,13 +1,36 @@
-//
-// Created by cleme on 19/04/2020.
-//
+/**
+ * @file ihm.h
+ *
+ * @brief This is an ihm of active class
+ *
+ * You can copy and paste this ihm to create an active class.
+ * To use it :
+ * - Search and replace (Distinguish upper and lower case) the following
+ * words in the .c and .h file: ihm, Ihm
+ * - Follow the "TODO" instructions
+ * - Remove the Ihm events and parameters.
+ *
+ * You can explain here the way to use the module (preconditions, etc).
+ *
+ * You can create several paragraphs by letting a blank space.
+ *
+ * You must code and document everything in english.
+ *
+ * @date April 2020
+ *
+ * @authors Thomas CRAVIC, Clément PUYBAREAU, Louis FROGER
+ *
+ * @version 1.0
+ *
+ * @copyright CCBY 4.0
+ */
 
-#ifndef CLIENT_IHM_H
-#define CLIENT_IHM_H
+#ifndef IHM_H
+#define IHM_H
 
-
-#include <robocom.h>
 #include "util.h"
+
+#include "messages.h"
 
 
 // Default langage
@@ -16,128 +39,53 @@
 #endif
 
 
-extern int ihm_new();
-extern int ihm_start();
-extern int ihm_stop();
-extern int ihm_free();
+ENUM_DECL(UI_SCREEN, SCREEN_CONNECT, SCREEN_MAIN, SCREEN_LOG, SCREEN_ERROR)
+
+typedef struct Ihm_t Ihm;
 
 
-// GESTION DE LA LANGUE D'AFFICHAGE
+/* ----------------------- PUBLIC FUNCTIONS PROTOTYPES -----------------------*/
 
-ENUM_DECL(LANGUAGE, FRENCH, ENGLISH, GERMAN)
-
-ENUM_DECL(TYPES_MSG, MSG_DEFAULT, MSG_START, MSG_STOP, MSG_COMMANDS, MSG_LOGS, MSG_QUIT, MSG_UNKNOWN_COMMAND, MSG_COMMAND_ASKED, MSG_COMMAND_LEFT,MSG_COMMAND_RIGHT,MSG_COMMAND_FWD, MSG_COMMAND_BCKWD, MSG_COMMAND_STOP, MSG_COMMAND_LOGS, MSG_COMMAND_STATE)
+extern void Ihm_displayScreen(Ihm * ihm, UI_SCREEN screen);
 
 
-static char const * const msg[NB_TYPES_MSG][NB_LANGUAGE] = {
-    {   // MSG_DEFAULT
-        "Langue : Français\n",
-        "Language : English\n",
-        "Sprache: Deutsch\n"
-    },
-    {   // MSG_START
-        "Bienvenue sur Robot V1\n",
-        "Welcome to Robot V1\n",
-        "Willkommen bei Robot V1\n"
-    },
-    {   // MSG_STOP
-        "Merci d'avoir utilisé Robot V1\nA bientôt !\n",
-        "Thank you for using Robot V1\nSee you soon!\n",
-        "Vielen Dank, dass Sie Robot V1 verwenden\nBis bald !\n"
-    },
-    {   // MSG_COMMANDS
-        "Vous pouvez faire les actions suivantes :\n"
-        "q:aller à gauche\nd:aller à droite\nz:avancer\ns:reculer\n :stopper\n"
-        "e:effacer les logs\nr:afficher l'état du robot\na:quitter\n",
-
-        "You can do the following actions:\n"
-        "q:go left\nd:go right\nz:go forward\ns:go backward\n :stop\n"
-        "e:clear logs\nr:show robot's state\na:quit\n",
-
-        "Sie können die folgenden Aktionen ausführen :\n"
-        "q:gehe nach links\nd:gehe nach rechts\nz:voraus\ns:rückzug\n :anschlag\n"
-        "e:lösche sie logs\nr:roboterstatus anzeigen\na:leave\n"
-    },
-    {   // MSG_LOGS
-        "Etat du robot: Vitesse %d, Collision %d, Lumiere %f\n",
-        "Robot's state: Speed %d, Collision %d, Light %f\n",
-        "Roboterstatus: Geschwindigkeit %d, Kollision %d, Licht %f\n"
-    },
-    {   // MSG_QUIT
-        "quitter\n",
-        "quit\n",
-        "leave\n"
-    },
-    {   // MSG_UNKNOWN_COMMAND
-        "Cette commande n'est pas reconnue\n",
-        "This command is not recognized\n",
-        "Dieser befehl wird nicht erkannt\n"
-    },
-    {   // MSG_COMMAND_ASKED
-        "Vous avez demandé l'action :\n",
-        "You requested the following action:\n",
-        "Sie haben folgende aktion angefordert :\n"
-    },
-    {   // MSG_COMMAND_LEFT
-        "aller à gauche\n",
-        "go left\n",
-        "gehe nach links\n"
-    },
-    {   // MSG_COMMAND_RIGHT
-        "aller à droite\n",
-        "go right\n",
-        "gehe nach rechts\n"
-    },
-    {   // MSG_COMMAND_FWD
-        "avancer\n",
-        "go forward\n",
-        "voraus\n"
-    },
-    {   // MSG_COMMAND_BCKWD
-        "reculer\n",
-        "go backward\n",
-        "rückzug\n"
-    },
-    {   // MSG_COMMAND_STOP
-        "stopper\n",
-        "stop\n",
-        "anschlag\n"
-    },
-    {   // MSG_COMMAND_LOGS
-        "effacer les logs\n",
-        "clear logs\n",
-        "lösche sie logs\n"
-    },
-    {   // MSG_COMMAND_STATE
-        "afficher l'état du robot\n",
-        "show robot's state\n",
-        "roboterstatus anzeigen\n"
-    },
-};
+/* ----------------------- NEW START STOP FREE -----------------------*/
 
 /**
- * Structure d'une commande, une commande est associée à :
- * key: une touche du clavier
- * msg: un message à afficher dans la console
- * command: une commande
+ * @brief Ihm class constructor
+ *
+ * Allocates an Ihm object
+ *
+ *
+ * @retval 0 If the allocation worked
+ * @retval -1 if the allocation didn't work
  */
-typedef struct {
-    char key;
-    TYPES_MSG msg;
-    COMMAND command;
-} Command;
+extern Ihm * IhmNew();
 
+/**
+ * @brief Ihm class starter
+ *
+ * Starts the Ihm object
+ *
+ * @retval 0 If the start worked
+ * @retval -1 If the start didn't work
+ */
+extern int IhmStart(Ihm * ihm);
 
-// Array regroupant les différentes commandes possibles
-static Command list_commands[] = {
-    {'q', MSG_COMMAND_LEFT,  C_LEFT},
-    {'d', MSG_COMMAND_RIGHT, C_RIGHT},
-    {'z', MSG_COMMAND_FWD,   C_FORWARD},
-    {'s', MSG_COMMAND_BCKWD, C_BACKWARD},
-    {' ', MSG_COMMAND_STOP,  C_STOP},
-    {'r', MSG_COMMAND_STATE, C_STATE},
-    {'e', MSG_COMMAND_LOGS, C_LOGS}
-};
+/**
+ * @brief Ihm singleton stopper
+ *
+ * @retval 0 If the object stopped properly
+ * @retval -1 If the object didn't stopped properly
+ */
+extern int IhmStop(Ihm * ihm);
 
+/**
+ * @brief Ihm singleton destructor
+ *
+ * @retval 0 If the destruction worked
+ * @retval -1 if the destruction didn't work
+ */
+extern int IhmFree(Ihm * ihm);
 
-#endif //CLIENT_IHM_H
+#endif //IHM_H

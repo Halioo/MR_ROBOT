@@ -8,8 +8,7 @@
 # Organisation des sources.
 #
 
-#SRC = $(wildcard *.c)
-SRC = remoteui.c
+SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 
@@ -24,7 +23,7 @@ CCFLAGS += -I..
 all: $(OBJ)
 
 .c.o:
-	$(CC) -c $(CCFLAGS) $< -o $@
+	$(CC) -c $(CCFLAGS) $(LDFLAGS) $< -o $@
 
 # Nettoyage.
 .PHONY: clean

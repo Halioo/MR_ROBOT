@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <mailbox.h>
 
+#include "proxy_pilot.h"
 #include "remoteui.h"
 #include "ihm.h"
 
@@ -351,7 +352,7 @@ static void ActionConnectFailure(RemoteUI * this) {
 static void ActionSetDir(RemoteUI * this) {
     TRACE("[%s] ACTION - setDir\n", this->nameTask)
     this->vel = translateDir(this->msg.dir);
-    Pilot_setVelocity(this->vel);
+    Pilot_SetVelocity(this->vel);
 }
 
 static void ActionToggleES(RemoteUI * this) {
@@ -434,7 +435,7 @@ extern RemoteUI * RemoteUI_new() {
 extern int RemoteUI_start(RemoteUI * this)
 {
     TRACE("[RemoteUI] start function \n")
-    printf("%s", get_msg(MSG_START));
+    //printf("%s", get_msg(MSG_START));
     int err = pthread_create(&(this->threadId), NULL, (void *) RemoteUI_run, this);
 
     return 0; // TODO: Handle the errors
@@ -470,11 +471,11 @@ extern int RemoteUI_getSocket(RemoteUI * this){
     return this->socket;
 }
 
-extern LogEvent * RemoteUI_setEvents(RemoteUI  * this, LogEvent * events){
+extern void RemoteUI_setEvents(RemoteUI  * this, LogEvent * events){
     this->myEvents = events;
 }
 
-extern int RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents){
+extern void RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents){
     this->myEventsCount = nbEvents;
 }
 

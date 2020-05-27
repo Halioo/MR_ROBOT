@@ -12,11 +12,11 @@ add_executable(server main_server.c
 
 target_link_libraries(client
     infox robocom watchdog mailbox liste_chainee
-    pthread rt
+    pthread rt ncurses
 )
 target_link_libraries(server
     infox robocom watchdog mailbox liste_chainee
-    pthread rt
+    pthread rt ncurses
 )
 
 

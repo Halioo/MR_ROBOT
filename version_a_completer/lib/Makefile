@@ -13,5 +13,5 @@ CCFLAGS += -I.
 all:
 	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done
 
-
-
+clean:
+	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done

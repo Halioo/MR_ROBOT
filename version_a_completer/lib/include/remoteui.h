@@ -46,8 +46,8 @@
 
 typedef struct RemoteUI_t RemoteUI;
 
-extern void RemoteUI_setEvents();
-extern void RemoteUI_setEventsCount(int nbEvents);
+extern void RemoteUI_setEvents(RemoteUI  * this, LogEvent * events);
+extern void RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents);
 
 
 extern void RemoteUI_setIp(RemoteUI*, char * ip);
@@ -93,10 +93,6 @@ extern int RemoteUI_stop(RemoteUI*);
 extern int RemoteUI_free(RemoteUI*);
 
 /* ------------------------ OTHER FUNCTIONS ---------------------*/
-
-extern LogEvent * RemoteUI_setEvents(RemoteUI  * this, LogEvent * events);
-
-extern int RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents);
 
 extern int RemoteUI_getSocket(RemoteUI * this);
 

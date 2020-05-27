@@ -14,6 +14,7 @@ static int myCurrentSocket = 0;
 
 /* ----------------------- FUNCTIONS ----------------------- */
 
+/**
 extern void RemoteUI_setEvents(){
 
 }
@@ -25,6 +26,7 @@ extern void RemoteUI_setEventsCount(int nbEvents){
 extern void Proxy_RemoteUI_store_Socket(int socket){
     myCurrentSocket = socket; ///< Assign the new socket
 }
+ */
 
 
 

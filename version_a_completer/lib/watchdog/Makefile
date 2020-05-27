@@ -19,4 +19,7 @@ all: $(OBJ)
 	ar -rv $(ARCHIVE) $(OBJ)
 
 %.o: %.c
-	$(CC) -I../include/ -c $< -o $@
+	$(CC) -I../include/ -c $< -o $@ -pthread -lrt
+
+clean:
+	@rm -f $(OBJ) $(DEP)
