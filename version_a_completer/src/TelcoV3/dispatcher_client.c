@@ -82,19 +82,16 @@ wrapperOf(Msg)
  * @brief Structure of the Example object
  */
 struct Dispatcher_t {
-    pthread_t threadId;             ///< Pthread identifier for the active function of the class.
-    pthread_t threadListening;      ///< Pthread identifier for the listening process
-    STATE state;                    ///< Actual STATE of the STATE machine
-    Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
-    char nameTask[SIZE_TASK_NAME];  ///< Name of the task
-    Mailbox * mailboxEvents;
-    Mailbox * mailboxMessagesADecoder;
-    FLAG flagListening;
-    RemoteUI * myRemoteUI;
-    Liste * listeEventsReconstituee;
-    // TODO : add here the instance variables you need to use.
-    //Watchdog * wd; ///< Example of a watchdog implementation
-    //int b; ///< Instance example variable
+    pthread_t threadId;                     ///< Pthread identifier for the active function of the class.
+    pthread_t threadListening;              ///< Pthread identifier for the listening process
+    STATE state;                            ///< Actual STATE of the STATE machine
+    Msg msg;                                ///< Structure used to pass parameters to the functions pointer.
+    char nameTask[SIZE_TASK_NAME];          ///< Name of the task
+    Mailbox * mailboxEvents;                ///< mailbox to store the events
+    Mailbox * mailboxMessagesADecoder;      ///< mailbox to store the RQ_DATA to process
+    FLAG flagListening;                     ///< Flag that get trigerred whenever we receive a data (so that we stop listening when we process a data)
+    RemoteUI * myRemoteUI;                  ///< RemoteUI object that is needed to use its own methods
+    Liste * listeEventsReconstituee;        ///< Chained list that store the logEvent
 };
 
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
@@ -102,17 +99,17 @@ struct Dispatcher_t {
 /*------------- ACTION functions -------------*/
 
 /**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ * @brief Function called when there is the EVENT START LISTENING and when the STATE is IDLE
  */
 static void ActionStartThreadListening(Dispatcher * this);
 
 /**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ * @brief Function called when there is the EVENT STOP LISTENING and when the STATE is LISTENING
  */
 static void ActionStopThreadListening(Dispatcher * this);
 
 /**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ * @brief Function called when there is the EVENT MSG RECEIVED and when the STATE is LISTENING
  */
 static void ActionProcessData(Dispatcher * this);
 
@@ -126,8 +123,14 @@ static void ActionNop(Dispatcher * this);
  */
 static void ActionKill(Dispatcher * this);
 
+/**
+ * @brief Get the message to process and do an action linked to the RQ_TYPE
+ */
 static void processData(Dispatcher * this);
 
+/**
+ * @brief Listen the Telco Postman to see if we receive a msg and the the RQ_data to the right mailbox and its linked event to the other mailbox
+ */
 static void Listen(Dispatcher * this);
 
 
@@ -152,7 +155,7 @@ static const ActionPtr actionPtr[NB_ACTION] = {
 
 
 /**
- * @brief STATE machine of the Example class
+ * @brief STATE machine of the Dispatcher_client class
  */
 static Transition stateMachine[NB_STATE][NB_EVENT] = {
         [S_IDLE][E_START_LISTENING]         =       {S_LISTENING,	A_START_THREAD_LISTENING},
@@ -163,8 +166,6 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = {
 };
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
-
-// TODO : Write all the ACTION functions
 
 static void ActionStartThreadListening(Dispatcher * this) {
     TRACE("Start Listening Dispatcher \n");
@@ -241,7 +242,7 @@ static void Listen(Dispatcher * this){
 /* ----------------------- RUN FUNCTION ----------------------- */
 
 /**
- * @brief Main running function of the Example class
+ * @brief Main running function of the Dispatcher_client class
  */
 static void DispatcherRun(Dispatcher * this) {
     ACTION action;
@@ -274,7 +275,6 @@ static void DispatcherRun(Dispatcher * this) {
 
 
 Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI) {
-    // TODO : initialize the object with it particularities
     dispatcherCounter ++; ///< Incrementing the instances counter.
     TRACE("DispatcherNew function \n")
     Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
@@ -292,7 +292,6 @@ Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI) {
 
 
 int Dispatcher_Start(Dispatcher * this) {
-    // TODO : start the object with it particularities
     TRACE("ExampleStart function \n")
     int err = pthread_create(&(this->threadId), NULL, (void *) DispatcherRun, this);
     STOP_ON_ERROR(err != 0, "Error when creating the thread")
@@ -302,7 +301,6 @@ int Dispatcher_Start(Dispatcher * this) {
 
 
 int Dispatcher_Stop(Dispatcher * this) {
-    // TODO : stop the object with it particularities
     Msg msg = { .event = E_KILL };
 
     Wrapper wrapper;
@@ -319,7 +317,6 @@ int Dispatcher_Stop(Dispatcher * this) {
 
 
 int Dispatcher_Free(Dispatcher * this) {
-    // TODO : free the object with it particularities
     TRACE("ExampleFree function \n")
     mailboxClose(this->mailboxEvents);
 
