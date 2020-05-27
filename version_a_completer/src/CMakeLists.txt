@@ -7,7 +7,7 @@ add_executable(client main_client.c
 )
 add_executable(server main_server.c
     ${SERVER_src}
-)
+        CommandoV3/ihm.c CommandoV3/ihm.h)
 
 target_link_libraries(client
     infox robocom watchdog mailbox liste_chainee
