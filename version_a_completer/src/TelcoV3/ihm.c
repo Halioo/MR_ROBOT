@@ -100,7 +100,12 @@ static void quit()
  */
 extern int stop()
 {
+    int returnValue=0;
     printf("%s", get_msg(MSG_STOP));
-    fflush(stdout);
-    return 0; // TODO: Handle the errors
+    int error = fflush(stdout);
+    if (error!=0){
+        perror("Error while stoping the ihm");
+        returnValue=-1;
+    }
+    return returnValue; // TODO: Handle the errors
 }
