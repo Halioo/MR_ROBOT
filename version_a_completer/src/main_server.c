@@ -5,28 +5,20 @@
 #include "CommandoV3/server.h"
 #include "../lib/include/pilot.h"
 #include "../lib/include/logger.h"
+#include "CommandoV3/ihm.h"
+
 
 /**
  * starts the robot V1 application
  */
 int main (int argc, char *argv[])
 {
-//    Server_start();
-//    Server_stop();
-//    Pilot * lePilote = Pilot_new();
-//    Pilot_Start(lePilote);
-//
-//    VelocityVector vel = {
-//            .power = 80,
-//            .dir = FORWARD
-//    };
-//    Pilot_setRobotVelocity(lePilote,vel);
-//
-//    Pilot_Stop(lePilote);
-//    Pilot_Free(lePilote);
-
+    Ihm * myIhm = IhmNew();
+    Pilot * myPilot = Pilot_new();
+    Pilot_Start(myPilot);
     Logger * myLogger = Logger_new();
-    Logger_test(myLogger);
+    Logger_start(myLogger);
+    Server_start();
 
     return 0;
 }

@@ -6,6 +6,8 @@
 #define MR_ROBOT_IHM_H
 
 #include "../../lib/include/util.h"
+#include "adminui.h"
+
 
 
 
@@ -16,7 +18,11 @@ typedef struct Ihm_t Ihm;
 
 /* ----------------------- PUBLIC FUNCTIONS PROTOTYPES -----------------------*/
 
-extern void Ihm_displayScreen(Ihm * ihm, UI_SCREEN screen);
+extern void IhmDisplayMainScreen(Ihm * this);
+
+extern void IhmDisplayLogScreen(Ihm * this);
+
+extern void IhmQuit(Ihm *this);
 
 
 /* ----------------------- NEW START STOP FREE -----------------------*/
@@ -30,7 +36,7 @@ extern void Ihm_displayScreen(Ihm * ihm, UI_SCREEN screen);
  * @retval 0 If the allocation worked
  * @retval -1 if the allocation didn't work
  */
-extern Ihm * IhmNew();
+extern Ihm * IhmNew(AdminUI *);
 
 /**
  * @brief Ihm class starter

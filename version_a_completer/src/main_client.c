@@ -11,9 +11,9 @@
  */
 int main (int argc, char *argv[])
 {
-    ihm_new();
-    ihm_start();
-    ihm_stop();
-    ihm_free();
+    Ihm * monIhm = IhmNew();
+    IhmStart(monIhm);
+    IhmStop(monIhm);
+    IhmFree(monIhm);
     return 0;
 }

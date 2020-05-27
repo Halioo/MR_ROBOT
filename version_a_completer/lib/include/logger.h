@@ -25,7 +25,7 @@ extern void Logger_askEventsCount(Logger * this);
 
 extern Liste * Logger_getEvents(int from, int to, Logger * this);
 
-extern int Logger_getEventsCount(Liste * liste);
+extern int Logger_getEventsCount(Logger * this);
 
 
 /* ----------------------- EVENT FUNCTIONS ----------------------- */
@@ -47,21 +47,23 @@ extern void Logger_stopPolling(Logger * this);
 extern void Logger_clearEvents(Logger * this);
 
 
-
 /**
  * create the logger
  */
 extern Logger* Logger_new();
+
 
 /**
  * start the logger
  */
 extern void Logger_start(Logger * this);
 
+
 /**
  * stop the logger
  */
 extern void Logger_stop(Logger * this);
+
 
 /**
  * free the logger
