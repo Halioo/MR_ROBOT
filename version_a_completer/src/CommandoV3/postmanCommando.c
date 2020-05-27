@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "postmanCommando.h"
-#include "robocom.h"
+#include "../../lib/include/robocom.h"
 
 static int socketServeur;
 static int socketCommunication;

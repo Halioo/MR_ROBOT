@@ -3,8 +3,8 @@
 
 #include <pthread.h>
 
-#include "logger.h"
-#include "pilot.h"
+#include "../../lib/include/logger.h"
+#include "../../lib/include/pilot.h"
 #include "../../lib/include/util.h"
 #include "../../lib/include/robocom.h"
 #include "../../lib/include/mailbox.h"

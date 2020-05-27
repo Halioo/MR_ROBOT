@@ -5,9 +5,9 @@
 #ifndef MR_ROBOT_COMMANDS_FUNCTIONS_H
 #define MR_ROBOT_COMMANDS_FUNCTIONS_H
 
-#include "robocom.h"
+#include "../../lib/include/robocom.h"
 
-#include "pilot.h"
+#include "../../lib/include/pilot.h"
 
 extern void ask_mvt(DIRECTION dir);
 extern void ask4log(void);

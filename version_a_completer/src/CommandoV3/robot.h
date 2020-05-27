@@ -37,7 +37,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include <robocom.h>
+#include "../../lib/include/robocom.h"
 
 
 /**

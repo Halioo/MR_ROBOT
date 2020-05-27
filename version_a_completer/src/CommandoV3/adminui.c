@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "adminui.h"
-#include "robocom.h"
-#include "mailbox.h"
-#include "logger.h"
-#include "pilot.h"
+#include "../../lib/include/robocom.h"
+#include "../../lib/include/mailbox.h"
+#include "../../lib/include/logger.h"
+#include "../../lib/include/pilot.h"
 
 static int adminUIcounter = 0;
 static Liste * myEvents;
@@ -247,7 +247,7 @@ static void ActionKill(AdminUI * this) {
 }
 
 static void ActionGoScreenLog(AdminUI * this){
-    updateEvents();
+    updateEvents(this);
     displayScreen(LOG_SCREEN);
     setTO(this);
 }
@@ -268,7 +268,7 @@ static void ActionToggleES(AdminUI * this){
 }
 
 static void ActionTOLog(AdminUI * this){
-    updateEvents();
+    updateEvents(this);
     displayScreen(LOG_SCREEN);
     setTO(this);
 }

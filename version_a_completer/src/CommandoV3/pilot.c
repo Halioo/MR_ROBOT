@@ -1,12 +1,12 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include "util.h"
 
+#include "../../lib/include/util.h"
 #include "../../lib/include/pilot.h"
 #include "robot.h"
-#include "mailbox.h"
-#include "watchdog.h"
+#include "../../lib/include/mailbox.h"
+#include "../../lib/include/watchdog.h"
 
 #define SIZE_TASK_NAME (20)
 #define DEFAULT_SPEED (0)

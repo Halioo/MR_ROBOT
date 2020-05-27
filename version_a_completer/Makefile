@@ -57,6 +57,7 @@ export CCFLAGS += -I$(LIBDIR)/include/
 export LDFLAGS += -L$(LIBDIR)/robocom/
 export LDFLAGS += -L$(LIBDIR)/watchdog/
 export LDFLAGS += -L$(LIBDIR)/mailbox/
+export LDFLAGS += -L$(LIBDIR)/liste_chainee/
 export LDFLAGS += -lrobocom -lwatchdog -lmailbox
 
 #

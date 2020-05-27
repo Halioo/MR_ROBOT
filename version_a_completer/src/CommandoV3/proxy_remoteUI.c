@@ -2,10 +2,10 @@
 // Created by gwendal on 26/05/2020.
 //
 
-#include "remoteui.h"
+#include "../../lib/include/remoteui.h"
 #include "postmanCommando.h"
-#include "robocom.h"
-#include "liste_chainee.h"
+#include "../../lib/include/robocom.h"
+#include "../../lib/include/liste_chainee.h"
 
 /* ----------------------- FUNCTIONS ----------------------- */
 

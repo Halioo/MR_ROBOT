@@ -1,10 +1,10 @@
 //
 // Created by gwendal on 25/05/2020.
 //
-#include "util.h"
-#include "logger.h"
+#include "../../lib/include/util.h"
+#include "../../lib/include/logger.h"
 #include "robot.h"
-#include "remoteui.h"
+#include "../../lib/include/remoteui.h"
 
 /**
  * @def Name of the task. Each instance will have this name,
