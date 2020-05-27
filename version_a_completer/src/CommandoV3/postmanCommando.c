@@ -10,12 +10,12 @@
 static int socketServeur;
 static int socketCommunication;
 
-extern int PostmanCommando_new(){
+extern int PostmanCommando_createNetwork(){
     socketServeur = createNwk(SERVER_PORT);
     return socketServeur;
 }
 
-extern int PostmanCommando_start(){
+extern int PostmanCommando_accept(){
     socketCommunication = accept(socketServeur,NULL,0);
     return socketCommunication;
 }

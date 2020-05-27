@@ -14,6 +14,8 @@
 #define DEFAULT_POWER_BCKWD 60
 #define DEFAULT_POWER_TURN 50
 
+static struct sockaddr_in serverAddr;
+
 /**
  * Transforme une direction en un VelocityVector
  * et l'envoie au pilote
@@ -42,7 +44,6 @@ extern VelocityVector translateDir(DIRECTION dir) {
 
 
 extern int createNwk(int nwkPort) {
-    struct sockaddr_in serverAddr;
     int createSocket = socket(AF_INET, SOCK_STREAM, 0); // TODO error handling
 
     int option = 1;
@@ -59,7 +60,7 @@ extern int createNwk(int nwkPort) {
     return createSocket;
 }
 
-extern int connectNwk(char * nwkIp, int nwkPort) {
+extern int createNwkClient(char * nwkIp, int nwkPort) {
     struct sockaddr_in serverAddr;
     int connectSocket = socket(AF_INET, SOCK_STREAM, 0); // TODO error handling
 
@@ -67,10 +68,13 @@ extern int connectNwk(char * nwkIp, int nwkPort) {
     serverAddr.sin_port = htons(nwkPort);
     serverAddr.sin_addr.s_addr = inet_addr(nwkIp);
 
-    connect(connectSocket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
-    TRACE("Network connecté")
-
     return connectSocket;
+}
+
+extern int connectNwkClient(int socket){
+    int test = connect(socket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
+    TRACE("Network connecté")
+    return test;
 }
 
 extern RQ_data readNwk(int socket) {

@@ -26,8 +26,8 @@ static int dispatcherCounter = 0;
  */
 ENUM_DECL(STATE,
     S_FORGET,               ///< Nothing happens
-    S_IDLE,                 ///< Idle STATE
-    S_LISTENING,            ///< Running STATE
+    S_IDLE,                 ///< IDLE STATE
+    S_LISTENING,            ///< LISTENING STATE
     S_DEATH                 ///< Transition STATE to stop the STATE machine
 )
 
