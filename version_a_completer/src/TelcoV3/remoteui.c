@@ -3,15 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <prose.h>
 #include "remoteui.h"
-
+#include "liste_chainee.h"
 
 
 //#define LANG FRENCH
 
 
 static int remoteUIcounter = 0;
+static Liste * myEvents;
+static int myNbEvents;
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -337,6 +338,18 @@ static void ActionQuit(RemoteUI * this) {
     // TODO à implémenter
 }
 
+/* ----------------------- OTHER FUNCTIONS ----------------------- */
+
+extern void RemoteUI_setEvents(Liste * liste){
+    ListeChainee_reset(myEvents);
+    myEvents = liste;
+}
+
+extern void RemoteUI_setEventsCount(int nbEvents){
+    myNbEvents = nbEvents;
+}
+
+
 /* ----------------------- RUN FUNCTION ----------------------- */
 
 /**
@@ -383,6 +396,7 @@ extern RemoteUI * RemoteUI_new() {
     RemoteUI * this = (RemoteUI *) malloc(sizeof(RemoteUI));
     this->mb = mailboxInit("RemoteUI", remoteUIcounter, sizeof(Msg));
     this->wd = WatchdogConstruct(1000, &Wd_timeout, this);
+    myEvents = ListeChainee_init();
     sprintf(this->nameTask, NAME_TASK, remoteUIcounter);
 }
 

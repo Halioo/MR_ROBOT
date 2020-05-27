@@ -11,7 +11,7 @@
 
 extern void RemoteUI_setEvents(Liste * myEvents){
     RQ_data msgToSend ={
-            .rq_type = RQ_SET
+            .rq_type = RQ_SET_EVENT
     };
 
     while(myEvents->premier->indice > INDICE_INITIAL){
@@ -19,13 +19,13 @@ extern void RemoteUI_setEvents(Liste * myEvents){
         sendNwk(PostmanCommando_getSocketComm(),msgToSend);
         myEvents->premier = myEvents->premier->suivant;
     }
-    msgToSend.rq_type = RQ_END;
+    msgToSend.rq_type = RQ_END_SET_EVENT;
     sendNwk(PostmanCommando_getSocketComm(),msgToSend);
 }
 
 extern void RemoteUI_setEventsCount(int nbEvents){
     RQ_data msgToSend = {
-            .rq_type = RQ_SET
+            .rq_type = RQ_SET_EVENT_NB
     };
     msgToSend.eventsCount = nbEvents;
     sendNwk(PostmanCommando_getSocketComm(),msgToSend);

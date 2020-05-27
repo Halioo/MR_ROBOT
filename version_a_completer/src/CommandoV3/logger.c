@@ -14,6 +14,7 @@
 #define POLLING_REFRESH_RATE (250000)
 
 static int loggerCounter = 0;
+static pthread_mutex_t mutexLockEventsCount;
 
 
 /**STATE
@@ -84,7 +85,7 @@ struct Logger_t {
     STATE myState; ///< Etat actuel de la MaE
     Liste * myEvents;
     int indiceEvents;
-    pthread_mutex_t mutexLockevents;
+    pthread_mutex_t mutexLockEvents;
 
 };
 
@@ -118,7 +119,7 @@ static void Logger_appendEvent(LogEvent logEvent, Logger * this);
 /**
  * @brief supprime la liste d'events en mémoire
  */
-static void Logger_removeEventList(Logger * this);
+static void Logger_resetEventList(Liste * liste);
 
 /**
  * @brief supprime le dernier event ajoute
@@ -319,16 +320,16 @@ static void Logger_appendEvent(LogEvent logEvent, Logger * this){
 
 }
 
-static void Logger_removeEventList(Logger * this){
+static void Logger_resetEventList(Liste * liste){
 
-    Element *actuel = this->myEvents->premier;
+    Element *actuel = liste->premier;
 
-    while (actuel != NULL)
+    while (actuel->indice > INDICE_INITIAL)
     {
-        actuel = this->myEvents->premier;
-        Logger_removeEvent(this->myEvents);
+        actuel = liste->premier;
+        Logger_removeEvent(liste);
+        actuel = actuel->suivant;
     }
-    free(this->myEvents);
 }
 
 static void Logger_removeEvent(Liste * liste){
@@ -349,7 +350,7 @@ extern void Logger_signalES(Logger *this){
 }
 
 extern int Logger_getEventsCount(Liste * myList){
-    // TODO ajouter mutex
+    pthread_mutex_lock(&mutexLockEventsCount);
     int count=0;
     Element *actuel = myList->premier;
 
@@ -358,22 +359,24 @@ extern int Logger_getEventsCount(Liste * myList){
         count++;
         actuel = actuel->suivant;
     }
+    pthread_mutex_unlock(&mutexLockEventsCount);
+
     return count ; //-1 car il faut ignorer l'élément ajouté à l'initailisation
 }
 
 extern Liste * Logger_getEvents(int from, int to, Logger * this){
-    pthread_mutex_lock(&(this->mutexLockevents));
+    pthread_mutex_lock(&(this->mutexLockEvents));
 
     Liste * listePartielle = Logger_initEventList();
     Element *actuel = this->myEvents->premier;
     while(actuel->indice > INDICE_INITIAL){
         if((actuel->indice >= from) && (actuel->indice <= to)){
-            insertion(listePartielle,actuel->logEvent);
+            ListeChainee_ajout(listePartielle, actuel->logEvent);
         }
         actuel = actuel->suivant;
     }
 
-    pthread_mutex_unlock(&(this->mutexLockevents));
+    pthread_mutex_unlock(&(this->mutexLockEvents));
 
     return listePartielle;
 }
@@ -391,7 +394,7 @@ extern void Logger_askEventsCount(Liste * liste){
 
 
 extern void Logger_clearEvents(Logger * this){
-    Logger_removeEventList(this);
+    Logger_resetEventList(this->myEvents);
 }
 
 static void Logger_setTO(Logger * this){
@@ -471,10 +474,9 @@ extern void Logger_test(Logger * this)
     Logger_appendEvent(aled7,this);
 
     int count = Logger_getEventsCount(this->myEvents);
-    printf("nb events : %d\n",count);
 
-    int from = 2;
-    int to = 3;
+    int from = 3;
+    int to = 6;
 
     Liste * maListe = Logger_getEvents(from,to,this);
     Element * actuel = maListe->premier;
@@ -483,5 +485,24 @@ extern void Logger_test(Logger * this)
         actuel = actuel->suivant;
     }
 
+    Logger_resetEventList(maListe);
+    printf("Apré : %d\n",maListe->premier->logEvent.speed);
+
+    Logger_appendEvent(aled0,this);
+    Logger_appendEvent(aled1,this);
+    Logger_appendEvent(aled2,this);
+    Logger_appendEvent(aled3,this);
+    Logger_appendEvent(aled4,this);
+    Logger_appendEvent(aled5,this);
+    Logger_appendEvent(aled6,this);
+    Logger_appendEvent(aled7,this);
+
+    maListe = Logger_getEvents(2,4,this);
+
+    actuel = maListe->premier;
+    while (actuel->indice > INDICE_INITIAL){
+        printf("%d\n",actuel->logEvent.speed);
+        actuel = actuel->suivant;
+    }
 }
 
