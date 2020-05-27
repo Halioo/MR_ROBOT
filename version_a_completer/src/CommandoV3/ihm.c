@@ -5,7 +5,7 @@
 #include "ihm.h"
 #include "adminui.h"
 #include <pthread.h>
-#include <mailbox.h>
+#include "../../lib/include/mailbox.h"
 #include <ncurses.h>
 
 
@@ -37,6 +37,7 @@ ENUM_DECL(STATE,
           S_IDLE,
           S_MAIN_SCREEN,
           S_LOG_SCREEN,
+          S_FORGET,
           S_DEATH
 )
 
