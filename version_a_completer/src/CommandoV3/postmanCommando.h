@@ -5,9 +5,9 @@
 #ifndef MR_ROBOT_POSTMANTELCO_H
 #define MR_ROBOT_POSTMANCOMMANDO_H
 
-extern int PostmanCommando_new();
+extern int PostmanCommando_createNetwork();
 
-extern int PostmanCommando_start();
+extern int PostmanCommando_accept();
 
 extern int PostmanCommando_getSocketComm();
 

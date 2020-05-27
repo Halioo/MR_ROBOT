@@ -8,10 +8,16 @@
 
 static int socketCommunication;
 
-extern int PostmanTelco_start(char * ip){
-    socketCommunication = connectNwk(ip,SERVER_PORT);
+extern int PostmanTelco_createNwkClient(char * ip){
+    socketCommunication = createNwkClient(ip, SERVER_PORT);
     return socketCommunication;
 }
+
+extern int PostmanTelco_connectClient(int socket){
+    int test = connectNwkClient(socket);
+    return test;
+}
+
 
 extern int PostmanTelco_getSocketComm(){
     return socketCommunication;

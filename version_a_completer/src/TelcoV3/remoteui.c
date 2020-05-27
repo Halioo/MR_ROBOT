@@ -11,6 +11,7 @@
 #include "liste_chainee.h"
 #include "pilot.h"
 #include "logger.h"
+#include "postmanTelco.h"
 
 
 
@@ -216,6 +217,7 @@ static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function p
 static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE machine
 
     [S_CONNECT_SCREEN][E_SETIP] = {S_CONNECT_SCREEN, A_SETIP},
+    [S_CONNECT_SCREEN][E_VALIDATE] = {PS_CONNECT, A_CONNECT},
     [PS_CONNECT][E_CONNECT_SUCCESS] = {S_MAIN_SCREEN, A_CONNECT_SUCCESS},
     [PS_CONNECT][E_CONNECT_FAILURE] = {S_ERROR_SCREEN, A_CONNECT_FAILURE},
 
@@ -302,11 +304,13 @@ extern void Wd_timeout(Watchdog * wd, void * caller) {
 
 static void Entry_connectScreen(RemoteUI * this) {
     memset(this->myIP, 0, sizeof(this->myIP));
+    Ihm_displayScreen(SCREEN_CONNECT);
 }
 static void Entry_mainScreen(RemoteUI * this) {
-    // displayScreen(MAIN_SCREEN);
+    Ihm_displayScreen(SCREEN_MAIN);
 }
 static void Entry_logScreen(RemoteUI * this) {
+    Ihm_displayScreen(SCREEN_LOG);
     WatchdogStart(this->wd);
     updateEvents(this);
 }
@@ -347,7 +351,16 @@ static void ActionSetIp(RemoteUI * this) {
 
 static void ActionConnect(RemoteUI * this) {
     TRACE("[%s] ACTION - connect\n", this->nameTask)
-    // TODO Faire la tentative de connection ici
+    int test = PostmanTelco_connectClient(PostmanTelco_getSocketComm());
+    Wrapper wrapper;
+    if(test < 0) {
+        wrapper.data.event = E_CONNECT_FAILURE;
+    } else{
+        wrapper.data.event = E_CONNECT_SUCCESS;
+
+    }
+    mailboxSendMsg(this->mb,wrapper.toString);
+
 }
 
 static void ActionConnectSuccess(RemoteUI * this) {
@@ -359,7 +372,7 @@ static void ActionConnectSuccess(RemoteUI * this) {
 
 static void ActionConnectFailure(RemoteUI * this) {
     TRACE("[%s] ACTION - connect failure\n", this->nameTask)
-    // TODO displaySreen(ERROR_SCREEN)
+    Ihm_displayScreen(SCREEN_ERROR);
 }
 
 static void ActionSetDir(RemoteUI * this) {
@@ -419,15 +432,15 @@ static void updateEvents(RemoteUI * this){
  * @brief Main running function of the RemoteUI class
  */
 static void RemoteUI_run(RemoteUI * this) {
+
     ACTION action;
     STATE state;
     Wrapper wrapper;
 
     TRACE("[%s] RUN\n", this->nameTask)
-    TRACE("allo");
     TRACE("[%s] %s\n", this->nameTask,STATE_toString[this->state])
 
-    while (1) {
+    while (this->state != S_DEATH) {
         mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
         if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
@@ -483,7 +496,7 @@ extern int RemoteUI_start(RemoteUI * this)
  * Stop RemoteUI
  */
 extern int RemoteUI_stop(RemoteUI * this) {
-    // TODO : stop the object with it particularities
+
     Wrapper wrapper;
     wrapper.data.event = E_KILL;
     WatchdogCancel(this->wd);

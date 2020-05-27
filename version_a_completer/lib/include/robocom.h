@@ -71,9 +71,10 @@ typedef union {
 // ---------- Functions prototypes ----------
 
 extern int createNwk(int nwkPort);
-extern int connectNwk(char * nwkIp, int nwkPort);
+extern int createNwkClient(char * nwkIp, int nwkPort);
 extern RQ_data readNwk(int socket);
 extern void sendNwk(int socket, RQ_data data_to_send);
+extern int connectNwkClient(int socket);
 
 /**
  * Transforme une direction en un VelocityVector
