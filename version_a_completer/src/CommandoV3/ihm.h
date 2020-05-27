@@ -6,6 +6,8 @@
 #define MR_ROBOT_IHM_H
 
 #include "../../lib/include/util.h"
+#include "adminui.h"
+
 
 
 
@@ -34,7 +36,7 @@ extern void IhmQuit(Ihm *this);
  * @retval 0 If the allocation worked
  * @retval -1 if the allocation didn't work
  */
-extern Ihm * IhmNew();
+extern Ihm * IhmNew(AdminUI);
 
 /**
  * @brief Ihm class starter

@@ -3,7 +3,6 @@
 //
 
 #include "ihm.h"
-#include "adminui.h"
 #include <pthread.h>
 #include "../../lib/include/mailbox.h"
 #include <ncurses.h>
@@ -196,10 +195,12 @@ static void ActionStopPolling(Ihm *this){
 */
 
 static void ActionDisplayMainScreen(Ihm*this){
+    TRACE("ActionDisplayMainScreen\n")
     //TODO faire l'écran
 }
 
 static void ActionDisplayLogScreen(Ihm*this){
+    TRACE("ActionDisplayLogScreen\n")
     //TODO faire l'écran
 }
 
