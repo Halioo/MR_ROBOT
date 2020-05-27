@@ -1,5 +1,5 @@
 #include "dispatcher_client.h"
-
+#include "liste_chainee.h"
 /**
  * @brief Example instances counter used to have a unique queuename per thread
  */
@@ -31,7 +31,7 @@ ENUM_DECL(STATE,
 
 
 /**
- * @brief Enumaration of all the possible ACTIONs called by the STATE machine
+ * @brief Enumeration of all the possible ACTIONs called by the STATE machine
  */
 ENUM_DECL(ACTION,
     A_NOP,                         ///< Nothing happens
@@ -86,10 +86,11 @@ struct Dispatcher_t {
     STATE state;                    ///< Actual STATE of the STATE machine
     Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
     char nameTask[SIZE_TASK_NAME];  ///< Name of the task
-    Mailbox * mb;
+    Mailbox * mailboxEvents;
+    Mailbox * mailboxMessagesADecoder;
     FLAG flagListening;
     RemoteUI * myRemoteUI;
-    RQ_data dataToProcess;
+    Liste * listeEventsReconstituee;
     // TODO : add here the instance variables you need to use.
     //Watchdog * wd; ///< Example of a watchdog implementation
     //int b; ///< Instance example variable
@@ -194,36 +195,44 @@ static void ActionKill(Dispatcher * this) {
 
 
 static void processData(Dispatcher * this){
+    // TODO : appeler cette fonction dans un while bloquant ?
+    RQ_Wrapper wrapper;
+    mailboxReceive(this->mailboxMessagesADecoder,wrapper.toString);
+    RQ_TYPE request_type = wrapper.request.rq_type;
 
-    COMMAND cmd = this->dataToProcess.command;
+    switch (request_type) {
+        case (RQ_SET_EVENT):
+            ListeChainee_ajout(this->listeEventsReconstituee,wrapper.request.logEvent);
+            break;
 
-    switch (cmd)
-    {
-    case C_EVENTS:
-        RemoteUI_setEvents(this->myRemoteUI,this->dataToProcess.logEvent);
-        TRACE("Get events %c", this->dataToProcess.logEvent);
-        break;
+        case (RQ_END_SET_EVENT):
+            RemoteUI_setEvents(this->listeEventsReconstituee);
+            ListeChainee_reset(this->listeEventsReconstituee);
+            break;
 
-    case C_EVENTSCOUNT:
-        RemoteUI_setEventsCount(this->myRemoteUI, this->dataToProcess.eventsCount);
-        TRACE("Get the number of events %d", this->dataToProcess.eventsCount);
-        break;
+        case (RQ_SET_EVENT_NB):
+            RemoteUI_setEventsCount(wrapper.request.eventsCount);
+            break;
 
-    default:
-        TRACE("Mauvaise commande")
-        break;
+        default:
+
+            break;
     }
-    this->dataToProcess.command = C_NOP;
+
 }
 
 
 static void Listen(Dispatcher * this){
-
+    RQ_data msgLu;
+    Wrapper wrapper;
+    RQ_Wrapper wrapperData;
     while(this->flagListening == DOWN){
-        this->dataToProcess = readNwk(RemoteUI_getSocket(this->myRemoteUI));
-        Wrapper wrapper;
+        msgLu = readNwk(RemoteUI_getSocket(this->myRemoteUI));
+        wrapperData.request = msgLu;
+        mailboxSendMsg(this->mailboxMessagesADecoder,wrapperData.toString);
+
         wrapper.data.event = E_MSG_RECEIVED;
-        mailboxSendMsg(this->mb,wrapper.toString);
+        mailboxSendMsg(this->mailboxEvents,wrapper.toString);
     }
 }
 
@@ -240,7 +249,7 @@ static void DispatcherRun(Dispatcher * this) {
 
 
     while (this->state != S_DEATH) {
-        mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
+        mailboxReceive(this->mailboxEvents, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
         if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
@@ -268,9 +277,11 @@ Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI) {
     dispatcherCounter ++; ///< Incrementing the instances counter.
     TRACE("DispatcherNew function \n")
     Dispatcher * this = (Dispatcher *) malloc(sizeof(Dispatcher));
-    this->mb = mailboxInit("Dispatcher", dispatcherCounter, sizeof(Msg));
+    this->mailboxEvents = mailboxInit("mailboxDispatcherEvents", dispatcherCounter, sizeof(Msg));
+    this->mailboxMessagesADecoder = mailboxInit("mailboxDispatcherData", dispatcherCounter, sizeof(RQ_data));
     this->state = S_IDLE;
     this->myRemoteUI = myRemoteUI;
+    this->listeEventsReconstituee = ListeChainee_init();
     //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
 
     int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);
@@ -297,7 +308,7 @@ int Dispatcher_Stop(Dispatcher * this) {
     Wrapper wrapper;
     wrapper.data = msg;
 
-    mailboxSendStop(this->mb, wrapper.toString);
+    mailboxSendStop(this->mailboxEvents, wrapper.toString);
     TRACE("Waiting for the thread to terminate \n")
 
     int err = pthread_join(this->threadId, NULL);
@@ -310,7 +321,7 @@ int Dispatcher_Stop(Dispatcher * this) {
 int Dispatcher_Free(Dispatcher * this) {
     // TODO : free the object with it particularities
     TRACE("ExampleFree function \n")
-    mailboxClose(this->mb);
+    mailboxClose(this->mailboxEvents);
 
     free(this);
 

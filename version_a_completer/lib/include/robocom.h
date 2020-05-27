@@ -14,7 +14,6 @@
 
 #define SERVER_PORT 12345
 #define MAX_PENDING_CONNECTIONS (5)
-#define MAX_LOGEVENTS 100
 
 #define DEFAULT_POWER_FWD 80
 #define DEFAULT_POWER_BCKWD 60
@@ -25,7 +24,7 @@
 
 ENUM_DECL(DIRECTION, STOP, RIGHT, LEFT, FORWARD, BACKWARD)
 ENUM_DECL(COMMAND, C_LEFT, C_RIGHT, C_FORWARD, C_BACKWARD, C_STOP, C_LOGS, C_STATE, C_EVENTSCOUNT, C_EVENTS, C_SETIP, C_VALIDATE, C_GOSCREENLOG, C_BACKMAINSCREEN, C_QUIT, C_CLEAR, C_ES, C_NOP)
-ENUM_DECL(RQ_TYPE, RQ_ASK, RQ_SET, RQ_END, RQ_ES)
+ENUM_DECL(RQ_TYPE, RQ_ASK, RQ_SET_EVENT, RQ_SET_EVENT_NB, RQ_END_SET_EVENT, RQ_ES)
 
 
 // ---------- Struct declarations ----------
@@ -56,9 +55,6 @@ typedef struct {
     int from;
     int to;
     int eventsCount;
-    int arg1;
-    int arg2;
-    char *argc;
     LogEvent logEvent;
 } RQ_data;
 

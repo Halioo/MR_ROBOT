@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include "liste_chainee.h"
 
-Liste *initialisation()
+static int indiceActuel = INDICE_INITIAL;
+
+Liste * ListeChainee_init()
 {
     Liste *liste = malloc(sizeof(*liste));
     Element *element = malloc(sizeof(*element));
@@ -15,6 +17,8 @@ Liste *initialisation()
     element->logEvent.speed = 0;
     element->logEvent.sens.collision_f = 0;
     element->logEvent.sens.luminosity = 0;
+    element->indice = INDICE_INITIAL;
+
 
     liste->premier = element;
 
@@ -22,8 +26,9 @@ Liste *initialisation()
 }
 
 
-void insertion(Liste *liste, LogEvent logEvent)
+void ListeChainee_ajout(Liste *liste, LogEvent logEvent)
 {
+    ++indiceActuel;
     /* Création du nouvel élément */
     Element *nouveau = malloc(sizeof(*nouveau));
     if (liste == NULL || nouveau == NULL)
@@ -31,6 +36,7 @@ void insertion(Liste *liste, LogEvent logEvent)
         exit(EXIT_FAILURE);
     }
     nouveau->logEvent = logEvent;
+    nouveau->indice = indiceActuel;
 
     /* Insertion de l'élément au début de la liste */
     nouveau->suivant = liste->premier;
@@ -38,7 +44,7 @@ void insertion(Liste *liste, LogEvent logEvent)
 }
 
 
-void suppression(Liste *liste)
+void ListeChainee_supprDernierElem(Liste *liste)
 {
     if (liste == NULL){
         exit(EXIT_FAILURE);
@@ -48,6 +54,18 @@ void suppression(Liste *liste)
         Element *aSupprimer = liste->premier;
         liste->premier = liste->premier->suivant;
         free(aSupprimer);
+    }
+}
+
+
+void ListeChainee_reset(Liste * liste){
+    Element *actuel = liste->premier;
+
+    while (actuel->indice > INDICE_INITIAL)
+    {
+        actuel = liste->premier;
+        ListeChainee_supprDernierElem(liste);
+        actuel = actuel->suivant;
     }
 }
 
