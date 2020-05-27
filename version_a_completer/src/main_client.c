@@ -30,14 +30,14 @@ int main (int argc, char *argv[])
     Dispatcher  *dispatcher=Dispatcher_New(remoteUi);
     Dispatcher_Start(dispatcher);
 
-    Ihm *ihm=IhmNew();
-    IhmStart(ihm);
+    IhmNew();
+    IhmStart();
 
     //PostmanTelco_start(ip);//TODO je sais pas quelle adresse mettre
     //PostmanTelco_stop();//TODO y a toujours pas
 
-    IhmStop(ihm);
-    IhmFree(ihm);
+    IhmStop();
+    IhmFree();
 
     Dispatcher_Stop(dispatcher);
     Dispatcher_Free(dispatcher);
