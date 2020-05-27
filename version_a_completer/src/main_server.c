@@ -12,6 +12,7 @@
  */
 int main (int argc, char *argv[])
 {
+    Ihm * myIhm = IhmNew();
     Pilot * myPilot = Pilot_new();
     Pilot_Start(myPilot);
     Logger * myLogger = Logger_new();

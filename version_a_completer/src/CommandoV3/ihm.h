@@ -36,7 +36,7 @@ extern void IhmQuit(Ihm *this);
  * @retval 0 If the allocation worked
  * @retval -1 if the allocation didn't work
  */
-extern Ihm * IhmNew(AdminUI);
+extern Ihm * IhmNew(AdminUI *);
 
 /**
  * @brief Ihm class starter
