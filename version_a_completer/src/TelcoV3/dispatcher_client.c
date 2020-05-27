@@ -319,6 +319,7 @@ int Dispatcher_Stop(Dispatcher * this) {
 int Dispatcher_Free(Dispatcher * this) {
     TRACE("ExampleFree function \n")
     mailboxClose(this->mailboxEvents);
+    mailboxClose(this->mailboxMessagesADecoder);
 
     free(this);
 
