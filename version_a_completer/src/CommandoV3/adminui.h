@@ -8,6 +8,7 @@
 #include "../../lib/include/util.h"
 #include "../../lib/include/pilot.h"
 #include "../../lib/include/logger.h"
+#include "../../lib/include/liste_chainee.h"
 
 typedef struct AdminUI_t AdminUI;
 
@@ -21,6 +22,6 @@ extern void AdminUI_Quit(AdminUI * this);
 extern void AdminUI_GoScreenLog(AdminUI * this);
 extern void AdminUI_BackMainScreen(AdminUI * this);
 extern void AdminUI_ClearLog(AdminUI * this);
-static Liste * AdminUI_getEvents(AdminUI * this);
+extern Liste * AdminUI_getEvents(AdminUI * this);
 
 #endif /* ADMINUI_H */
