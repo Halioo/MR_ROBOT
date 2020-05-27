@@ -9,13 +9,14 @@
 #
 
 # Packages du projet (à compléter si besoin est).
-PACKAGES = CommandoV3 TelcoV3
+PACKAGES = TelcoV3
 
 # Un niveau de package est accessible.
 #SRC_SERVER  = $(wildcard CommandoV3/*.c)
-SRC_CLIENT  = $(wildcard TelcoV3/*.c)
+SRC_CLIENT = $(wildcard *.c)
+SRC_CLIENT += $(wildcard */*.c)
 # Pour ajouter un second niveau :
-# SRC += $(wildcard */*/*.c)
+
 
 #OBJ_SERVER = $(SRC_SERVER:.c=.o)
 OBJ_CLIENT = $(SRC_CLIENT:.c=.o)
@@ -41,13 +42,13 @@ CCFLAGS += -I.
 #
 
 # Compilation.
-all:
+all: $(EXEC_CLIENT)
 	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done
 #	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_SERVER)
-	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_CLIENT)
+#	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_CLIENT)
 
-$(EXEC_SERVER): $(OBJ_SERVER) $(MAIN_SERVER)
-	$(CC) $(CCFLAGS) $(OBJ_SERVER) $(MAIN_SERVER) -MF $(DEP_SERVER) -o $(EXEC_SERVER) $(LDFLAGS)
+#$(EXEC_SERVER): $(OBJ_SERVER) $(MAIN_SERVER)
+#	$(CC) $(CCFLAGS) $(OBJ_SERVER) $(MAIN_SERVER) -MF $(DEP_SERVER) -o $(EXEC_SERVER) $(LDFLAGS)
 
 $(EXEC_CLIENT): $(OBJ_CLIENT) $(MAIN_CLIENT)
 	$(CC) $(CCFLAGS) $(OBJ_CLIENT) $(MAIN_CLIENT) -MF $(DEP_CLIENT) -o $(EXEC_CLIENT) $(LDFLAGS)
