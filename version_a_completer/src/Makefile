@@ -9,28 +9,29 @@
 #
 
 # Packages du projet (à compléter si besoin est).
-PACKAGES = TelcoV3
+PACKAGES = CommandoV3 TelcoV3
 
 # Un niveau de package est accessible.
-#SRC_SERVER  = $(wildcard CommandoV3/*.c)
-SRC_CLIENT = $(wildcard *.c)
-SRC_CLIENT += $(wildcard */*.c)
+SRC_SERVER  = $(wildcard CommandoV3/*.c)
+SRC_CLIENT  = $(wildcard TelcoV3/*.c)
+#SRC_CLIENT = $(wildcard *.c)
+#SRC_CLIENT += $(wildcard */*.c)
 # Pour ajouter un second niveau :
 
 
-#OBJ_SERVER = $(SRC_SERVER:.c=.o)
+OBJ_SERVER = $(SRC_SERVER:.c=.o)
 OBJ_CLIENT = $(SRC_CLIENT:.c=.o)
 
 # Point d'entrée du programme.
-#MAIN_SERVER = main_server.c
+MAIN_SERVER = main_server.c
 MAIN_CLIENT = main_client.c
 
 # Gestion automatique des dépendances.
-#DEP_SERVER = $(MAIN_SERVER:.c=.d)
+DEP_SERVER = $(MAIN_SERVER:.c=.d)
 DEP_CLIENT = $(MAIN_CLIENT:.c=.d)
 
 # Exécutable à générer.
-#EXEC_SERVER = ../$(PROG_SERVER)
+EXEC_SERVER = ../$(PROG_SERVER)
 EXEC_CLIENT = ../$(PROG_CLIENT)
 
 
@@ -42,13 +43,13 @@ CCFLAGS += -I.
 #
 
 # Compilation.
-all: $(EXEC_CLIENT)
+all: 
 	@for p in $(PACKAGES); do (cd $$p; $(MAKE) $@); done
-#	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_SERVER)
-#	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_CLIENT)
+	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_SERVER)
+	@$(MAKE) CCFLAGS="$(CCFLAGS)" LDFLAGS="$(LDFLAGS)" $(EXEC_CLIENT)
 
-#$(EXEC_SERVER): $(OBJ_SERVER) $(MAIN_SERVER)
-#	$(CC) $(CCFLAGS) $(OBJ_SERVER) $(MAIN_SERVER) -MF $(DEP_SERVER) -o $(EXEC_SERVER) $(LDFLAGS)
+$(EXEC_SERVER): $(OBJ_SERVER) $(MAIN_SERVER)
+	$(CC) $(CCFLAGS) $(OBJ_SERVER) $(MAIN_SERVER) -MF $(DEP_SERVER) -o $(EXEC_SERVER) $(LDFLAGS)
 
 $(EXEC_CLIENT): $(OBJ_CLIENT) $(MAIN_CLIENT)
 	$(CC) $(CCFLAGS) $(OBJ_CLIENT) $(MAIN_CLIENT) -MF $(DEP_CLIENT) -o $(EXEC_CLIENT) $(LDFLAGS)

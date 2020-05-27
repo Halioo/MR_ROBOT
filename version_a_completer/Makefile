@@ -58,7 +58,7 @@ export LDFLAGS += -L$(LIBDIR)/robocom/
 export LDFLAGS += -L$(LIBDIR)/watchdog/
 export LDFLAGS += -L$(LIBDIR)/mailbox/
 export LDFLAGS += -L$(LIBDIR)/liste_chainee/
-export LDFLAGS += -lrobocom -lwatchdog -lmailbox
+export LDFLAGS += -lrobocom -lwatchdog -lmailbox -lliste_chainee
 export LDFLAGS += -lrt -pthread -lncurses
 
 
