@@ -75,13 +75,6 @@ extern int Pilot_Free(Pilot * this);
  */
 extern void Pilot_SetVelocity(VelocityVector vel);
 
-/**
- * getState
- * 
- * @brief description 
- * @return PilotState
- */
-extern PilotState Pilot_getState();
 
 /**
  * check

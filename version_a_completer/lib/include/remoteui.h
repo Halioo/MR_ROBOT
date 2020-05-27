@@ -39,15 +39,13 @@
 #include "../../src/TelcoV3/ihm.h"
 #include "mailbox.h"
 #include "robocom.h"
+#include "liste_chainee.h"
 
 
 #include "../../src/TelcoV3/proxy_pilot.h"
 
 
 typedef struct RemoteUI_t RemoteUI;
-
-extern void RemoteUI_setEvents();
-extern void RemoteUI_setEventsCount(int nbEvents);
 
 
 extern void RemoteUI_setIp(RemoteUI*, char * ip);
@@ -94,9 +92,9 @@ extern int RemoteUI_free(RemoteUI*);
 
 /* ------------------------ OTHER FUNCTIONS ---------------------*/
 
-extern LogEvent * RemoteUI_setEvents(RemoteUI  * this, LogEvent * events);
+extern void RemoteUI_setEvents(Liste * myEvents);
 
-extern int RemoteUI_setEventsCount(RemoteUI  * this, int nbEvents);
+extern void RemoteUI_setEventsCount(int nbEvents);
 
 extern int RemoteUI_getSocket(RemoteUI * this);
 
