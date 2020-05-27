@@ -26,9 +26,9 @@ static int dispatcherCounter = 0;
  */
 ENUM_DECL(STATE,
           S_FORGET,               ///< Nothing happens
-          S_IDLE,        ///< Idle STATE
-          S_LISTENING,            ///< Running STATE
-          S_DEATH                 ///< Transition STATE for stopping the STATE machine
+          S_IDLE,                 ///< IDLE STATE
+          S_LISTENING,            ///< LISTENING STATE
+          S_DEATH                 ///< Transition STATE to stop the STATE machine
 )
 
 
@@ -37,9 +37,9 @@ ENUM_DECL(STATE,
  */
 ENUM_DECL(ACTION,
           A_NOP,                         ///< Nothing happens
-          A_START_THREAD_LISTENING,             ///< ACTION called when passing from the RUNNING STATE to the IDLE STATE
-          A_PROCESS_DATA,
-          A_STOP_THREAD_LISTENING,              ///< ACTION called when passing from the IDLE STATE to the RUNNING STATE
+          A_START_THREAD_LISTENING,      ///< ACTION called when passing from the IDLE STATE to the LISTENING STATE
+          A_PROCESS_DATA,                ///< ACTION called when passing we received a msg and we stay in the LISTENING STATE
+          A_STOP_THREAD_LISTENING,       ///< ACTION called when passing from the LISTENING STATE to the IDLE STATE
           A_KILL                         ///< Kills the STATE machine
 )
 
@@ -48,10 +48,9 @@ ENUM_DECL(ACTION,
  * @brief Enumeration of all the possible EVENTs that triggers the STATE machine
  */
 ENUM_DECL(EVENT,
-          E_MSG_RECEIVED,         ///< Do nothing
-          E_START_LISTENING,      ///< EVENT VEL IS NULL THAT STOP POLLING
-          E_STOP_LISTENING,       ///
-          E_STOP,                 ///< EVENT SET VEL THAT START POLLING
+          E_MSG_RECEIVED,         ///< EVENT MSG RECEIVED THAT CALL PROCESS DATA
+          E_START_LISTENING,      ///< EVENT TO START LISTENING
+          E_STOP_LISTENING,       ///< EVENT TO STOP LISTENING
           E_KILL                  ///< Kills the STATE machine
 )
 
@@ -83,16 +82,16 @@ wrapperOf(Msg)
  * @brief Structure of the Example object
  */
 struct Dispatcher_t {
-    pthread_t threadId;             ///< Pthread identifier for the active function of the class.
-    pthread_t threadListening;      ///< Pthread identifier for the listening process
-    STATE state;                    ///< Actual STATE of the STATE machine
-    Msg msg;                        ///< Structure used to pass parameters to the functions pointer.
-    char nameTask[SIZE_TASK_NAME];  ///< Name of the task
-    Mailbox * mailboxEvents;
-    Mailbox * mailboxMessagesADecoder;
-    FLAG flagListening;
-    Pilot * myPilot;
-    Logger * myLogger;
+    pthread_t threadId;                     ///< Pthread identifier for the active function of the class.
+    pthread_t threadListening;              ///< Pthread identifier for the listening process
+    STATE state;                            ///< Actual STATE of the STATE machine
+    Msg msg;                                ///< Structure used to pass parameters to the functions pointer.
+    char nameTask[SIZE_TASK_NAME];          ///< Name of the task
+    Mailbox * mailboxEvents;                ///< mailbox to store the events
+    Mailbox * mailboxMessagesADecoder;      ///< mailbox to store the RQ_DATA to process
+    FLAG flagListening;                     ///< Flag that get trigerred whenever we receive a data (so that we stop listening when we process a data)
+    Pilot * myPilot;                        ///< Pilot object that is needed to use its own methods
+    Logger * myLogger;                      ///< Logger object that is needed to use its own methods
 
 };
 
@@ -101,17 +100,17 @@ struct Dispatcher_t {
 /*------------- ACTION functions -------------*/
 
 /**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ * @brief Function called when there is the EVENT START LISTENING and when the STATE is IDLE
  */
 static void ActionStartThreadListening(Dispatcher * this);
 
 /**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ * @brief Function called when there is the EVENT STOP LISTENING and when the STATE is LISTENING
  */
 static void ActionStopThreadListening(Dispatcher * this);
 
 /**
- * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
+ * @brief  Function called when there is the EVENT MSG RECEIVED and when the STATE is LISTENING
  */
 static void ActionProcessData(Dispatcher * this);
 
@@ -329,6 +328,7 @@ int Dispatcher_Stop(Dispatcher * this) {
 int Dispatcher_Free(Dispatcher * this) {
     TRACE("[Dispatcher] FREE\n")
     mailboxClose(this->mailboxEvents);
+    mailboxClose(this->mailboxMessagesADecoder);
 
     free(this);
     return 0;
