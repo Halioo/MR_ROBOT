@@ -13,9 +13,9 @@
  */
 
 #include <pthread.h>
-#include <mailbox.h>
+#include "../../lib/include/mailbox.h"
 
-#include "util.h"
+#include "../../lib/include/util.h"
 #include "example.h"
 
 /**

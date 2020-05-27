@@ -3,8 +3,8 @@
 //
 
 #include "CommandoV3/server.h"
-#include "pilot.h"
-#include "logger.h"
+#include "../lib/include/pilot.h"
+#include "../lib/include/logger.h"
 
 /**
  * starts the robot V1 application
