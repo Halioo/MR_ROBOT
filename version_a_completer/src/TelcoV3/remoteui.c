@@ -506,5 +506,8 @@ extern int RemoteUI_free(RemoteUI * this) {
 }
 
 
+extern Liste * RemoteUI_getEvents(RemoteUI * this){
+    return this->myEvents;
+}
 
 
