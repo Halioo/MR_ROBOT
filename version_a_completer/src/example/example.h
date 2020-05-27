@@ -28,7 +28,7 @@
 #ifndef EXAMPLE_H
 #define EXAMPLE_H
 
-#include <watchdog.h>
+#include "../../lib/include/watchdog.h"
 
 typedef struct Example_t Example;
 

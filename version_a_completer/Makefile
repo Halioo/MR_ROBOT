@@ -45,7 +45,7 @@ export CCFLAGS += -D_BSD_SOURCE -D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE -D_DEFA
 # On compile en utilisant les options de gcc
 export CCFLAGS += -std=c99 -Wall
 # -pedantic retiré car génère des warnings pour mes TRACE
-export LDFLAGS += -lrt -pthread -lncurses
+
 
 # options de compilation pour l'utilisation de Intox/Infox
 export CCFLAGS += -DINTOX
@@ -58,7 +58,9 @@ export LDFLAGS += -L$(LIBDIR)/robocom/
 export LDFLAGS += -L$(LIBDIR)/watchdog/
 export LDFLAGS += -L$(LIBDIR)/mailbox/
 export LDFLAGS += -L$(LIBDIR)/liste_chainee/
-export LDFLAGS += -lrobocom -lwatchdog -lmailbox
+export LDFLAGS += -lrobocom -lwatchdog -lmailbox -lliste_chainee
+export LDFLAGS += -lrt -pthread -lncurses
+
 
 #
 # Définitions du binaire à générer.
