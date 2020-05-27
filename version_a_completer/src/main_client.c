@@ -11,9 +11,13 @@
  */
 int main (int argc, char *argv[])
 {
-    Ihm * monIhm = IhmNew();
-    IhmStart(monIhm);
-    IhmStop(monIhm);
-    IhmFree(monIhm);
+//    Ihm * monIhm = IhmNew();
+//    IhmStart(monIhm);
+//    IhmStop(monIhm);
+//    IhmFree(monIhm);
+    RemoteUI * myRemoteUI = RemoteUI_new();
+    RemoteUI_start(myRemoteUI);
+
+
     return 0;
 }

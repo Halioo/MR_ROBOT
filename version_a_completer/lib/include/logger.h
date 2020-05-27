@@ -70,6 +70,7 @@ extern void Logger_stop(Logger * this);
  */
 extern void Logger_free(Logger * this);
 
+extern void Logger_quit(Logger * this);
 
 // TODO : remove me after tests
 extern void Logger_test(Logger * this);

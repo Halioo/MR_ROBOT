@@ -326,6 +326,14 @@ extern void Pilot_ToggleES(Pilot * this) {
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
+extern void Pilot_quit(Pilot * this){
+    Wrapper wrapper = {
+            .data.event = E_KILL
+    };
+
+    mailboxSendMsg(this->mailbox,wrapper.toString);
+}
+
 static void Pilot_EventTOBump(Pilot * this){
 
     Wrapper wrapper = {
