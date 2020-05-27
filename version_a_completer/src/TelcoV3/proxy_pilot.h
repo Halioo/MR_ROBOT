@@ -6,8 +6,8 @@
 #define PROXY_PILOT_H
 
 
-#include "util.h"
-#include <robocom.h>
+#include "../../lib/include/util.h"
+#include "../../lib/include/robocom.h"
 
 //extern void ProxyPilot_new(int socket);
 

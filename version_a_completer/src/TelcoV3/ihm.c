@@ -13,12 +13,12 @@
  */
 
 #include <pthread.h>
-#include <mailbox.h>
+#include "../../lib/include/mailbox.h"
 #include <ncurses.h>
 
-#include "util.h"
+#include "../../lib/include/util.h"
 #include "ihm.h"
-#include "remoteui.h"
+#include "../../lib/include/remoteui.h"
 
 
 /**

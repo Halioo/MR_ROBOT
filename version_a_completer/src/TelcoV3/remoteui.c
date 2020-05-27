@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <../../lib/include/mailbox.h>
+#include "../../lib/include/mailbox.h"
 
 #include "proxy_pilot.h"
 #include "../../lib/include/remoteui.h"
