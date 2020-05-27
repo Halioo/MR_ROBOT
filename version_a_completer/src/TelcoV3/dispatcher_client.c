@@ -1,11 +1,13 @@
 #include "dispatcher_client.h"
 #include "liste_chainee.h"
+#include "postmanTelco.h"
+
 /**
  * @brief Example instances counter used to have a unique queuename per thread
  */
 static int dispatcherCounter = 0;
 
-/* ----------------------- MAILBOX DEFINITIONS -----------------------*/
+/* ----------------------- MAILBORemoteUI_getSocket(this->myRemoteUI)X DEFINITIONS -----------------------*/
 
 /**
  * @def Name of the task. Each instance will have this name,
@@ -201,7 +203,7 @@ static void processData(Dispatcher * this){
     RQ_TYPE request_type = wrapper.request.rq_type;
 
     switch (request_type) {
-        case (RQ_SET_EVENT):
+        case (RQ_SET_EVENTS):
             ListeChainee_ajout(this->listeEventsReconstituee,wrapper.request.logEvent);
             break;
 
@@ -227,7 +229,7 @@ static void Listen(Dispatcher * this){
     Wrapper wrapper;
     RQ_Wrapper wrapperData;
     while(this->flagListening == DOWN){
-        msgLu = readNwk(RemoteUI_getSocket(this->myRemoteUI));
+        msgLu = readNwk(PostmanTelco_getSocketComm());
         wrapperData.request = msgLu;
         mailboxSendMsg(this->mailboxMessagesADecoder,wrapperData.toString);
 

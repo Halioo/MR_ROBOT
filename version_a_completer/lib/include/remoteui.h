@@ -42,9 +42,6 @@
 #include "liste_chainee.h"
 
 
-#include "../../src/TelcoV3/proxy_pilot.h"
-
-
 typedef struct RemoteUI_t RemoteUI;
 
 

@@ -11,7 +11,7 @@
 
 extern void RemoteUI_setEvents(Liste * myEvents){
     RQ_data msgToSend ={
-            .rq_type = RQ_SET_EVENT
+            .rq_type = RQ_SET_EVENTS
     };
 
     while(myEvents->premier->indice > INDICE_INITIAL){

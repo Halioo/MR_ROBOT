@@ -67,27 +67,16 @@ extern Pilot * Pilot_new();
  */
 extern int Pilot_Free(Pilot * this);
 
-/**
- * setVelocity
- *
- * @brief description
- * @param vel
- */
-extern void Pilot_SetVelocity(VelocityVector vel);
-
 
 /**
  * check
  * 
  * @brief description 
  */
-extern void Pilot_check();
 
 extern void Pilot_ToggleES(Pilot * this);
 
 extern void Pilot_setRobotVelocity(Pilot * this, VelocityVector vel);
-
-extern void Pilot_EventStop(Pilot * this);
 
 #endif /* PILOT_H */
 
