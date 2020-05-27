@@ -21,6 +21,6 @@ extern void AdminUI_Quit(AdminUI * this);
 extern void AdminUI_GoScreenLog(AdminUI * this);
 extern void AdminUI_BackMainScreen(AdminUI * this);
 extern void AdminUI_ClearLog(AdminUI * this);
-
+static Liste * AdminUI_getEvents(AdminUI * this);
 
 #endif /* ADMINUI_H */

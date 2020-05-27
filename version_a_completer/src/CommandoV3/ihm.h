@@ -7,22 +7,20 @@
 
 #include "../../lib/include/util.h"
 #include "adminui.h"
-
+#include "messages.h"
 
 
 
 ENUM_DECL(UI_SCREEN, SCREEN_MAIN, SCREEN_LOG, SCREEN_ERROR)
 
-typedef struct Ihm_t Ihm;
-
 
 /* ----------------------- PUBLIC FUNCTIONS PROTOTYPES -----------------------*/
 
-extern void IhmDisplayMainScreen(Ihm * this);
+extern void IhmDisplayMainScreen();
 
-extern void IhmDisplayLogScreen(Ihm * this);
+extern void IhmDisplayLogScreen();
 
-extern void IhmQuit(Ihm *this);
+extern void IhmQuit();
 
 
 /* ----------------------- NEW START STOP FREE -----------------------*/
@@ -36,7 +34,7 @@ extern void IhmQuit(Ihm *this);
  * @retval 0 If the allocation worked
  * @retval -1 if the allocation didn't work
  */
-extern Ihm * IhmNew(AdminUI *);
+extern int IhmNew(AdminUI *);
 
 /**
  * @brief Ihm class starter
@@ -46,7 +44,7 @@ extern Ihm * IhmNew(AdminUI *);
  * @retval 0 If the start worked
  * @retval -1 If the start didn't work
  */
-extern int IhmStart(Ihm * ihm);
+extern int IhmStart();
 
 /**
  * @brief Ihm singleton stopper
@@ -54,7 +52,7 @@ extern int IhmStart(Ihm * ihm);
  * @retval 0 If the object stopped properly
  * @retval -1 If the object didn't stopped properly
  */
-extern int IhmStop(Ihm * ihm);
+extern int IhmStop();
 
 /**
  * @brief Ihm singleton destructor
@@ -62,7 +60,7 @@ extern int IhmStop(Ihm * ihm);
  * @retval 0 If the destruction worked
  * @retval -1 if the destruction didn't work
  */
-extern int IhmFree(Ihm * ihm);
+extern int IhmFree();
 
 
 #endif //MR_ROBOT_IHM_H
