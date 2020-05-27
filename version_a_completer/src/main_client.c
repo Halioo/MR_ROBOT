@@ -33,9 +33,19 @@ int main (int argc, char *argv[])
     Ihm *ihm=IhmNew();
     IhmStart(ihm);
 
-    PostmanTelco_start();
+    //PostmanTelco_start(ip);//TODO je sais pas quelle adresse mettre
+    //PostmanTelco_stop();//TODO y a toujours pas
 
-    PostmanTelco_stop();
+    IhmStop(ihm);
+    IhmFree(ihm);
+
+    Dispatcher_Stop(dispatcher);
+    Dispatcher_Free(dispatcher);
+
+    RemoteUI_stop(remoteUi);
+    RemoteUI_free(remoteUi);
+
+
 
 
 
