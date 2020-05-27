@@ -5,7 +5,7 @@
 #ifndef MR_ROBOT_IHM_H
 #define MR_ROBOT_IHM_H
 
-#include "util.h"
+#include "../../lib/include/util.h"
 
 
 
@@ -16,7 +16,11 @@ typedef struct Ihm_t Ihm;
 
 /* ----------------------- PUBLIC FUNCTIONS PROTOTYPES -----------------------*/
 
-extern void Ihm_displayScreen(Ihm * ihm, UI_SCREEN screen);
+extern void IhmDisplayMainScreen(Ihm * this);
+
+extern void IhmDisplayLogScreen(Ihm * this);
+
+extern void IhmQuit(Ihm *this);
 
 
 /* ----------------------- NEW START STOP FREE -----------------------*/

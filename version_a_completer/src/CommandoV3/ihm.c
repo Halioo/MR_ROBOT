@@ -5,7 +5,7 @@
 #include "ihm.h"
 #include "adminui.h"
 #include <pthread.h>
-#include <mailbox.h>
+#include "../../lib/include/mailbox.h"
 #include <ncurses.h>
 
 
@@ -37,6 +37,7 @@ ENUM_DECL(STATE,
           S_IDLE,
           S_MAIN_SCREEN,
           S_LOG_SCREEN,
+          S_FORGET,
           S_DEATH
 )
 
@@ -46,8 +47,10 @@ ENUM_DECL(STATE,
  */
 ENUM_DECL(ACTION,
           A_NOP,                      ///< Nothing happens
-          A_STARTPOLLING,
-          A_STOPPOLLING,
+          //A_STARTPOLLING,
+          //A_STOPPOLLING,
+          A_DISPLAY_MAIN_SCREEN,
+          A_DISPLAY_LOG_SCREEN,
           A_KILL                      ///< Kills the STATE machine
 )
 
@@ -107,9 +110,15 @@ struct Ihm_t {
  */
 static void ActionNop(Ihm * this);
 
-static void ActionStartPolling(Ihm *this);
+//static void ActionStartPolling(Ihm *this);
 
-static void ActionStopPolling(Ihm *this);
+//static void ActionStopPolling(Ihm *this);
+
+static void ActionDisplayMainScreen(Ihm *this);
+
+static void ActionDisplayLogScreen(Ihm *this);
+
+
 
 /**
  * @brief Changes the STATE of the STATE machine to S_DEATH
@@ -128,8 +137,8 @@ typedef void (*ActionPtr)(Ihm*);
  */
 static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function pointers corresponding to the ACTION enum in the right order.
         &ActionNop,
-        &ActionStartPolling,
-        &ActionStopPolling,
+        &ActionDisplayMainScreen,
+        &ActionDisplayLogScreen,
         &ActionKill
 };
 
@@ -139,11 +148,17 @@ static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function p
  */
 static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE machine
 
-        [S_IDLE][E_DISPLAY_MAIN_SCREEN]={S_MAIN_SCREEN,A_STARTPOLLING},
+        /*[S_IDLE][E_DISPLAY_MAIN_SCREEN]={S_MAIN_SCREEN,A_STARTPOLLING},
         [S_MAIN_SCREEN][E_DISPLAY_LOG_SCREEN]={S_LOG_SCREEN,A_NOP},
         [S_LOG_SCREEN][E_DISPLAY_MAIN_SCREEN]={S_MAIN_SCREEN,A_NOP},
         [S_MAIN_SCREEN][E_QUIT]={S_DEATH,A_STOPPOLLING},
-        [S_LOG_SCREEN][E_QUIT]={S_DEATH,A_STOPPOLLING}
+        [S_LOG_SCREEN][E_QUIT]={S_DEATH,A_STOPPOLLING}*/
+
+        [S_IDLE][E_DISPLAY_MAIN_SCREEN]={S_MAIN_SCREEN,A_DISPLAY_MAIN_SCREEN},
+        [S_MAIN_SCREEN][E_DISPLAY_LOG_SCREEN]={S_LOG_SCREEN,A_DISPLAY_LOG_SCREEN},
+        [S_LOG_SCREEN][E_DISPLAY_MAIN_SCREEN]={S_MAIN_SCREEN,A_DISPLAY_MAIN_SCREEN},
+        [S_MAIN_SCREEN][E_QUIT]={S_DEATH,A_KILL},
+        [S_LOG_SCREEN][E_QUIT]={S_DEATH,A_KILL}
 
 };
 
@@ -167,7 +182,7 @@ static void initScreen() {
     refresh();
 }
 
-static void ActionStartPolling(Ihm *this){
+/*static void ActionStartPolling(Ihm *this){
     this->logger=Logger_new();
     Logger_start(this->logger);
     Logger_startPolling(this->logger);
@@ -177,6 +192,15 @@ static void ActionStopPolling(Ihm *this){
     Logger_stopPolling(this->logger);
     Logger_stop(this->logger);
     Logger_free(this->logger);
+}
+*/
+
+static void ActionDisplayMainScreen(Ihm*this){
+    //TODO faire l'écran
+}
+
+static void ActionDisplayLogScreen(Ihm*this){
+    //TODO faire l'écran
 }
 
 static void ActionNop(Ihm * this) {
@@ -201,6 +225,12 @@ extern void IhmDisplayMainScreen(Ihm * this) {
 extern void IhmDisplayLogScreen(Ihm * this) {
     Wrapper wrapper;
     wrapper.data.event = E_DISPLAY_LOG_SCREEN;
+    mailboxSendMsg(this->mb, wrapper.toString);
+}
+
+extern void IhmQuit(Ihm *this){
+    Wrapper wrapper;
+    wrapper.data.event = E_QUIT;
     mailboxSendMsg(this->mb, wrapper.toString);
 }
 
