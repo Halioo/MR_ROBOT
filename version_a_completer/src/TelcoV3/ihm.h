@@ -41,13 +41,13 @@
 
 ENUM_DECL(UI_SCREEN, SCREEN_CONNECT, SCREEN_MAIN, SCREEN_LOG, SCREEN_ERROR)
 
-typedef struct Ihm_t Ihm;
+
 
 
 /* ----------------------- PUBLIC FUNCTIONS PROTOTYPES -----------------------*/
 
-extern void Ihm_displayScreen(Ihm * ihm, UI_SCREEN screen);
-
+extern void Ihm_displayScreen(UI_SCREEN screen);
+//extern void Ihm_quit();
 
 /* ----------------------- NEW START STOP FREE -----------------------*/
 
@@ -60,7 +60,7 @@ extern void Ihm_displayScreen(Ihm * ihm, UI_SCREEN screen);
  * @retval 0 If the allocation worked
  * @retval -1 if the allocation didn't work
  */
-extern Ihm * IhmNew();
+extern int IhmNew();
 
 /**
  * @brief Ihm class starter
@@ -70,7 +70,7 @@ extern Ihm * IhmNew();
  * @retval 0 If the start worked
  * @retval -1 If the start didn't work
  */
-extern int IhmStart(Ihm * ihm);
+extern int IhmStart();
 
 /**
  * @brief Ihm singleton stopper
@@ -78,7 +78,7 @@ extern int IhmStart(Ihm * ihm);
  * @retval 0 If the object stopped properly
  * @retval -1 If the object didn't stopped properly
  */
-extern int IhmStop(Ihm * ihm);
+extern int IhmStop();
 
 /**
  * @brief Ihm singleton destructor
@@ -86,6 +86,6 @@ extern int IhmStop(Ihm * ihm);
  * @retval 0 If the destruction worked
  * @retval -1 if the destruction didn't work
  */
-extern int IhmFree(Ihm * ihm);
+extern int IhmFree();
 
 #endif //IHM_H
