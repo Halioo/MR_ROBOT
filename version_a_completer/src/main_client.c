@@ -15,14 +15,7 @@
  */
 int main (int argc, char *argv[])
 {
-<<<<<<< 57307e2cfd59915ce32ccb843a4519e237e690de
-//    Ihm * monIhm = IhmNew();
-//    IhmStart(monIhm);
-//    IhmStop(monIhm);
-//    IhmFree(monIhm);
-    RemoteUI * myRemoteUI = RemoteUI_new();
-    RemoteUI_start(myRemoteUI);
-=======
+
     /*Ihm * monIhm = IhmNew();
     IhmStart(monIhm);
     IhmStop(monIhm);
@@ -44,7 +37,6 @@ int main (int argc, char *argv[])
 
     PostmanTelco_stop();
 
->>>>>>> début de main_client
 
 
     return 0;
