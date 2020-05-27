@@ -5,6 +5,10 @@
 #ifndef MR_ROBOT_IHM_H
 #define MR_ROBOT_IHM_H
 
+#ifndef LANG
+#define LANG ENGLISH
+#endif
+
 #include "../../lib/include/util.h"
 #include "adminui.h"
 #include "messages.h"
