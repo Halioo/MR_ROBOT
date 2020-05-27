@@ -5,9 +5,7 @@
 #ifndef MR_ROBOT_POSTMANTELCO_H
 #define MR_ROBOT_POSTMANTELCO_H
 
-extern int PostmanTelco_new();
-
-extern int PostmanTelco_start();
+extern int PostmanTelco_start(char * ip);
 
 extern int PostmanTelco_getSocketComm();
 

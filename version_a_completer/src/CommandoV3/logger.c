@@ -99,11 +99,6 @@ static void ActionStopPolling(Logger * this);
 static void ActionPoll(Logger * this);
 
 
-/* ----------------------- EVENT FUNCTIONS ----------------------- */
-
-static void Logger_EventTOPoll(Logger * this);
-
-
 /*----------------------- OTHER FUNCTIONS PROTOTYPES -----------------------*/
 
 /**
@@ -186,10 +181,9 @@ extern void Logger_stopPolling(Logger * this) {
 }
 
 
-extern void Logger_EventTOPoll(Logger * this) {
-
+extern void Logger_quit(Logger * this){
     Wrapper wrapper = {
-            .data.event = E_TO_POLL
+            .data.event = E_KILL
     };
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
@@ -397,7 +391,7 @@ extern void Logger_askEvents(int from,int to, Logger * this){
 }
 
 extern void Logger_askEventsCount(Logger * this){
-    int nbEvent = Logger_getEventsCount(this->myEvents);
+    int nbEvent = Logger_getEventsCount(this);
     RemoteUI_setEventsCount(nbEvent);
 }
 
@@ -482,7 +476,7 @@ extern void Logger_test(Logger * this)
     Logger_appendEvent(aled6,this);
     Logger_appendEvent(aled7,this);
 
-    int count = Logger_getEventsCount(this->myEvents);
+    int count = Logger_getEventsCount(this);
 
     int from = 3;
     int to = 6;

@@ -16,6 +16,7 @@
 int main (int argc, char *argv[])
 {
     Robot_start(); // appelle Robot new
+
     Pilot * myPilot = Pilot_new();
     Pilot_Start(myPilot);
 

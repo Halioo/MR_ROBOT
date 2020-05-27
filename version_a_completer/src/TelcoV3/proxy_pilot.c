@@ -25,3 +25,12 @@ extern void Pilot_ToggleES(Pilot * this){
     };
     sendNwk(PostmanTelco_getSocketComm(),msgToSend);
 }
+
+
+extern void Pilot_quit(Pilot * this) {
+    RQ_data msgToSend = {
+            .rq_type = RQ_QUIT
+    };
+    sendNwk(PostmanTelco_getSocketComm(),msgToSend);
+}
+

@@ -62,6 +62,9 @@ extern int Pilot_Stop(Pilot * this);
  */
 extern Pilot * Pilot_new();
 
+extern void Pilot_quit(Pilot * this);
+
+
 /**
  * destruct the object Pilot from memory 
  */

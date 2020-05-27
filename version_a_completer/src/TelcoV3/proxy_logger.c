@@ -22,4 +22,3 @@ extern void Logger_askEventsCount(Logger * this){
     sendNwk(PostmanTelco_getSocketComm(),msgToSend);
 }
 
-
