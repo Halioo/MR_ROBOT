@@ -91,45 +91,51 @@ wrapperOf(Msg)
 /**
  * @brief Structure of the Ihm object
  */
-struct Ihm_t {
-    pthread_t threadId; ///< Pthread identifier for the active function of the class.
-    STATE state;        ///< Actual STATE of the STATE machine
-    Msg msg;            ///< Structure used to pass parameters to the functions pointer.
-    char nameTask[SIZE_TASK_NAME]; ///< Name of the task
-    Mailbox * mb;
 
-    AdminUI * adminUi;
-    Logger *logger;
-};
+pthread_t threadId; ///< Pthread identifier for the active function of the class.
+pthread_t secondaryThread;
+STATE state;        ///< Actual STATE of the STATE machine
+Msg msg;            ///< Structure used to pass parameters to the functions pointer.
+char nameTask[SIZE_TASK_NAME]; ///< Name of the task
+Mailbox * mb;
+
+AdminUI * adminUi;
+Logger *logger;
+
+
+/**
+ * Retourne le string correspondant au type de message
+ * passé en paramètre
+ */
+static const char * get_appMsg(TYPES_MSG type_msg) {
+    return appMsg[type_msg][LANG];
+}
 
 /*------------- ACTION functions -------------*/
 // TODO : put here all the ACTION functions prototypes
 /**
  * @brief Function called when nothing needs to be done
  */
-static void ActionNop(Ihm * this);
+static void ActionNop();
 
-//static void ActionStartPolling(Ihm *this);
 
-//static void ActionStopPolling(Ihm *this);
+static void ActionDisplayMainScreen();
 
-static void ActionDisplayMainScreen(Ihm *this);
-
-static void ActionDisplayLogScreen(Ihm *this);
+static void ActionDisplayLogScreen();
 
 
 
 /**
  * @brief Changes the STATE of the STATE machine to S_DEATH
  */
-static void ActionKill(Ihm * this);
+static void ActionKill();
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
 /**
  * @def Function pointer used to call the ACTIONs of the STATE machine.
  */
-typedef void (*ActionPtr)(Ihm*);
+typedef void (*ActionPtr)(void);
 
 /**
  * @brief Function pointer array used to call the ACTIONs of the STATE machine.
@@ -181,58 +187,89 @@ static void initScreen() {
     refresh();
 }
 
-/*static void ActionStartPolling(Ihm *this){
-    this->logger=Logger_new();
-    Logger_start(this->logger);
-    Logger_startPolling(this->logger);
+/*static void ActionStartPolling(){
+    logger=Logger_new();
+    Logger_start(logger);
+    Logger_startPolling(logger);
 }
 
-static void ActionStopPolling(Ihm *this){
-    Logger_stopPolling(this->logger);
-    Logger_stop(this->logger);
-    Logger_free(this->logger);
+static void ActionStopPolling(){
+    Logger_stopPolling(logger);
+    Logger_stop(logger);
+    Logger_free(logger);
 }
 */
 
-static void ActionDisplayMainScreen(Ihm*this){
+static void ActionDisplayMainScreen(){
     TRACE("ActionDisplayMainScreen\n")
-    //TODO faire l'écran
+    clear();
+    mvprintw(2, 2, " :stop");
+    mvprintw(3, 2, "r: afficher les logs");
+    mvprintw(4, 2, "a: quitter");
+
+    noecho();
+    int c = 0;
+
+    while (c != 'r' && c != 'a') {
+        c = getch();
+        switch ((char)c) {
+            case 'r':
+                AdminUI_GoScreenLog(adminUi);
+            case ' ':
+                AdminUI_ToggleES(adminUi);
+            case 'a':
+                AdminUI_Quit(adminUi);
+            default: break;
+        }
+    }
 }
 
-static void ActionDisplayLogScreen(Ihm*this){
+static void ActionDisplayLogScreen(){
     TRACE("ActionDisplayLogScreen\n")
-    //TODO faire l'écran
+    Liste * events = AdminUI_getEvents(adminUi);
+    LogEvent event;
+    int row = 2;
+    clear();
+    while(events->premier->indice > INDICE_INITIAL){
+        event = events->premier->logEvent;
+        mvprintw(row, 2, get_appMsg(MSG_LOGS), event.speed, event.sens.collision_f, event.sens.luminosity);
+        events->premier = events->premier->suivant;
+        row++;
+    }
+
+    refresh();
 }
 
-static void ActionNop(Ihm * this) {
-    TRACE("[%s] - ActionNop\n", this->nameTask)
+static void ActionNop() {
+    TRACE("[%s] - ActionNop\n", nameTask)
 }
 
-static void ActionKill(Ihm * this) {
-    TRACE("[%s] - ActionKill\n", this->nameTask)
-    this->state = S_DEATH;
+static void ActionKill() {
+    TRACE("[%s] - ActionKill\n", nameTask)
+    state = S_DEATH;
 }
+
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 // TODO : write the events functions
 
 
-extern void IhmDisplayMainScreen(Ihm * this) {
+extern void IhmDisplayMainScreen() {
     Wrapper wrapper;
     wrapper.data.event = E_DISPLAY_MAIN_SCREEN;
-    mailboxSendMsg(this->mb, wrapper.toString);
+    mailboxSendMsg(mb, wrapper.toString);
 }
 
-extern void IhmDisplayLogScreen(Ihm * this) {
+extern void IhmDisplayLogScreen() {
     Wrapper wrapper;
     wrapper.data.event = E_DISPLAY_LOG_SCREEN;
-    mailboxSendMsg(this->mb, wrapper.toString);
+    mailboxSendMsg(mb, wrapper.toString);
 }
 
-extern void IhmQuit(Ihm *this){
+extern void IhmQuit(){
     Wrapper wrapper;
     wrapper.data.event = E_QUIT;
-    mailboxSendMsg(this->mb, wrapper.toString);
+    mailboxSendMsg(mb, wrapper.toString);
 }
 
 /* ----------------------- RUN FUNCTION ----------------------- */
@@ -240,31 +277,32 @@ extern void IhmQuit(Ihm *this){
 /**
  * @brief Main running function of the Ihm class
  */
-static void IhmRun(Ihm * this) {
+static void IhmRun() {
     ACTION action;
-    STATE state;
+    STATE next_state;
     Wrapper wrapper;
 
-    this->state = S_IDLE;
+    next_state = S_IDLE;
 
-    while (this->state != S_DEATH) {
-        mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
+    while (state != S_DEATH) {
+        mailboxReceive(mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
         if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
-            this->state = S_DEATH;
+            state = S_DEATH;
 
         } else {
-            action = stateMachine[this->state][wrapper.data.event].action;
+            action = stateMachine[state][wrapper.data.event].action;
 
             TRACE("Action %s\n", ACTION_toString[action])
 
-            state = stateMachine[this->state][wrapper.data.event].nextState;
-            TRACE("State %s\n", STATE_toString[state])
+            next_state = stateMachine[state][wrapper.data.event].nextState;
+            TRACE("State %s\n", STATE_toString[next_state])
 
-            if (state != S_FORGET) {
-                this->msg = wrapper.data;
-                actionPtr[action](this);
-                this->state = state;
+            if (next_state != S_FORGET) {
+                msg = wrapper.data;
+                pthread_create(&(secondaryThread), NULL, (void *) actionPtr[action], NULL);
+                state = next_state;
+                pthread_join(secondaryThread, NULL);
             }
         }
     }
@@ -272,60 +310,56 @@ static void IhmRun(Ihm * this) {
 
 /* ----------------------- NEW START STOP FREE -----------------------*/
 
-Ihm * IhmNew(AdminUI * adminUi) {
+IhmNew(AdminUI * adminUi_ext) {
     ihmCounter ++; ///< Incrementing the instances counter.
     TRACE("IhmNew function \n")
-    Ihm * this = (Ihm *) malloc(sizeof(Ihm));
-    this->mb = mailboxInit("Ihm", ihmCounter, sizeof(Msg));
-    int err = sprintf(this->nameTask, NAME_TASK, ihmCounter);
+    mb = mailboxInit("Ihm", ihmCounter, sizeof(Msg));
+    int err = sprintf(nameTask, NAME_TASK, ihmCounter);
     STOP_ON_ERROR(err < 0, "Error when setting the tasks name.")
 
-    this->adminUi = adminUi;
+    adminUi = adminUi_ext;
 
     initScreen();
-
-    return this; // TODO: Handle the errors
-}
-
-
-int IhmStart(Ihm * this) {
-    // TODO : start the object with it particularities
-    TRACE("IhmStart function \n")
-    int err = pthread_create(&(this->threadId), NULL, (void *) IhmRun, this);
-    STOP_ON_ERROR(err != 0, "Error when creating the thread")
-
-    IhmDisplayMainScreen(this);
 
     return 0; // TODO: Handle the errors
 }
 
 
-int IhmStop(Ihm * this) {
+int IhmStart() {
+    // TODO : start the object with it particularities
+    TRACE("IhmStart function \n")
+    int err = pthread_create(&(threadId), NULL, (void *) IhmRun, NULL);
+    STOP_ON_ERROR(err != 0, "Error when creating the thread")
+
+    IhmDisplayMainScreen();
+
+    return 0; // TODO: Handle the errors
+}
+
+
+int IhmStop() {
     // TODO : stop the object with it particularities
-    Msg msg = { .event = E_KILL };
 
     Wrapper wrapper;
-    wrapper.data = msg;
+    wrapper.data.event = E_KILL;
 
-    mailboxSendStop(this->mb, wrapper.toString);
+    mailboxSendStop(mb, wrapper.toString);
     TRACE("Waiting for the thread to terminate \n")
 
-    int err = pthread_join(this->threadId, NULL);
+    int err = pthread_join(threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
 
     return 0; // TODO: Handle the errors
 }
 
 
-int IhmFree(Ihm * this) {
+int IhmFree() {
     // TODO : free the object with it particularities
     TRACE("IhmFree function \n")
 
     endwin();
 
-    mailboxClose(this->mb);
-
-    free(this);
+    mailboxClose(mb);
 
     return 0; // TODO: Handle the errors
 }

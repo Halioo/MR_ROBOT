@@ -412,8 +412,9 @@ static void updateEvents(AdminUI * this){
 
 }
 
-
-
+extern Liste * AdminUI_getEvents(AdminUI * this) {
+    return this->myEvents;
+}
 
 
 

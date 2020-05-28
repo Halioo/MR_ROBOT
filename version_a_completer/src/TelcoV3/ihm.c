@@ -330,7 +330,19 @@ static void ActionDisplayMain() {
     }
     TRACE("LE THREAD A FINI NJBGEABHFEVBHLFBEHJZ\n")
 }
-static void ActionDisplayLog() {}
+static void ActionDisplayLog() {
+    Liste * events = RemoteUI_getEvents(remoteUi);
+    LogEvent event;
+    int row = 2;
+    clear();
+    while(events->premier->indice > INDICE_INITIAL){
+        event = events->premier->logEvent;
+        mvprintw(row, 2, get_appMsg(MSG_LOGS), event.speed, event.sens.collision_f, event.sens.luminosity);
+        events->premier = events->premier->suivant;
+        row++;
+    }
+    refresh();
+}
 
 static void ActionNop() {
     TRACE("[%s] - ActionNop\n", nameTask)

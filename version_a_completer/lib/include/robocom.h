@@ -47,7 +47,7 @@ typedef struct
 typedef struct {
     SensorState sens;
     int speed;
-}LogEvent;
+} LogEvent;
 
 typedef struct {
     RQ_TYPE rq_type;

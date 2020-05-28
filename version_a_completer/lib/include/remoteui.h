@@ -93,4 +93,6 @@ extern void RemoteUI_setEvents(Liste * myEvents);
 
 extern void RemoteUI_setEventsCount(int nbEvents);
 
+extern Liste * RemoteUI_getEvents(RemoteUI*);
+
 #endif /* REMOTEUI_H */
