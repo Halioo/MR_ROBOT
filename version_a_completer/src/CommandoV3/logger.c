@@ -260,15 +260,15 @@ extern Logger * Logger_new() {
 }
 
 extern void Logger_start(Logger * this) {
-    int err = pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
+    pthread_create(&(this->threadId),NULL,(void *)Logger_Run, this);
     TRACE("[Logger] START \n")
 
 }
 
 extern void Logger_stop(Logger * this) {
-    Wrapper wrapper;
-    wrapper.data.event = E_KILL;
-    mailboxSendMsg(this->mailbox,wrapper.toString);
+//    Wrapper wrapper;
+//    wrapper.data.event = E_KILL;
+//    mailboxSendMsg(this->mailbox,wrapper.toString);
 
     WatchdogCancel(this->watchdogPoll);
     pthread_join(this->threadId,NULL);

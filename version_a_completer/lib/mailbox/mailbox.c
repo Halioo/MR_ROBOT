@@ -114,7 +114,7 @@ extern void mailboxSendMsg(Mailbox * this, char * msg) {
         }
         exit(EXIT_FAILURE);
     }else{
-        TRACE("[MAILBOX] Sending message to the mailbox %s\n", this->queueName)
+//        TRACE("[MAILBOX] Sending message to the mailbox %s\n", this->queueName)
     }
 }
 
@@ -148,6 +148,6 @@ extern void mailboxReceive(Mailbox * this, char * msg) {
         }
         exit((EXIT_FAILURE));
     }else {
-        TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
+//        TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
     }
 }

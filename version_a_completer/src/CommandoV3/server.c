@@ -13,7 +13,9 @@
 #include "../../lib/include/robocom.h"
 
 #include "server.h"
-#include "../../lib/include/pilot.h"
+//#include "../../lib/include/pilot.h"
+#include "pilot.h"
+
 #include "commands_functions.h"
 
 

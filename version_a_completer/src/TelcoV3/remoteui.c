@@ -5,11 +5,11 @@
 #include <pthread.h>
 #include "mailbox.h"
 
-#include "pilot.h"
+//#include "pilot.h"
+#include "proxy_pilot.h"
 #include "remoteui.h"
 #include "ihm.h"
 #include "liste_chainee.h"
-#include "pilot.h"
 #include "logger.h"
 #include "postmanTelco.h"
 
@@ -304,13 +304,13 @@ extern void Wd_timeout(Watchdog * wd, void * caller) {
 
 static void Entry_connectScreen(RemoteUI * this) {
     memset(this->myIP, 0, sizeof(this->myIP));
-    Ihm_displayScreen(SCREEN_CONNECT);
+//    Ihm_displayScreen(SCREEN_CONNECT);
 }
 static void Entry_mainScreen(RemoteUI * this) {
-    Ihm_displayScreen(SCREEN_MAIN);
+//    Ihm_displayScreen(SCREEN_MAIN);
 }
 static void Entry_logScreen(RemoteUI * this) {
-    Ihm_displayScreen(SCREEN_LOG);
+//    Ihm_displayScreen(SCREEN_LOG);
     WatchdogStart(this->wd);
     updateEvents(this);
 }
@@ -347,16 +347,18 @@ static void ActionInit(RemoteUI * this) {
 static void ActionSetIp(RemoteUI * this) {
     TRACE("[%s] ACTION - setIP\n", this->nameTask)
     strcpy(this->myIP, this->msg.ip);
+    PostmanTelco_createNwkClient(this->myIP);
 }
 
 static void ActionConnect(RemoteUI * this) {
     TRACE("[%s] ACTION - connect\n", this->nameTask)
     int test = PostmanTelco_connectClient(PostmanTelco_getSocketComm());
+    TRACE("test : %d\n",test)
     Wrapper wrapper;
-    if(test < 0) {
-        wrapper.data.event = E_CONNECT_FAILURE;
-    } else{
+    if(test == 0) {
         wrapper.data.event = E_CONNECT_SUCCESS;
+    } else{
+        wrapper.data.event = E_CONNECT_FAILURE;
 
     }
     mailboxSendMsg(this->mb,wrapper.toString);
@@ -372,20 +374,20 @@ static void ActionConnectSuccess(RemoteUI * this) {
 
 static void ActionConnectFailure(RemoteUI * this) {
     TRACE("[%s] ACTION - connect failure\n", this->nameTask)
-    Ihm_displayScreen(SCREEN_ERROR);
+//    Ihm_displayScreen(SCREEN_ERROR);
 }
 
 static void ActionSetDir(RemoteUI * this) {
     TRACE("[%s] ACTION - setDir\n", this->nameTask)
     this->vel = translateDir(this->msg.dir);
     Pilot * unused;
-    Pilot_setRobotVelocity(unused,this->vel);
+    Proxy_pilot_setRobotVelocity(unused,this->vel);
 }
 
 static void ActionToggleES(RemoteUI * this) {
     TRACE("[%s] ACTION - toggleES\n", this->nameTask)
     Pilot * unused;
-    Pilot_ToggleES(unused);
+    Proxy_pilot_ToggleES(unused);
 }
 
 static void ActionAfterOneSec(RemoteUI * this) {
@@ -497,10 +499,10 @@ extern int RemoteUI_start(RemoteUI * this)
  */
 extern int RemoteUI_stop(RemoteUI * this) {
 
-    Wrapper wrapper;
-    wrapper.data.event = E_KILL;
-    WatchdogCancel(this->wd);
-    mailboxSendStop(this->mb, wrapper.toString);
+//    Wrapper wrapper;
+//    wrapper.data.event = E_KILL;
+//    WatchdogCancel(this->wd);
+//    mailboxSendStop(this->mb, wrapper.toString);
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")

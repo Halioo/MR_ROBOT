@@ -12,6 +12,7 @@ static int socketCommunication;
 
 extern int PostmanCommando_createNetwork(){
     socketServeur = createNwk(SERVER_PORT);
+    TRACE("Socket serveur : %d\n",socketServeur)
     return socketServeur;
 }
 

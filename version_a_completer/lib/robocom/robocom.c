@@ -61,7 +61,6 @@ extern int createNwk(int nwkPort) {
 }
 
 extern int createNwkClient(char * nwkIp, int nwkPort) {
-    struct sockaddr_in serverAddr;
     int connectSocket = socket(AF_INET, SOCK_STREAM, 0); // TODO error handling
 
     serverAddr.sin_family = AF_INET;
@@ -72,8 +71,12 @@ extern int createNwkClient(char * nwkIp, int nwkPort) {
 }
 
 extern int connectNwkClient(int socket){
-    int test = connect(socket, (SA*)&serverAddr, sizeof(serverAddr)); // TODO error handling
-    TRACE("Network connecté")
+    int test = connect(socket, (SA*)&serverAddr, sizeof(serverAddr));
+
+    if (test == -1){
+        perror("erreur connect\n");
+    }
+    TRACE("Network connecté\n")
     return test;
 }
 

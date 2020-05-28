@@ -7,7 +7,8 @@
 
 #include "../../lib/include/robocom.h"
 
-#include "../../lib/include/pilot.h"
+//#include "../../lib/include/pilot.h"
+#include "pilot.h"
 
 extern void ask_mvt(DIRECTION dir);
 extern void ask4log(void);

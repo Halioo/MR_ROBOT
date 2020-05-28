@@ -4,7 +4,7 @@ file(GLOB_RECURSE CLIENT_src "TelcoV3/*.c" "TelcoV3/*.h")
 
 add_executable(client main_client.c
     ${CLIENT_src}
-)
+        TelcoV3/proxy_pilot.h)
 add_executable(server main_server.c
     ${SERVER_src}
         CommandoV3/ihm.c CommandoV3/ihm.h)

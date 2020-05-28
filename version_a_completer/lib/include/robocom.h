@@ -12,7 +12,7 @@
 
 #define SA struct sockaddr
 
-#define SERVER_PORT 12345
+#define SERVER_PORT (1234)
 #define MAX_PENDING_CONNECTIONS (5)
 
 #define DEFAULT_POWER_FWD 80

@@ -7,7 +7,8 @@
 #include "../../lib/include/robocom.h"
 #include "../../lib/include/mailbox.h"
 #include "../../lib/include/logger.h"
-#include "../../lib/include/pilot.h"
+//#include "../../lib/include/pilot.h"
+#include "pilot.h"
 
 static int adminUIcounter = 0;
 
@@ -356,10 +357,10 @@ extern int AdminUI_start(AdminUI * this)
  * Stop AdminUI
  */
 extern int AdminUI_stop(AdminUI * this) {
-    Wrapper wrapper;
-    wrapper.data.event = E_KILL;
-    WatchdogCancel(this->watchdogLog);
-    mailboxSendStop(this->mailbox, wrapper.toString);
+//    Wrapper wrapper;
+//    wrapper.data.event = E_KILL;
+//    WatchdogCancel(this->watchdogLog);
+//    mailboxSendStop(this->mailbox, wrapper.toString);
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")

@@ -195,7 +195,6 @@ static void ActionKill(Dispatcher * this) {
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
-
 static void processData(Dispatcher * this){
 
     RQ_Wrapper wrapper;
@@ -292,22 +291,21 @@ Dispatcher * Dispatcher_New(RemoteUI * myRemoteUI) {
 
 
 int Dispatcher_Start(Dispatcher * this) {
-    TRACE("ExampleStart function \n")
     int err = pthread_create(&(this->threadId), NULL, (void *) DispatcherRun, this);
     STOP_ON_ERROR(err != 0, "Error when creating the thread")
+    TRACE("[%s] START \n",this->nameTask)
 
     return 0; // TODO: Handle the errors
 }
 
 
 int Dispatcher_Stop(Dispatcher * this) {
-    Msg msg = { .event = E_KILL };
-
-    Wrapper wrapper;
-    wrapper.data = msg;
-
-    mailboxSendStop(this->mailboxEvents, wrapper.toString);
-    TRACE("Waiting for the thread to terminate \n")
+//    Msg msg = { .event = E_KILL };
+//    Wrapper wrapper;
+//    wrapper.data = msg;
+//
+//    mailboxSendStop(this->mailboxEvents, wrapper.toString);
+    TRACE("[Dipatcher server] Waiting for the thread to terminate \n")
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")
@@ -317,7 +315,6 @@ int Dispatcher_Stop(Dispatcher * this) {
 
 
 int Dispatcher_Free(Dispatcher * this) {
-    TRACE("ExampleFree function \n")
     mailboxClose(this->mailboxEvents);
     mailboxClose(this->mailboxMessagesADecoder);
 

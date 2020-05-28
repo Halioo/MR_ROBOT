@@ -162,10 +162,8 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = {
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
-// TODO : Write all the ACTION functions
-
 static void ActionStartThreadListening(Dispatcher * this) {
-    TRACE("Start Listening Dispatcher \n")
+    TRACE("[%s] Start Listening Dispatcher \n",this->nameTask)
     this->flagListening = DOWN;
     pthread_create(&(this->threadListening), NULL, (void *) Listen, this);
 }
@@ -192,13 +190,24 @@ static void ActionKill(Dispatcher * this) {
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
 
+extern void Dispatcher_startListening(Dispatcher * this){
+    Wrapper wrapper;
+    wrapper.data.event = E_START_LISTENING;
+    mailboxSendMsg(this->mailboxEvents,wrapper.toString);
+}
+
+extern void Dispatcher_stopListening(Dispatcher * this){
+    Wrapper wrapper;
+    wrapper.data.event = E_STOP_LISTENING;
+    mailboxSendMsg(this->mailboxEvents,wrapper.toString);
+}
 
 static void processData(Dispatcher * this){
 
     RQ_Wrapper wrapper;
     mailboxReceive(this->mailboxMessagesADecoder,wrapper.toString);
     RQ_TYPE request_type = wrapper.request.rq_type;
-
+    TRACE("[DISPATCHER] Message lu BAL : %d\n",wrapper.request.rq_type)
     switch (request_type) {
         case (RQ_SET_VEL):
             Pilot_setRobotVelocity(this->myPilot,wrapper.request.vel);
@@ -235,6 +244,7 @@ static void Listen(Dispatcher * this){
     RQ_Wrapper wrapperData;
     while(this->flagListening == DOWN){
         msgLu = readNwk(PostmanCommando_getSocketComm());
+        TRACE("[DISPATCHER] : Message reçu : %d\n",msgLu.rq_type)
         wrapperData.request = msgLu;
         mailboxSendMsg(this->mailboxMessagesADecoder,wrapperData.toString);
 
@@ -267,10 +277,10 @@ static void DispatcherRun(Dispatcher * this) {
         } else {
             action = stateMachine[this->state][wrapper.data.event].action;
 
-            TRACE("Action %s\n", ACTION_toString[action])
+            TRACE("[DISPATCHER] Action %s\n", ACTION_toString[action])
 
             state = stateMachine[this->state][wrapper.data.event].nextState;
-            TRACE("State %s\n", STATE_toString[state])
+            TRACE("[DISPATCHER] State %s\n", STATE_toString[state])
 
             if (state != S_FORGET) {
                 this->msg = wrapper.data;
@@ -294,17 +304,20 @@ Dispatcher * Dispatcher_New(Pilot * myPilot, Logger * myLogger) {
 
     int err = sprintf(this->nameTask, NAME_TASK, dispatcherCounter);
     STOP_ON_ERROR(err < 0, "Error when setting the tasks name.")
-    createNwk(SERVER_PORT);
 
+    PostmanCommando_createNetwork(SERVER_PORT);
 
     return this;
 }
 
 
 int Dispatcher_Start(Dispatcher * this) {
+    PostmanCommando_accept();
+
     int err = pthread_create(&(this->threadId), NULL, (void *) DispatcherRun, this);
     STOP_ON_ERROR(err != 0, "Error when creating the thread")
-    TRACE("[Dispatcher] START \n")
+
+    TRACE("[Dispatcher server] START \n")
 
     return 0;
 }
@@ -312,10 +325,10 @@ int Dispatcher_Start(Dispatcher * this) {
 
 int Dispatcher_Stop(Dispatcher * this) {
 
-    Msg messsage = { .event = E_KILL };
-    Wrapper wrapper;
-    wrapper.data = messsage;
-    mailboxSendStop(this->mailboxEvents, wrapper.toString);
+//    Msg messsage = { .event = E_KILL };
+//    Wrapper wrapper;
+//    wrapper.data = messsage;
+//    mailboxSendStop(this->mailboxEvents, wrapper.toString);
 
     int err = pthread_join(this->threadId, NULL);
     STOP_ON_ERROR(err != 0, "Error when waiting for the thread to end")

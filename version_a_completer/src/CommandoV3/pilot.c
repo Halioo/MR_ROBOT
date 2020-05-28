@@ -3,7 +3,9 @@
 #include <assert.h>
 
 #include "../../lib/include/util.h"
-#include "../../lib/include/pilot.h"
+//#include "../../lib/include/pilot.h"
+#include "pilot.h"
+
 #include "robot.h"
 #include "../../lib/include/mailbox.h"
 #include "../../lib/include/watchdog.h"
@@ -309,11 +311,9 @@ extern void Pilot_setRobotVelocity(Pilot * this, VelocityVector vel) {
         .event = E_SET_ROBOT_VELOCITY,
         .vel = vel
     };
-
     Wrapper wrapper = {
         .data = msg
     };
-
     mailboxSendMsg(this->mailbox,wrapper.toString);
 }
 
@@ -374,15 +374,16 @@ static void Pilot_Run(Pilot * this) {
 
     while (this->myState != S_DEATH) {
         mailboxReceive(this->mailbox,wrapper.toString); ///< On reçoit un message de la mailbox
-
+        TRACE("[PILOT RUN] Event lu dans la BAL : %s\n",EVENT_toString[wrapper.data.event])
+        TRACE("[PILOT RUN] State : %s\n",STATE_toString[this->myState])
         if(wrapper.data.event == E_KILL){
             this->myState = S_DEATH;
         }
         else{
-            action = stateMachine[state][wrapper.data.event].action;
+            action = stateMachine[this->myState][wrapper.data.event].action;
             TRACE("Action %s\n", ACTION_toString[action])
 
-            state = stateMachine[state][wrapper.data.event].nextState;
+            state = stateMachine[this->myState][wrapper.data.event].nextState;
             TRACE("State %s\n", STATE_toString[state])
 
             if(state != S_FORGET){
@@ -420,10 +421,10 @@ int Pilot_Start(Pilot * this) {
 
 
 int Pilot_Stop(Pilot * this) {
-    Wrapper wrapper;
-    wrapper.data.event = E_KILL;
-    mailboxSendMsg(this->mailbox,wrapper.toString);
-    WatchdogCancel(this->watchdogBump);
+//    Wrapper wrapper;
+//    wrapper.data.event = E_KILL;
+//    mailboxSendMsg(this->mailbox,wrapper.toString);
+//    WatchdogCancel(this->watchdogBump);
 
     pthread_join(this->threadId,NULL);
     TRACE("[Pilot] STOP \n")

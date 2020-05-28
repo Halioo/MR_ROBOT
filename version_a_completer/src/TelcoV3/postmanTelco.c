@@ -13,8 +13,8 @@ extern int PostmanTelco_createNwkClient(char * ip){
     return socketCommunication;
 }
 
-extern int PostmanTelco_connectClient(int socket){
-    int test = connectNwkClient(socket);
+extern int PostmanTelco_connectClient(){
+    int test = connectNwkClient(socketCommunication);
     return test;
 }
 

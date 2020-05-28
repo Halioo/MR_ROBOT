@@ -6,7 +6,8 @@
 #define ADMINUI_H
 
 #include "../../lib/include/util.h"
-#include "../../lib/include/pilot.h"
+//#include "../../lib/include/pilot.h"
+#include "pilot.h"
 #include "../../lib/include/logger.h"
 
 typedef struct AdminUI_t AdminUI;
