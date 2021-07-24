@@ -38,7 +38,7 @@ then
   echo "-----STARTING SIMULATOR-----"
   java -jar "$DIRPATH"/intox-java_1.8-v0.3.6.jar &
   echo ">Waiting for simulator to launch..."
-  sleep 1
+  sleep 2
 fi
 
 
